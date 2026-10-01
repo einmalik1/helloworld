@@ -1,0 +1,54 @@
+components:
+  - id: api
+    label: component-api
+    paths:
+      - apps/api
+      - infra/postgres
+      - infra/s3
+    rules: components/api.md
+  - id: worker
+    label: component-worker
+    paths:
+      - apps/worker
+    rules: components/worker.md
+  - id: mcp
+    label: component-mcp
+    paths:
+      - apps/mcp
+    rules: components/mcp.md
+  - id: web
+    label: component-web
+    paths:
+      - apps/web
+    rules: components/web.md
+  - id: docs
+    label: component-docs
+    paths:
+      - apps/docs
+    rules: components/docs.md
+  - id: storybook
+    label: component-storybook
+    paths:
+      - apps/storybook
+    rules: components/storybook.md
+  - id: cli
+    label: component-cli
+    paths:
+      - tools/cli
+    rules: components/cli.md
+  - id: tui
+    label: component-tui
+    paths:
+      - tools/tui
+    rules: components/tui.md
+  - id: tests
+    label: component-tests
+    paths:
+      - tests
+    rules: components/tests.md
+
+architecture:
+  enabled: true
+  id: architecture
+  label: component-architecture
+  rules: architecture.md

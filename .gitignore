@@ -1,0 +1,26 @@
+# Dependencies / install
+node_modules/
+.pnpm-store/
+
+# Env (single root file only — never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Build / tooling
+dist/
+build/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Logs / temp
+*.log
+tmp/
+.cache/

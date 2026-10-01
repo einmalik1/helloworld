@@ -1,0 +1,10 @@
+{
+  "name": "@helloworld/config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./tsconfig": "./tsconfig.base.json",
+    "./vitest": "./vitest.config.ts",
+    "./oxlint": "./oxlintrc.json"
+  }
+}

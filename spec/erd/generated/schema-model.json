@@ -1,0 +1,70 @@
+{
+  "generatedAt": "2026-10-01T12:27:35.517Z",
+  "sourceFile": "spec/erd/schema.sql",
+  "tables": [
+    {
+      "name": "greetings",
+      "category": "core",
+      "label": "Greeting",
+      "spec": "spec/features/README.md",
+      "description": "Example greeting row for the template",
+      "columns": [
+        {
+          "name": "id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": true,
+          "hasDefault": true,
+          "defaultValue": "gen_random_uuid()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": true,
+          "comment": null
+        },
+        {
+          "name": "message",
+          "sqlType": "text",
+          "logicalType": "Text",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Display text of the greeting"
+        },
+        {
+          "name": "created_at",
+          "sqlType": "timestamptz",
+          "logicalType": "Timestamp (TZ)",
+          "nullable": false,
+          "hasDefault": true,
+          "defaultValue": "now()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": null
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniqueConstraints": [],
+      "checkConstraints": [],
+      "indexes": [],
+      "foreignKeys": []
+    }
+  ],
+  "edges": [],
+  "externalReferences": [],
+  "categories": [
+    {
+      "key": "core",
+      "label": "Core",
+      "color": "#2563eb",
+      "tables": [
+        "greetings"
+      ]
+    }
+  ]
+}

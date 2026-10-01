@@ -1,0 +1,1433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Hello World — ERD Viewer</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #f8fafc; --panel: #ffffff; --border: #e2e8f0; --text: #0f172a;
+    --muted: #64748b; --accent: #2563eb; --accent-soft: #eff6ff;
+    --cat-fallback: #64748b;
+    --cat-core: #2563eb;
+  }
+  .cat-core { color: var(--cat-core); }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+  header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; gap: 24px; align-items: baseline; flex-wrap: wrap; position: sticky; top: 0; z-index: 10; }
+  header h1 { font-size: 18px; margin: 0; }
+  header .stats { color: var(--muted); font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap; }
+  nav { display: flex; gap: 4px; padding: 12px 24px 0; flex-wrap: wrap; }
+  nav button { border: 1px solid var(--border); background: var(--panel); padding: 8px 14px; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 13px; }
+  nav button.active { background: var(--accent); color: white; border-color: var(--accent); }
+  main { padding: 0 24px 48px; }
+  section.view { display: none; background: var(--panel); border: 1px solid var(--border); border-radius: 0 12px 12px 12px; padding: 24px; }
+  section.view.active { display: block; }
+  h2.cat-heading { font-size: 16px; margin: 28px 0 10px; border-bottom: 2px solid currentColor; padding-bottom: 4px; }
+  h2.cat-heading:first-child { margin-top: 0; }
+  .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .card { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: border-color .15s; }
+  .card:hover { border-color: var(--accent); }
+  .card h3 { margin: 0 0 4px; font-size: 14px; font-family: ui-monospace, monospace; }
+  .card .meta { font-size: 12px; color: var(--muted); }
+  table.fields { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  table.fields th, table.fields td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  table.fields th { background: var(--accent-soft); font-weight: 600; }
+  table.fields td.mono { font-family: ui-monospace, monospace; white-space: nowrap; }
+  .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px; border: 1px solid currentColor; margin-right: 4px; }
+  .diagram-host { margin-top: 14px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #ffffff; }
+  .diagram-toolbar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 8px 10px; border-bottom: 1px solid var(--border); background: var(--accent-soft); }
+  .diagram-toolbar button { border: 1px solid var(--border); background: var(--panel); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
+  .diagram-toolbar button:hover { border-color: var(--accent); }
+  .diagram-toolbar [data-zoom="fit"], .diagram-toolbar [data-zoom="reset"] { color: var(--muted); }
+  .diagram-toolbar [data-zoom="fit"]:hover, .diagram-toolbar [data-zoom="reset"]:hover { color: var(--accent); }
+  .diagram-toolbar .zoom-label { font-size: 12px; min-width: 44px; text-align: center; color: var(--muted); }
+  .layout-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-left: 4px; }
+  .layout-toggle button { border: none; border-radius: 0; padding: 4px 10px; font-size: 12px; background: var(--panel); }
+  .layout-toggle button + button { border-left: 1px solid var(--border); }
+  .layout-toggle button.active { background: var(--text); color: #ffffff; }
+  .theme-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-left: 4px; }
+  .theme-toggle button { border: none; border-radius: 0; padding: 4px 10px; font-size: 12px; background: var(--panel); }
+  .theme-toggle button + button { border-left: 1px solid var(--border); }
+  .theme-toggle button.active { background: var(--text); color: #ffffff; }
+  .diagram-box path.edge-highlight { stroke: #2563eb !important; stroke-width: 3.5px !important; }
+  .diagram-box path.edge-dim { opacity: 0.25; }
+  .diagram-box g.edgeLabel g.label.edge-dim-label { opacity: 0.25; }
+  .diagram-box g.edgeLabel g.label.edge-highlight-label rect { fill: #dbeafe !important; }
+  .diagram-box g.edgeLabel g.label.edge-highlight-label text, .diagram-box g.edgeLabel g.label.edge-highlight-label p, .diagram-box g.edgeLabel g.label.edge-highlight-label span { fill: #1e40af !important; color: #1e40af !important; }
+  .diagram-box path.relationshipLine { transition: opacity .15s, stroke-width .15s; }
+  .diagram-box g.edgeLabel, .diagram-box g.edgeLabel g.label { transition: opacity .15s; }
+  .diagram-box path.relationshipLine:hover { cursor: pointer; }
+  .diagram-box g.node { cursor: pointer; }
+  .diagram-box g.node:hover rect.basic, .diagram-box g.node.entity-active rect.basic { stroke: var(--accent) !important; stroke-width: 2.5px !important; filter: drop-shadow(0 3px 6px rgba(37, 99, 235, 0.35)); }
+  .diagram-box g.node rect.basic { transition: stroke .15s, filter .15s; }
+  .diagram-box g.node.entity-edge-active rect.basic { filter: drop-shadow(0 3px 6px rgba(37, 99, 235, 0.35)); }
+  .diagram-box g.node.entity-sat-dim { filter: saturate(0.1); }
+  .diagram-box g.node.entity-sat-dim g.label { opacity: 0.25; }
+  .diagram-box g.node { transition: filter .15s; }
+  .diagram-box g.node g.label { transition: opacity .15s; }
+  .entity-panel { position: absolute; z-index: 20; width: 300px; background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18); display: flex; flex-direction: column; }
+  .entity-panel-head { display: flex; align-items: baseline; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); background: var(--accent-soft); border-radius: 10px 10px 0 0; }
+  .entity-panel-head b { font-family: ui-monospace, monospace; font-size: 13px; }
+  .entity-panel-head span { font-size: 11px; color: var(--muted); flex: 1; }
+  .entity-panel-close { border: none; background: none; cursor: pointer; font-size: 16px; color: var(--muted); padding: 0 2px; line-height: 1; }
+  .entity-panel-close:hover { color: var(--text); }
+  .entity-panel-body { padding: 6px 0; }
+  .entity-panel-row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 12px; font-size: 12px; }
+  .entity-panel-row:hover { background: var(--accent-soft); }
+  .entity-panel-row code { font-family: ui-monospace, monospace; font-size: 11.5px; }
+  .entity-panel-row span { color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .entity-panel-row .pk { color: var(--accent); font-size: 10px; }
+  .entity-panel-foot { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 4px 12px; border-top: 1px solid var(--border); min-height: 28px; }
+  .entity-panel-page { border: 1px solid var(--border); background: var(--panel); border-radius: 6px; cursor: pointer; padding: 1px 9px; font-size: 14px; color: var(--accent); line-height: 1.2; }
+  .entity-panel-page:hover:not(:disabled) { background: var(--accent); color: white; border-color: var(--accent); }
+  .entity-panel-page:disabled { opacity: 0.35; cursor: default; }
+  .entity-panel-pageinfo { font-size: 11px; color: var(--muted); min-width: 40px; text-align: center; }
+  .entity-panel-detail { border: none; border-top: 1px solid var(--border); background: var(--accent-soft); color: var(--accent); cursor: pointer; padding: 8px 12px; font-size: 12px; text-align: left; border-radius: 0 0 10px 10px; }
+  .entity-panel-detail:hover { background: var(--accent); color: white; }
+  .diagram-box path.relationshipLine.entity-loop { stroke: var(--accent) !important; stroke-width: 3px !important; }
+  .diagram-box path.relationshipLine.entity-loop-dim { opacity: 0.2; }
+  .diagram-toolbar .hint { font-size: 11px; color: var(--muted); margin-left: auto; }
+  .collapsible-diagram { margin-top: 14px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .collapsible-head { width: 100%; display: flex; align-items: center; gap: 8px; border: none; background: var(--accent-soft); color: var(--accent); cursor: pointer; padding: 10px 14px; font-size: 13.5px; text-align: left; }
+  .collapsible-head:hover { background: var(--accent); color: white; }
+  .collapsible-head .chev { font-size: 12px; width: 12px; }
+  .collapsible-body { background: var(--panel); }
+  .diagram-legend { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--panel); font-size: 13px; color: var(--text); }
+  .legend-toggle { border: 1px solid var(--border); background: var(--panel); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: var(--muted); }
+  .legend-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .diagram-legend.legend-collapsed { display: none; }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-item svg { flex-shrink: 0; }
+  .legend-info { border: 1px solid var(--border); background: var(--panel); color: var(--muted); border-radius: 99px; width: 17px; height: 17px; font-size: 10px; line-height: 1; cursor: help; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-family: ui-monospace, monospace; font-style: italic; }
+  .legend-info:hover { border-color: var(--accent); color: var(--accent); }
+  .legend-popup { position: fixed; z-index: 60; width: 360px; background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18); padding: 12px 14px; font-size: 12px; line-height: 1.55; color: var(--text); }
+  .legend-popup h4 { margin: 0 0 6px; font-size: 12.5px; font-family: ui-monospace, monospace; }
+  .legend-popup p { margin: 0; }
+  .legend-popup ul { margin: 0; padding-left: 16px; }
+  .legend-popup li { margin: 3px 0; }
+  .legend-popup code { font-family: ui-monospace, monospace; font-size: 11px; }
+  .legend-popup .badge { margin-right: 0; }
+  .diagram-box { position: relative; overflow: auto; max-height: 75vh; background: #ffffff; }
+  .diagram-box svg { max-width: none !important; display: block; margin-left: auto; margin-right: auto; }
+  .diagram-canvas { display: block; width: fit-content; margin-left: auto; margin-right: auto; }
+  .mermaid-error { color: #dc2626; font-size: 13px; padding: 12px; }
+  pre.diagram-src { display: none; background: #0f172a; color: #e2e8f0; padding: 12px; margin: 0; overflow: auto; max-height: 45vh; font-size: 12px; line-height: 1.5; }
+  .cat-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .cat-bar button { border: 1px solid var(--border); background: var(--panel); border-radius: 99px; padding: 6px 14px; cursor: pointer; font-size: 13px; }
+  .cat-bar button.active { background: var(--text); color: #ffffff; border-color: var(--text); }
+  .member-chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 4px; }
+  .member-chips button { border: 1px dashed var(--border); background: var(--panel); border-radius: 6px; padding: 3px 10px; cursor: pointer; font-size: 12px; font-family: ui-monospace, monospace; }
+  .member-chips button:hover { border-color: var(--accent); color: var(--accent); }
+  .back { margin-bottom: 16px; }
+  .back button { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 13px; }
+  .sfref { color: #0891b2; }
+  h2.entity-title { font-family: ui-monospace, monospace; font-size: 20px; margin: 0 0 4px; }
+  .entity-detail { margin-top: 20px; }
+  .desc { color: var(--muted); font-size: 13px; margin: 4px 0 12px; }
+  footer { color: var(--muted); font-size: 12px; padding: 12px 24px 32px; }
+  /* Decisions view: chapter cards */
+  .decisions-intro { color: var(--muted); font-size: 13px; margin: 0 0 20px; max-width: 900px; line-height: 1.55; }
+  .decision-chapter { border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; margin-bottom: 24px; background: var(--panel); border-top: 3px solid var(--chapter-color); }
+  .decision-section-title { font-size: 15.5px; margin: 0 0 16px; padding: 6px 12px; border-radius: 8px; border-left: 4px solid var(--chapter-color); background: color-mix(in srgb, var(--chapter-color) 10%, transparent); color: var(--chapter-color); }
+  .decision-section-title:first-of-type { margin-top: 0; }
+  .chapter-leitentscheidungen { --chapter-color: var(--accent); }
+  .chapter-decision-record { --chapter-color: #7c3aed; }
+  .chapter-scope { --chapter-color: #059669; }
+  .decision-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+  .decision-card { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: var(--panel); }
+  .decision-card h4 { margin: 0 0 8px; font-size: 13.5px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .decision-card .d-id { font-family: ui-monospace, monospace; font-size: 12px; color: white; background: var(--accent); border-radius: 6px; padding: 1px 8px; flex-shrink: 0; }
+  .decision-card p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--text); }
+  .decision-card .d-why { margin-top: 8px; font-size: 12px; color: var(--muted); border-left: 3px solid var(--border); padding-left: 10px; }
+  .decision-card .d-why b { color: var(--text); }
+  .decision-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
+  .decision-table th, .decision-table td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+  .decision-table th { font-weight: 600; font-size: 12px; }
+  .decision-table td:first-child { font-weight: 600; width: 30%; }
+  .decision-table td:last-child { color: var(--muted); }
+  .decision-table td:last-child b { color: var(--text); }
+  .decision-table.tbl-architektur th { background: #ede9fe; color: #5b21b6; }
+  .decision-table.tbl-datenmodellierung th { background: #ede9fe; color: #5b21b6; }
+  .decision-table.tbl-verhalten th { background: #ede9fe; color: #5b21b6; }
+  .decision-table.tbl-outscope th { background: #fee2e2; color: #b91c1c; }
+  .decision-table.tbl-deferred th { background: #cffafe; color: #0e7490; }
+  /* Non-CRUD view: rendered markdown catalog */
+  .md-source-note { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; background: var(--accent-soft); padding: 10px 14px; margin: 0 0 20px; font-size: 12.5px; color: var(--muted); }
+  .md-source-note code { font-family: ui-monospace, monospace; font-size: 11.5px; color: var(--text); }
+  .md-body { max-width: 1100px; font-size: 13.5px; line-height: 1.65; }
+  .md-body h1 { font-size: 21px; margin: 0 0 14px; }
+  .md-body h2 { font-size: 16.5px; margin: 32px 0 10px; padding-bottom: 4px; border-bottom: 2px solid var(--accent); color: var(--accent); }
+  .md-body h3 { font-size: 14px; margin: 22px 0 8px; }
+  .md-body p { margin: 10px 0; }
+  .md-body ul, .md-body ol { margin: 10px 0; padding-left: 22px; }
+  .md-body li { margin: 4px 0; }
+  .md-body hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+  .md-body code { font-family: ui-monospace, monospace; font-size: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+  .md-body pre { background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 12px 14px; overflow: auto; font-size: 12px; line-height: 1.5; }
+  .md-body pre code { background: none; border: none; padding: 0; color: inherit; }
+  .md-body blockquote { margin: 14px 0; padding: 10px 16px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 8px 8px 0; color: var(--text); }
+  .md-body blockquote p { margin: 4px 0; }
+  .md-body table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 14px 0; }
+  .md-body th, .md-body td { text-align: left; padding: 7px 11px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+  .md-body thead th { background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 12px; border-bottom: 2px solid var(--accent); }
+  .md-body tbody tr:hover { background: var(--accent-soft); }
+  .md-body a { color: var(--accent); }
+  /* Keep in-page anchors below the sticky header */
+  .md-body :is(h1, h2, h3, h4) { scroll-margin-top: 80px; }
+  /* Technical details on entity detail: collapsed by default */
+  .tech-details { margin-top: 18px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .tech-details-head { width: 100%; display: flex; align-items: center; gap: 8px; border: none; background: var(--accent-soft); color: var(--accent); cursor: pointer; padding: 10px 14px; font-size: 13px; text-align: left; }
+  .tech-details-head:hover { background: var(--accent); color: white; }
+  .tech-details-body { display: none; background: var(--panel); }
+  .tech-details.open .tech-details-body { display: block; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Hello World — ERD Viewer</h1>
+  <div class="stats" id="header-stats"></div>
+</header>
+<nav id="nav">
+  <button data-view="list" class="active">Entity list</button>
+  <button data-view="bigpicture">Big Picture</button>
+  <button data-view="category">Categories</button>
+  <button data-view="decisions">Decisions</button>
+  <button data-view="nichtcrud">Non-CRUD processes</button>
+  <button data-view="raw">Raw model (JSON)</button>
+</nav>
+<main>
+<section class="view active" id="view-list"></section>
+<section class="view" id="view-bigpicture"></section>
+<section class="view" id="view-decisions"></section>
+<section class="view" id="view-nichtcrud"></section>
+<section class="view" id="view-category"></section>
+<section class="view" id="view-entity"></section>
+<section class="view" id="view-raw"><pre style="font-size:12px; overflow:auto; max-height:70vh"></pre></section>
+</main>
+<footer>Source: spec/erd/schema.sql (single source of truth) · generated via <code>bun run erd:build</code> · Mermaid loads from CDN; everything else runs offline.</footer>
+<script>
+const MODEL = {"generatedAt":"2026-10-01T12:27:35.517Z","sourceFile":"spec/erd/schema.sql","tables":[{"name":"greetings","category":"core","label":"Greeting","spec":"spec/features/README.md","description":"Example greeting row for the template","columns":[{"name":"id","sqlType":"uuid","logicalType":"UUID","nullable":true,"hasDefault":true,"defaultValue":"gen_random_uuid()","references":null,"logicalReference":null,"isPrimaryKey":true,"comment":null},{"name":"message","sqlType":"text","logicalType":"Text","nullable":false,"hasDefault":false,"defaultValue":null,"references":null,"logicalReference":null,"isPrimaryKey":false,"comment":"Display text of the greeting"},{"name":"created_at","sqlType":"timestamptz","logicalType":"Timestamp (TZ)","nullable":false,"hasDefault":true,"defaultValue":"now()","references":null,"logicalReference":null,"isPrimaryKey":false,"comment":null}],"primaryKey":["id"],"uniqueConstraints":[],"checkConstraints":[],"indexes":[],"foreignKeys":[]}],"edges":[],"externalReferences":[],"categories":[{"key":"core","label":"Core","color":"#2563eb","tables":["greetings"]}]};
+const STATS = {"tableCount":1,"columnCount":3,"fkCount":0,"sfRefCount":0,"categoryCount":1,"businessEdgeCount":0,"auditEdgeCount":0,"logicalEdgeCount":0};
+const DIAGRAMS = {"big":"%% Big Picture — all tables, business FK edges\n%% Generated by spark/scripts/erd/generate-diagrams.ts — do not edit by hand.\n%% Source: spec/erd/schema.sql (single source of truth)\nerDiagram\n  direction LR\n  greetings[\"Greeting · 3 fields\"]\n","categories":{"core":"%% Category: Core (1 tables)\n%% Generated by spark/scripts/erd/generate-diagrams.ts — do not edit by hand.\n%% Source: spec/erd/schema.sql (single source of truth)\nerDiagram\n  direction LR\n  greetings[\"Greeting · 3 fields\"]\n"},"entities":{"greetings":"%% Entity: greetings (Greeting)\n%% Generated by spark/scripts/erd/generate-diagrams.ts — do not edit by hand.\n%% Source: spec/erd/schema.sql (single source of truth)\nerDiagram\n  greetings[\"Greeting\"] {\n    UUID id PK\n    TEXT message\n    TIMESTAMPTZ created_at\n  }\n"}};
+const SFREFS = [];
+// Nicht-CRUD-Katalog: beim Build aus der Markdown-Quelle gerendert, siehe
+// scripts/erd/markdown-to-html.ts. NICHT_CRUD_SOURCE ist der repo-relative Pfad
+// der Quelldatei — er wird in der Ansicht angezeigt, damit jeder weiß, wo die
+// Inhalte gepflegt werden.
+const NICHT_CRUD_HTML = "";
+const NICHT_CRUD_SOURCE = "spec/erd/nicht-crud-katalog.md";
+
+(function fillHeaderStats() {
+  const el = document.getElementById("header-stats");
+  if (!el || typeof STATS === "undefined") return;
+  const parts = [
+    ["", STATS.tableCount + " Entities"],
+    ["", STATS.columnCount + " fields"],
+    ["", STATS.fkCount + " relationships"],
+    ["", (STATS.logicalEdgeCount || 0) + " logical references"],
+  ];
+  if (STATS.sfRefCount) parts.push(["sfref", STATS.sfRefCount + " external references"]);
+  parts.push(["", STATS.categoryCount + " categories"]);
+  el.innerHTML = parts.map(([cls, t]) =>
+    '<span' + (cls ? ' class="' + cls + '"' : "") + ">" + t + "</span>"
+  ).join("");
+})();
+
+// Zwei Themes: "neutral" (bisheriger Look) und "redux-color" — das Theme, das
+// mermaid.ai fuer ER-Diagramme rendert. Seit Mermaid v12 ist redux-color + neo
+// sogar der dokumentierte Default fuer erDiagram; in Mermaid 11 ist das Theme
+// im CDN-Bundle ebenfalls enthalten (geprueft: 11.17.2). redux-color paart die
+// Redux-Geometrie (weisse Boxen, Kontur #28253D, stroke-width 2) mit einer
+// kategorischen Farbpalette pro Kategorie — "redux" allein ist bewusst
+// monochrom und sieht deshalb nicht farbig aus.
+const THEME_STORAGE_KEY = "erd-viewer-theme";
+let currentTheme = "redux-color";
+try {
+  const saved = localStorage.getItem(THEME_STORAGE_KEY);
+  if (saved === "neutral" || saved === "redux-color") currentTheme = saved;
+} catch (err) {
+  // localStorage kann in restriktiven Kontexten werfen — Default bleibt redux-color.
+}
+
+// Initiales Initialize NACH dem localStorage-Lesen: sonst startet der erste
+// Render immer im neutralen Look, obwohl die Buttons schon Farbig/Adaptive
+// zeigen — und man muss einmal hin- und herschalten, bis die gespeicherte
+// Auswahl greift (genau dieser Bug war gemeldet).
+mermaid.initialize({
+  startOnLoad: false,
+  theme: currentTheme,
+  look: "neo",
+  themeVariables: currentTheme === "redux-color" ? { erEdgeLabelBackground: "#FFFFFF" } : {},
+  securityLevel: "loose",
+});
+
+function applyTheme(theme) {
+  currentTheme = theme;
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch (err) {
+    // Persistenz ist optional.
+  }
+  mermaid.initialize({
+    startOnLoad: false,
+    theme,
+    look: "neo",
+    themeVariables: { erEdgeLabelBackground: "#FFFFFF" },
+    securityLevel: "loose",
+  });
+  document.querySelectorAll(".theme-toggle button").forEach((b) => {
+    b.classList.toggle("active", b.dataset.theme === currentTheme);
+  });
+  for (const rerender of [...diagramRerenderers]) {
+    if (!rerender.isLive()) {
+      diagramRerenderers.delete(rerender);
+      continue;
+    }
+    rerender();
+  }
+}
+
+// Layout-Engines: "dagre" ist Mermaids eingebaute hierarchische Engine (schichtet
+// strikt nach Richtung, wird bei Hub-Knoten sehr hoch). "elk" ist die adaptive
+// Engine aus @mermaid-js/layout-elk — kompakter, verteilt Knoten in der Fläche.
+// ELK wird erst beim ersten Umschalten nachgeladen (ESM, CDN); schlaegt das fehl,
+// faellt der Viewer sichtbar auf dagre zurueck statt leer zu bleiben.
+const LAYOUT_STORAGE_KEY = "erd-viewer-layout";
+const ELK_URL = "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@1.0.0/dist/mermaid-layout-elk.esm.min.mjs";
+let currentLayout = "elk";
+try {
+  const saved = localStorage.getItem(LAYOUT_STORAGE_KEY);
+  if (saved === "elk" || saved === "dagre") currentLayout = saved;
+} catch (err) {
+  // localStorage kann in restriktiven Kontexten werfen — Default bleibt elk.
+}
+let elkLoaded = false;
+let elkLoadPromise = null;
+
+function ensureElkLoaded() {
+  if (elkLoaded) return Promise.resolve(true);
+  if (!elkLoadPromise) {
+    elkLoadPromise = import(ELK_URL)
+      .then((mod) => {
+        mermaid.registerLayoutLoaders(mod.default);
+        elkLoaded = true;
+        return true;
+      })
+      .catch(() => {
+        elkLoadPromise = null;
+        return false;
+      });
+  }
+  return elkLoadPromise;
+}
+
+/**
+ * Setzt die Layout-Engine per Frontmatter. Mermaid akzeptiert den ---config---
+ * Block nur als allererste Zeilen, also VOR den %%-Kommentaren — steht er
+ * dahinter, bricht der Parser mit "Expecting 'ER_DIAGRAM'" ab.
+ */
+function withLayout(src, layout) {
+  if (layout !== "elk") return src;
+  return ["---", "config:", "  layout: elk", "---", src].join("\n");
+}
+
+/** Alle sichtbaren Diagramme nach einem Layout-Wechsel neu zeichnen. */
+const diagramRerenderers = new Set();
+async function applyLayoutChange(layout) {
+  currentLayout = layout;
+  try {
+    localStorage.setItem(LAYOUT_STORAGE_KEY, layout);
+  } catch (err) {
+    // Persistenz ist optional — die Auswahl gilt trotzdem für diese Sitzung.
+  }
+  if (layout === "elk") {
+    const ok = await ensureElkLoaded();
+    if (!ok) {
+      currentLayout = "dagre";
+      alert("ELK-Layout konnte nicht geladen werden (CDN nicht erreichbar). Es bleibt bei Hierarchical.");
+    }
+  }
+  document.querySelectorAll(".layout-toggle button").forEach((b) => {
+    b.classList.toggle("active", b.dataset.layout === currentLayout);
+  });
+  for (const rerender of [...diagramRerenderers]) {
+    if (!rerender.isLive()) {
+      diagramRerenderers.delete(rerender);
+      continue;
+    }
+    rerender();
+  }
+}
+
+const nav = document.getElementById("nav");
+function q(sel) { return document.querySelector(sel); }
+function categoryClass(cat) { return "cat-" + cat; }
+
+let renderSeq = 0;
+async function renderMermaid(container, src) {
+  const id = "mmd-svg-" + renderSeq++;
+  try {
+    if (currentLayout === "elk") {
+      const ok = await ensureElkLoaded();
+      if (!ok) {
+        // ELK ist Default; schlaegt das CDN beim Seitenstart fehl, faellt der
+        // Viewer sichtbar auf dagre zurueck statt jedes Diagramm als Fehler
+        // zu zeigen.
+        currentLayout = "dagre";
+        document.querySelectorAll(".layout-toggle button").forEach((b) => {
+          b.classList.toggle("active", b.dataset.layout === currentLayout);
+        });
+      }
+    }
+    const result = await mermaid.render(id, withLayout(src, currentLayout));
+    container.innerHTML = result.svg;
+    // SVG in einen Canvas-Wrapper legen — der traegt das Overscroll-Padding
+    // (extra Scrollrand links/rechts, siehe applyZoom).
+    const svgEl = container.querySelector("svg");
+    if (svgEl && !container.querySelector(":scope > .diagram-canvas")) {
+      const canvas = document.createElement("div");
+      canvas.className = "diagram-canvas";
+      svgEl.replaceWith(canvas);
+      canvas.appendChild(svgEl);
+    }
+    // Kardinalitäts-Marker (Kreise/Striche an den Linienenden) auf
+    // userSpaceOnUse: default ist markerUnits=strokeWidth, d. h. sie skalieren
+    // mit der Strichbreite — beim Highlight (1px -> 3.5px) "zoomen" sie
+    // sichtbar auf. userSpaceOnUse fixiert ihre Groesse.
+    for (const marker of container.querySelectorAll("svg marker")) {
+      marker.setAttribute("markerUnits", "userSpaceOnUse");
+    }
+    attachEdgeHover(container);
+  } catch (err) {
+    container.innerHTML = '<p class="mermaid-error">Mermaid-Fehler: ' + err + "</p>";
+  }
+}
+
+// Hover-Highlight wie auf mermaid.ai: faehrt man ueber eine Kante, hebt sich
+// genau diese Verbindung ab — Linie + Label in Blau, alle anderen Kanten
+// ausgeblendet auf 25% Deckkraft. Mermaid gibt Pfaden die ID
+// "...-id_entity-A_entity-B_N" und den Label-Gruppen data-id mit demselben
+// Token; darueber werden beide Enden einer Kante gepaart.
+//
+// Trigger ist bewusst grosszuegig (Nutzerwunsch: eine Mausbewegung von links
+// nach rechts in einer Sekunde soll jede passierte Linie im Vorbeiziehen
+// hovern — Pixel-Perfect-Antreffen auf 2px ist nervig):
+//   1. Die Pfad-Geometrie wird EINMALIG beim Rendern gecacht (Sample-Punkte
+//      + Bounding-Box). Im Mousemove nur noch reine Distanz-Arithmetik gegen
+//      den Cache — getPointAtLength pro Move war die Laggy-Ursache (41 Pfade
+//      x volle Laenge bei jeder Mausbewegung).
+//   2. Hit-Radius in BILDSCHIRM-Pixeln (14px), ueber die ScreenCTM-Skala in
+//      SVG-Einheiten zurueckgerechnet — der Hover-Streifen um die Linie bleibt
+//      bei jedem Zoom-Level gleich dick.
+// Bei mehreren Treffern gewinnt die zur Cursor-Position naeher gelegene Kante.
+const EDGE_HIT_SCREEN_PX = 14;
+const EDGE_SAMPLE_STEP = 20;
+
+function attachEdgeHover(svgHost) {
+  const svg = svgHost.querySelector("svg");
+  if (!svg) return;
+  const paths = [...svg.querySelectorAll("path.relationshipLine")];
+  const labels = [...svg.querySelectorAll("g.edgeLabel g.label")];
+  if (!paths.length) return;
+
+  // Geometrie-Cache: Sample-Punkte in SVG-Einheiten (viewBox-Raum, unabhaengig
+  // vom Zoom) plus Bounding-Box als Vorfilter. getTotalLength/getPointAtLength
+  // laufen nur HIER, nie im Mousemove.
+  const edgeCache = [];
+  for (const p of paths) {
+    const m = /(-id_entity-.+)$/.exec(p.id);
+    if (!m || !p.getTotalLength) continue;
+    const id = m[1].slice(1);
+    const total = p.getTotalLength();
+    const samples = [];
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (let d = 0; d <= total; d += EDGE_SAMPLE_STEP) {
+      const pt = p.getPointAtLength(d);
+      samples.push(pt.x, pt.y);
+      if (pt.x < minX) minX = pt.x;
+      if (pt.x > maxX) maxX = pt.x;
+      if (pt.y < minY) minY = pt.y;
+      if (pt.y > maxY) maxY = pt.y;
+    }
+    edgeCache.push({ id, samples, minX, minY, maxX, maxY });
+  }
+
+  // Cursor in SVG-Einheiten; die Skala aus der ScreenCTM ermoeglicht einen
+  // Hit-Radius in Bildschirm-Pixeln (zoom-stabil).
+  function svgPoint(evt) {
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return null;
+    const pt = new DOMPoint(evt.clientX, evt.clientY).matrixTransform(ctm.inverse());
+    const scale = Math.sqrt(Math.abs(ctm.a * ctm.d - ctm.b * ctm.c)) || 1;
+    return { pt, hit: EDGE_HIT_SCREEN_PX / scale };
+  }
+
+  let activeEdgeId = null;
+
+  // Edge-Hover hebt auch die beiden verbundenen Entities hervor (voller
+  // Saturation), alle anderen werden entsättigt — so bleiben die zwei
+  // Endpunkte der gehoverten Verbindung klar erkennbar.
+  const allNodes = [...svg.querySelectorAll("g.node")];
+  function nodeTokenOf(edgeId) {
+    // Edge-ID "id_entity-A-0_entity-B-2_0": beide Gegenstellen stehen im Token.
+    // Die Zeichenklassen erlauben Unterstriche (z. B. "user_role").
+    const m = /id_entity-([a-z_][a-z0-9_]*)-([0-9]+)_entity-([a-z_][a-z0-9_]*)/.exec(edgeId);
+    return m ? [m[1], m[3]] : [];
+  }
+  function setNodeHighlight(edgeId) {
+    const active = edgeId ? nodeTokenOf(edgeId) : null;
+    for (const n of allNodes) {
+      const m = /-entity-([a-z_][a-z0-9_]*)-[0-9]+$/.exec(n.id);
+      const isMine = active !== null && m && active.includes(m[1]);
+      n.classList.toggle("entity-edge-active", isMine);
+      n.classList.toggle("entity-sat-dim", active !== null && !isMine);
+    }
+  }
+
+  function clearHighlight() {
+    activeEdgeId = null;
+    for (const p of paths) {
+      p.classList.remove("edge-highlight", "edge-dim");
+    }
+    for (const l of labels) {
+      l.classList.remove("edge-highlight-label", "edge-dim-label");
+    }
+    setNodeHighlight(null);
+  }
+
+  function highlight(edgeId) {
+    activeEdgeId = edgeId;
+    for (const p of paths) {
+      const isMine = p.id.includes(edgeId);
+      p.classList.toggle("edge-highlight", isMine);
+      p.classList.toggle("edge-dim", !isMine);
+    }
+    for (const l of labels) {
+      const isMine = l.getAttribute("data-id") === edgeId;
+      l.classList.toggle("edge-highlight-label", isMine);
+      l.classList.toggle("edge-dim-label", !isMine);
+    }
+    setNodeHighlight(edgeId);
+  }
+
+  function edgeIdFromLabels(evt) {
+    const target = evt.target.closest && evt.target.closest("g.edgeLabel");
+    if (!target) return null;
+    const label = target.querySelector("g.label");
+    return label ? label.getAttribute("data-id") : null;
+  }
+
+  function nearestCachedEdge(point, hit) {
+    const hit2 = hit * hit;
+    let best = null;
+    let bestDist = Infinity;
+    for (const e of edgeCache) {
+      // Bounding-Box-Vorfilter: ausserhalb des erweiterten Rahmens sofort skip.
+      if (point.x < e.minX - hit || point.x > e.maxX + hit ||
+          point.y < e.minY - hit || point.y > e.maxY + hit) continue;
+      let dist = Infinity;
+      const s = e.samples;
+      for (let i = 0; i < s.length; i += 2) {
+        const dx = s[i] - point.x;
+        const dy = s[i + 1] - point.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < dist) dist = d2;
+        if (d2 < 1) break;
+      }
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = e.id;
+      }
+    }
+    return bestDist <= hit2 ? best : null;
+  }
+
+  let moveRaf = 0;
+  svgHost.addEventListener("mousemove", (evt) => {
+    if (moveRaf) return;
+    moveRaf = requestAnimationFrame(() => {
+      moveRaf = 0;
+      const labelId = edgeIdFromLabels(evt);
+      if (labelId) {
+        highlight(labelId);
+        return;
+      }
+      const hit = svgPoint(evt);
+      if (!hit) return;
+      const id = nearestCachedEdge(hit.pt, hit.hit);
+      if (id === null) {
+        // Leere Flaeche: NICHT dimmen (frueher blieb hier alles grau, solange
+        // die Maus im Diagramm blieb) — komplett zuruecksetzen.
+        if (activeEdgeId !== null) clearHighlight();
+        return;
+      }
+      if (id !== activeEdgeId) highlight(id);
+    });
+  });
+  svgHost.addEventListener("mouseleave", () => {
+    if (moveRaf) { cancelAnimationFrame(moveRaf); moveRaf = 0; }
+    clearHighlight();
+  });
+}
+
+// Big-Picture-Entities: Hover-Effekt (CSS), Klick oeffnet ein Popup-Panel mit
+// allen Feldern der Entity + alle Kanten der Entity werden als Loop
+// hervorgehoben (persistent bis zum Schliessen). Panel positioniert neben der
+// Node-Box, im Scroll-Container — es scrollt mit.
+const ENTITY_LOOP_CSS = { on: "entity-loop", dim: "entity-loop-dim" };
+
+function attachEntityPopup(svgHost, box) {
+  const svg = svgHost.querySelector("svg");
+  if (!svg) return;
+  const nodes = [...svg.querySelectorAll("g.node")];
+  if (!nodes.length) return;
+
+  let panel = null;
+  let activeNode = null;
+  let closeTimer = 0;
+
+  function closePanel() {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = 0; }
+    if (panel) { panel.remove(); panel = null; }
+    if (activeNode) {
+      for (const m of svg.querySelectorAll("." + ENTITY_LOOP_CSS.on)) m.classList.remove(ENTITY_LOOP_CSS.on);
+      for (const m of svg.querySelectorAll("." + ENTITY_LOOP_CSS.dim)) m.classList.remove(ENTITY_LOOP_CSS.dim);
+      activeNode.classList.remove("entity-active");
+      activeNode = null;
+    }
+  }
+
+  function scheduleClose() {
+    if (!panel) return;
+    if (closeTimer) clearTimeout(closeTimer);
+    closeTimer = setTimeout(closePanel, 800);
+  }
+
+  function cancelClose() {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = 0; }
+  }
+
+  function openPanel(node, name) {
+    closePanel();
+    const table = MODEL.tables.find((t) => t.name === name);
+    if (!table) return;
+    activeNode = node;
+    node.classList.add("entity-active");
+
+    // Loop-Highlight: alle Kanten mit dieser Entity als Gegenstelle.
+    const token = "-id_entity-" + name + "-";
+    for (const p of svg.querySelectorAll("path.relationshipLine")) {
+      const mine = p.id.includes(token);
+      p.classList.toggle(ENTITY_LOOP_CSS.on, mine);
+      p.classList.toggle(ENTITY_LOOP_CSS.dim, !mine);
+    }
+
+    // Pagination: feste Seite von 12 Feldern, Pfeile statt Scroll.
+    const PER_PAGE = 12;
+    const pageCount = Math.ceil(table.columns.length / PER_PAGE);
+    let page = 0;
+
+    panel = document.createElement("div");
+    panel.className = "entity-panel";
+    box.appendChild(panel);
+    // Soft-Close-Listener am Panel: HIER anhaengen, nicht beim Attach — dort
+    // ist panel noch null (TypeError, Listener wuerden nie registriert).
+    panel.addEventListener("mouseenter", cancelClose);
+    panel.addEventListener("mouseleave", scheduleClose);
+
+    function renderPage() {
+      const start = page * PER_PAGE;
+      const rows = table.columns.slice(start, start + PER_PAGE).map((c) =>
+        '<div class="entity-panel-row"><code>' + c.name + '</code><span>' + c.sqlType + (c.isPrimaryKey ? ' <b class="pk">PK</b>' : "") + "</span></div>"
+      ).join("");
+      panel.innerHTML =
+        '<div class="entity-panel-head"><b>' + table.name + "</b><span>" + table.label + ' · ' + table.columns.length + ' fields</span><button class="entity-panel-close" title="Close">×</button></div>' +
+        '<div class="entity-panel-body">' + rows + "</div>" +
+        '<div class="entity-panel-foot">' +
+        (pageCount > 1
+          ? '<button class="entity-panel-page" data-dir="-1" ' + (page === 0 ? "disabled" : "") + ' title="Previous page">‹</button>' +
+            '<span class="entity-panel-pageinfo">' + (page + 1) + ' / ' + pageCount + '</span>' +
+            '<button class="entity-panel-page" data-dir="1" ' + (page === pageCount - 1 ? "disabled" : "") + ' title="Next page">›</button>'
+          : '<span class="entity-panel-pageinfo"></span>') +
+        '</div>' +
+        '<button class="entity-panel-detail">→ Open full detail view</button>';
+      panel.querySelector(".entity-panel-close").addEventListener("click", closePanel);
+      panel.querySelectorAll(".entity-panel-page").forEach((b) => {
+        b.addEventListener("click", () => {
+          page += Number(b.dataset.dir);
+          renderPage();
+        });
+      });
+      panel.querySelector(".entity-panel-detail").addEventListener("click", () => {
+        closePanel();
+        showEntity(name);
+      });
+    }
+    renderPage();
+
+    // Panel neben der Node-Box positionieren (im Scroll-Container).
+    const nb = node.getBoundingClientRect();
+    const sb = box.getBoundingClientRect();
+    const FLIP_MARGIN = 16;
+    panel.style.visibility = "hidden";
+    panel.style.display = "block";
+    const pw = panel.offsetWidth;
+    const ph = panel.offsetHeight;
+    let left = nb.right - sb.left + box.scrollLeft + 8;
+    const flip = left + pw > box.scrollLeft + box.clientWidth - FLIP_MARGIN;
+    if (flip) left = nb.left - sb.left + box.scrollLeft - pw - 8;
+    panel.style.left = Math.max(4, left) + "px";
+    // Vertikal: Panel unterhalb der Node platzieren; ragt es unten aus dem
+    // sichtbaren Bereich, oberhalb aufklappen (untere Entities wie
+    // picklist_value wuerden sonst ins Leere rendern).
+    let top = nb.top - sb.top + box.scrollTop;
+    const visibleBottom = box.scrollTop + box.clientHeight;
+    if (top + ph > visibleBottom) top = nb.bottom - sb.top + box.scrollTop - ph;
+    panel.style.top = Math.max(4, top) + "px";
+    panel.style.visibility = "";
+  }
+
+  for (const node of nodes) {
+    // [0-9] statt Backslash-d: Backslash-Sequenzen im TS-Template-Literal
+    // werden gefressen — das landet als nacktes "d" im Output und der Regex passt nicht.
+    const m = /-entity-([a-z_][a-z0-9_]*)-[0-9]+$/.exec(node.id);
+    if (!m) continue;
+    const name = m[1];
+    node.addEventListener("click", (evt) => {
+      evt.stopPropagation();
+      cancelClose();
+      if (activeNode === node) { closePanel(); return; }
+      openPanel(node, name);
+    });
+  }
+  // Soft-Close: die Maus muss vom Node zum Panel laufen — svg.mouseleave gibt
+  // eine 800ms-Gnadenfrist, Panel.mouseenter bricht sie ab, Panel.mouseleave
+  // plant sie neu. Die Panel-Listener haengt openPanel an (dort existiert das
+  // Panel erst); hier nur die SVG-Listener.
+  svg.addEventListener("mouseleave", scheduleClose);
+  svg.addEventListener("mouseenter", cancelClose);
+}
+
+// PNG-Export: den aktuell gerenderten SVG klonen, auf einen Zoom-unabhaengigen
+// neutralen Zustand setzen (kein Dim, keine Highlight-Klassen, 100%-Groesse)
+// und auf ein Canvas zeichnen — PNG statt JPEG, weil Diagramme aus Text und
+// Linien bestehen und JPEG sichtbare Artefakte machen wuerde. Die Labels sind
+// foreignObject/HTML; im Canvas-Export funktionieren die in Chrome/Edge und
+// Firefox — der Export kommt daher mit reinem DOM-Mitteln aus, kein Server.
+// Robustheit (Button darf NIE still scheitern):
+//   - Bildquelle ist eine data:-URL, kein blob:-URL — blob:-URLs laden aus
+//     <img> heraus bei file://-Seiten unzuverlaessig, data:-URLs immer.
+//   - toBlob kann bei tainted/uebergrossen Canvas null LIEFERN oder eine
+//     SecurityError WERFEN — beides wird gefangen, dann Retry auf 1x.
+//   - Schlaegt alles fehl, laedt die SVG-Datei herunter (geht ohne Canvas
+//     immer) plus Alert — niemals stilles Nichts.
+// Canvas-Grenze: Browser erlauben max. 16384px pro Seite (Chrome); darueber
+// liefern toBlob/drawImage stumm null — die Skalierung wird deshalb so
+// gekappt, dass beide Seiten unter der Grenze bleiben.
+// Dateiname: <diagrammname>.png, z. B. "big-picture.png" oder "user.png".
+const PNG_CANVAS_MAX_PX = 16384;
+const PNG_HOVER_CLASSES = ["edge-highlight", "edge-dim", "edge-highlight-label", "edge-dim-label", "entity-sat-dim", "entity-edge-active", "entity-active", "entity-loop", "entity-loop-dim"];
+
+function downloadBlob(blob, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function renderSvgToPng(clone, w, h, scale) {
+  return new Promise((resolve, reject) => {
+    const capped = Math.min(scale, PNG_CANVAS_MAX_PX / Math.max(w, h));
+    if (!(capped > 0)) { reject(new Error("Diagramm-Groesse ungueltig")); return; }
+    clone.setAttribute("width", String(w));
+    clone.setAttribute("height", String(h));
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    let svgString;
+    try {
+      svgString = new XMLSerializer().serializeToString(clone);
+    } catch (err) { reject(err); return; }
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(w * capped);
+    canvas.height = Math.round(h * capped);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) { reject(new Error("Canvas-2D-Kontext nicht verfuegbar")); return; }
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const img = new Image();
+    // Timeout-Guard: feuert weder onload noch onerror (haengendes Bild-Laden),
+    // bleibt die Promise sonst ewig offen — der Button wuerde still nichts tun.
+    const timer = setTimeout(() => reject(new Error("Timeout beim Rendern des SVG-Bildes")), 10000);
+    const done = (fn, arg) => { clearTimeout(timer); fn(arg); };
+    img.onload = () => {
+      done(() => {}, null);
+      try {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => resolve(blob), "image/png");
+      } catch (err) { reject(err); }
+    };
+    img.onerror = () => done(reject, new Error("SVG konnte nicht als Bild geladen werden"));
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString);
+  });
+}
+
+async function exportPngFor(svgHost, fileName) {
+  const svg = svgHost.querySelector("svg");
+  if (!svg) return;
+  const clone = svg.cloneNode(true);
+  clone.querySelectorAll(PNG_HOVER_CLASSES.map((c) => "." + c).join(", "))
+    .forEach((el) => el.classList.remove(...PNG_HOVER_CLASSES));
+  const vb = (clone.getAttribute("viewBox") || "0 0 1000 1000").split(" ").map(Number);
+  const w = vb[2];
+  const h = vb[3];
+  const svgString = () => {
+    const c = clone.cloneNode(true);
+    c.setAttribute("width", String(w));
+    c.setAttribute("height", String(h));
+    c.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    return new XMLSerializer().serializeToString(c);
+  };
+  try {
+    let blob = null;
+    try { blob = await renderSvgToPng(clone, w, h, 2); } catch (err) { console.warn("PNG 2x fehlgeschlagen:", err); }
+    if (!blob) {
+      try { blob = await renderSvgToPng(clone, w, h, 1); } catch (err) { console.warn("PNG 1x fehlgeschlagen:", err); }
+    }
+    if (blob) { downloadBlob(blob, fileName + ".png"); return; }
+    throw new Error("Canvas export produced no image");
+  } catch (err) {
+    console.error("PNG export failed:", err);
+    try {
+      downloadBlob(new Blob([svgString()], { type: "image/svg+xml;charset=utf-8" }), fileName + ".svg");
+      alert("PNG export failed — downloaded the vector version (.svg) instead. See the browser console (F12) for details.");
+    } catch (err2) {
+      alert("PNG export failed: " + (err && err.message ? err.message : err));
+    }
+  }
+}
+
+// Diagramm-Host: Toolbar (Zoom, Quelle, Downloads) + scrollbarer SVG-Canvas.
+// Der SVG wird in natürlicher Größe gezeigt — kein max-width:100%-Stauchungs-Hack.
+function diagramHost(src, pngName) {
+  const host = document.createElement("div");
+  host.className = "diagram-host";
+
+  const toolbar = document.createElement("div");
+  toolbar.className = "diagram-toolbar";
+  toolbar.innerHTML =
+    '<button data-zoom="out" title="Zoom out">−</button>' +
+    '<span class="zoom-label">100%</span>' +
+    '<button data-zoom="in" title="Zoom in">+</button>' +
+    '<button data-zoom="fit" title="Fit entire diagram in the visible area">Fit to screen</button>' +
+    '<button data-zoom="reset" title="Reset zoom to 100%">Reset zoom</button>' +
+    '<button class="legend-toggle" type="button">▸ Legend</button>' +
+    '<span class="layout-toggle">' +
+    '<button data-layout="elk" title="ELK engine: packs nodes more compactly">Adaptive</button>' +
+    '<button data-layout="dagre" title="Mermaid built-in engine: strict layers; can get tall with hub nodes">Hierarchical</button>' +
+    "</span>" +
+    '<span class="theme-toggle">' +
+    '<button data-theme="redux-color" title="mermaid.ai look: Redux geometry with a per-category color palette (documented ER default since Mermaid 12)">Color</button>' +
+    '<button data-theme="neutral" title="Previous look">Classic</button>' +
+    "</span>" +
+    '<button data-png title="Download diagram as PNG (2x, white background)">⬇ PNG</button>' +
+    '<button data-toggle="src" class="src-toggle">Source</button>' +
+    '<span class="hint">Scroll to pan · middle mouse to drag · Ctrl+scroll to zoom · hover a line to highlight</span>';
+  host.appendChild(toolbar);
+
+  // Legende: zugeklappt ist die Row komplett weg — der Toggle-Button sitzt
+  // in der bestehenden Toolbar, es gibt keine eigene Button-Zeile. Die
+  // Legende selbst hängt nur dann im Layout, wenn sie ausgeklappt ist.
+  const legend = document.createElement("div");
+  legend.className = "diagram-legend legend-collapsed";
+  legend.innerHTML =
+    '<span class="legend-item"><svg width="44" height="12"><line x1="1" y1="6" x2="43" y2="6" stroke="#28253D" stroke-width="2.5"/></svg> FK relationship (real foreign key)<button class="legend-info" data-legend="fk" aria-label="Explain FK relationship">i</button></span>' +
+    '<span class="legend-item"><svg width="44" height="12"><line x1="1" y1="6" x2="43" y2="6" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="8 5"/></svg> Logical reference (no FK)<button class="legend-info" data-legend="logical" aria-label="Explain logical reference">i</button></span>' +
+    '<span class="legend-item">Field badges: <span class="badge">PK</span> Primary key<span class="badge">FK→…</span> Foreign key<span class="badge sfref">EXT</span> External reference<button class="legend-info" data-legend="keys" aria-label="Explain field badges">i</button></span>';
+  host.appendChild(legend);
+
+  // Info-Popup zu den Legenden-Begriffen (FK, logische Referenz, Feld-Badges):
+  // Panel im Entity-Panel-Stil, oeffnet beim Hover ueber das kleine "i" —
+  // Klick pinnt es fest, Klick daneben oder ESC schliesst. Fix positioniert
+  // unter dem Button; ragt es rechts raus, links aufklappen.
+  const LEGEND_EXPLANATIONS = {
+    fk: {
+      title: "FK relationship (real foreign key)",
+      html: "<p>The column points at another entity and the <b>database enforces</b> it: a value that does not exist there is rejected. When the target row is deleted, the defined action runs (e.g. <code>CASCADE</code> deletes dependents).</p><p style=\"margin-top:6px\">In the diagram: <b>solid line</b>. Short version — the link is guaranteed regardless of who writes.</p>",
+    },
+    logical: {
+      title: "Logical reference (no FK)",
+      html: "<p>The column holds the same value as another entity, but the database <b>does not check</b> it. A bad value will not fail at write time.</p><p style=\"margin-top:6px\">Often intentional: the value is a type key rather than a row id (documented in column comments). The application ensures only valid values are stored.</p><p style=\"margin-top:6px\">In the diagram: <b>dashed line</b>. Short version — a convention, not a DB contract.</p>",
+    },
+    keys: {
+      title: "Field badges (PK / FK→… / EXT)",
+      html: "<ul><li><span class=\"badge\">PK</span> <b>Primary key</b> — the unique id of the row.</li><li><span class=\"badge\">FK→user</span> <b>Foreign key</b> — this column points at another entity’s id (here <code>user</code>). Often named <code>…_id</code>.</li><li><span class=\"badge sfref\">EXT</span> <b>External reference</b> — an id in an external system (no FK; the database cannot enforce it).</li></ul>",
+    },
+  };
+
+  function closeLegendPopup() {
+    const existing = document.getElementById("legend-popup");
+    if (existing) existing.remove();
+  }
+
+  function openLegendPopup(key, anchor) {
+    const expl = LEGEND_EXPLANATIONS[key];
+    if (!expl) return;
+    closeLegendPopup();
+    const popup = document.createElement("div");
+    popup.id = "legend-popup";
+    popup.className = "legend-popup";
+    popup.dataset.key = key;
+    popup.innerHTML = "<h4>" + expl.title + "</h4>" + expl.html;
+    document.body.appendChild(popup);
+    const r = anchor.getBoundingClientRect();
+    const pw = popup.offsetWidth;
+    const ph = popup.offsetHeight;
+    let left = r.left;
+    if (left + pw > window.innerWidth - 12) left = r.right - pw;
+    let top = r.bottom + 8;
+    if (top + ph > window.innerHeight - 12) top = Math.max(12, r.top - ph - 8);
+    popup.style.left = Math.max(12, left) + "px";
+    popup.style.top = top + "px";
+  }
+
+  let legendTimer = 0;
+  legend.querySelectorAll(".legend-info").forEach((btn) => {
+    btn.addEventListener("mouseenter", () => {
+      if (legendTimer) clearTimeout(legendTimer);
+      openLegendPopup(btn.dataset.legend, btn);
+    });
+    btn.addEventListener("mouseleave", () => {
+      if (legendTimer) clearTimeout(legendTimer);
+      legendTimer = setTimeout(() => {
+        // Nur schliessen, wenn die Maus nicht ins Popup gelaufen ist.
+        if (!document.getElementById("legend-popup")?.matches(":hover")) closeLegendPopup();
+      }, 250);
+    });
+    btn.addEventListener("click", (evt) => {
+      evt.stopPropagation();
+      const existing = document.getElementById("legend-popup");
+      if (existing && existing.dataset.key === btn.dataset.legend) { closeLegendPopup(); return; }
+      openLegendPopup(btn.dataset.legend, btn);
+    });
+  });
+  document.addEventListener("click", (evt) => {
+    if (evt.target.closest && (evt.target.closest(".legend-popup") || evt.target.closest(".legend-info"))) return;
+    closeLegendPopup();
+  });
+  document.addEventListener("keydown", (evt) => {
+    if (evt.key === "Escape") closeLegendPopup();
+  });
+
+  const box = document.createElement("div");
+  box.className = "diagram-box";
+  host.appendChild(box);
+
+  const srcPre = document.createElement("pre");
+  srcPre.className = "diagram-src";
+  srcPre.textContent = src;
+  host.appendChild(srcPre);
+
+  // Default "Fit to screen": ER-Diagramme sind bei 100% meist viel zu
+  // reingezoomt, man sähe nur eine Ecke. Der Zoom startet daher im
+  // Fit-Zustand; 100%/+/− rechnen ab dort relativ weiter.
+  let zoom = "fit";
+  const label = toolbar.querySelector(".zoom-label");
+  // Zoom um den sichtbaren Mittelpunkt. Statt CSS-transform (das die
+  // Scrollarea nicht mitwaechst und bei origin:top-left an der Ecke haengt)
+  // wird das SVG ueber width/height-Attribute skaliert: der Scrollcontainer
+  // bietet damit automatisch die richtige Scrollrange, auch ueber 100%.
+  // Der Anker (Inhaltspunkt in der Viewport-Mitte) wird als Anteil des
+  // viewBox gemessen — robust gegen Padding/Margin-Auto des Canvas-Wrappers.
+  let naturalSize = null;
+  function applyZoom() {
+    const svg = box.querySelector("svg");
+    if (!svg) return;
+
+    if (!naturalSize) {
+      // Mermaid setzt width="100%" als Attribut — das schlaegt CSS. Fuer
+      // zoombares Verhalten wird die natuerliche Groesse einmalig aus dem
+      // viewBox gelesen und als Attribut fixiert.
+      const vb = (svg.getAttribute("viewBox") || "0 0 1000 1000")
+        .split(" ")
+        .map(Number);
+      naturalSize = { w: vb[2], h: vb[3] };
+      svg.style.width = "";
+      svg.style.maxWidth = "none";
+    }
+
+    let newScale;
+    if (zoom === "fit") {
+      newScale = Math.min(1, (box.clientWidth - 24) / naturalSize.w);
+    } else {
+      newScale = zoom;
+    }
+
+    // Overscroll-Padding (Extra-Scrollrand): links/rechts in halber
+    // Viewportbreite, oben/unten in einem Drittel der Viewport-Hoehe — auch
+    // bei perfekter Mittelung laesst sich das Bild weiter verschieben, stoppt
+    // aber exakt am Bildrand (nicht vom Screen runter).
+    const canvas = box.querySelector(".diagram-canvas");
+    if (canvas) {
+      canvas.style.padding = Math.floor(box.clientHeight / 3) + "px " + Math.floor(box.clientWidth / 2) + "px";
+    }
+
+    // Anker vor dem Skalieren messen: Punkt in der Viewport-Mitte als
+    // viewBox-Anteil (0..1), unabhaengig vom aktuellen Zoom.
+    const svgBefore = svg.getBoundingClientRect();
+    const boxBefore = box.getBoundingClientRect();
+    const anchorFx = svgBefore.width ? (boxBefore.left + boxBefore.width / 2 - svgBefore.left) / svgBefore.width : 0.5;
+    const anchorFy = svgBefore.height ? (boxBefore.top + boxBefore.height / 2 - svgBefore.top) / svgBefore.height : 0.5;
+
+    svg.setAttribute("width", String(Math.round(naturalSize.w * newScale)));
+    svg.setAttribute("height", String(Math.round(naturalSize.h * newScale)));
+
+    // Layout-Flush erzwingen, BEVOR der Scroll gesetzt wird: ohne das
+    // klemmt der Browser scrollLeft/scrollTop an der noch alten (kleineren)
+    // Scrollarea. Das Lesen von scrollHeight/scrollWidth baut das Layout
+    // mit den neuen width/height-Attributen synchron auf.
+    void box.scrollHeight;
+    void box.scrollWidth;
+
+    // Nach dem Skalieren den Anker-Punkt wieder in die Viewport-Mitte scrollen.
+    const svgAfter = svg.getBoundingClientRect();
+    const boxAfter = box.getBoundingClientRect();
+    box.scrollLeft += svgAfter.left + anchorFx * svgAfter.width - (boxAfter.left + boxAfter.width / 2);
+    box.scrollTop += svgAfter.top + anchorFy * svgAfter.height - (boxAfter.top + boxAfter.height / 2);
+    label.textContent = Math.round(newScale * 100) + "%";
+  }
+
+  // Aktueller Anzeige-Scale: im Fit-Zustand die berechnete Breitenpassung,
+  // sonst der gesetzte Zoom. +/− rechnen davon weiter, statt von 1 zu springen.
+  function currentScale() {
+    const svg = box.querySelector("svg");
+    if (!svg || !naturalSize) return 1;
+    if (zoom === "fit") return Math.min(1, (box.clientWidth - 24) / naturalSize.w);
+    return zoom;
+  }
+
+  toolbar.querySelector('[data-zoom="out"]').addEventListener("click", () => { zoom = Math.max(0.2, currentScale() - 0.2); applyZoom(); });
+  toolbar.querySelector('[data-zoom="in"]').addEventListener("click", () => { zoom = Math.min(3, currentScale() + 0.2); applyZoom(); });
+  toolbar.querySelector('[data-zoom="fit"]').addEventListener("click", () => { zoom = "fit"; applyZoom(); });
+  toolbar.querySelector('[data-zoom="reset"]').addEventListener("click", () => {
+    zoom = 1;
+    applyZoom();
+    // Reset zentriert zusätzlich: exakt die Bildmitte in die Box-Mitte.
+    // Über getBoundingClientRect gerechnet (die SVG sitzt in einem
+    // Canvas-Wrapper mit Overscroll-Padding — offsetLeft wäre verfälscht).
+    const svg = box.querySelector("svg");
+    if (svg) {
+      const b = svg.getBoundingClientRect();
+      const bb = box.getBoundingClientRect();
+      box.scrollLeft += (b.left + b.width / 2) - (bb.left + bb.width / 2);
+      box.scrollTop += (b.top + b.height / 2) - (bb.top + bb.height / 2);
+    }
+  });
+  toolbar.querySelector(".src-toggle").addEventListener("click", () => {
+    srcPre.style.display = srcPre.style.display === "block" ? "none" : "block";
+  });
+  toolbar.querySelector(".legend-toggle").addEventListener("click", () => {
+    const collapsed = legend.classList.toggle("legend-collapsed");
+    toolbar.querySelector(".legend-toggle").textContent = collapsed ? "▸ Legend" : "▾ Legend";
+  });
+  toolbar.querySelector("[data-png]").addEventListener("click", () => exportPngFor(box, pngName || "diagram"));
+  box.addEventListener("wheel", (e) => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    zoom = Math.min(3, Math.max(0.2, currentScale() + (e.deltaY < 0 ? 0.1 : -0.1)));
+    applyZoom();
+  }, { passive: false });
+
+  // Verschieben mit der mittleren Maustaste: Drag aendert scrollLeft/scrollTop
+  // direkt (1:1 zum Cursor), statt den Browser-Autoscroll (der eine
+  // Scroll-Rakete zeichnet und traege folgt) zu nutzen. Der Cursor wird waehrend
+  // des Drags zu Grabbing; die Move/Up-Listener liegen auf window, damit der
+  // Drag die Box verlassen darf — middleup beendet, egal wo.
+  let panning = false;
+  let panStartX = 0;
+  let panStartY = 0;
+  let panScrollX = 0;
+  let panScrollY = 0;
+  box.addEventListener("mousedown", (e) => {
+    if (e.button !== 1) return;
+    e.preventDefault();
+    panning = true;
+    panStartX = e.clientX;
+    panStartY = e.clientY;
+    panScrollX = box.scrollLeft;
+    panScrollY = box.scrollTop;
+    box.style.cursor = "grabbing";
+  });
+  window.addEventListener("mousemove", (e) => {
+    if (!panning) return;
+    box.scrollLeft = panScrollX - (e.clientX - panStartX);
+    box.scrollTop = panScrollY - (e.clientY - panStartY);
+  });
+  window.addEventListener("mouseup", (e) => {
+    if (!panning || e.button !== 1) return;
+    panning = false;
+    box.style.cursor = "";
+  });
+
+  // Layout-Umschalter: wirkt global, damit alle offenen Diagramme konsistent
+  // bleiben; jeder Host meldet sich dafür als Re-Renderer an.
+  toolbar.querySelectorAll(".layout-toggle button").forEach((b) => {
+    b.classList.toggle("active", b.dataset.layout === currentLayout);
+    b.addEventListener("click", () => {
+      if (b.dataset.layout === currentLayout) return;
+      applyLayoutChange(b.dataset.layout);
+    });
+  });
+  toolbar.querySelectorAll(".theme-toggle button").forEach((b) => {
+    b.classList.toggle("active", b.dataset.theme === currentTheme);
+    b.addEventListener("click", () => {
+      if (b.dataset.theme === currentTheme) return;
+      applyTheme(b.dataset.theme);
+    });
+  });
+  const rerender = () => {
+    box.innerHTML = '<p class="desc" style="padding:12px">Layout wird neu berechnet …</p>';
+    renderMermaid(box, src).then(() => { applyZoom(); attachEntityPopup(box, box); });
+  };
+  // Views werden beim Umschalten neu aufgebaut — abgehängte Hosts nicht ewig halten.
+  rerender.isLive = () => host.isConnected;
+  diagramRerenderers.add(rerender);
+
+  // attachEntityPopup NACH dem (asynchronen) Render: vorher existiert das SVG
+  // noch nicht und die Funktion returnt früh (genau dieser Bug).
+  renderMermaid(box, src).then(() => { applyZoom(); attachEntityPopup(box, box); });
+  return host;
+}
+
+// Business-Beschreibungen: was macht die Entity grob — für Stakeholder lesbar,
+// statt Feldzahl + Doku-Verweis. Key = Entity-Name aus MODEL.
+const BUSINESS_DESCRIPTIONS = {};
+
+// Ein-Satz-Versionen für die Landing-Page-Karten (max. 1 Satz);
+// die Detailansicht nutzt die längeren BUSINESS_DESCRIPTIONS.
+const BUSINESS_DESCRIPTIONS_SHORT = {};
+
+// Entscheidungen-Ansicht: D1–D8, Decision Record (08 §2) und Scope (08 §3)
+// grafisch aufbereitet — statt Long-ass-Text durchzulesen.
+function renderDecisions(section) {
+  section.innerHTML = "";
+  const intro = document.createElement("p");
+  intro.className = "decisions-intro";
+  intro.textContent = "No architectural decisions are wired into the viewer yet. Add them in spark/scripts/erd/viewer-template.html (renderDecisions) or keep them in spec/decisions.";
+  section.appendChild(intro);
+}
+
+// Nicht-CRUD-Ansicht: das Markdown aus NICHT_CRUD_SOURCE, beim Build gerendert
+// und als fertiger HTML-String injiziert. Bewusst KEIN fetch() zur Laufzeit —
+// der Viewer soll per file:// funktionieren, wo der Browser lokale Fetches als
+// Origin null blockiert und der Tab leer bliebe.
+function renderNichtCrud(section) {
+  section.innerHTML =
+    '<div class="md-source-note"><span>Mirrored from <code>' + NICHT_CRUD_SOURCE + '</code>.</span>' +
+    '<span>The markdown file is the source — after changing it, run <code>bun run erd:build</code>.</span></div>' +
+    '<div class="md-body">' + NICHT_CRUD_HTML + "</div>";
+}
+
+function cardFor(table) {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = '<h3 class="' + categoryClass(table.category) + '">' + table.name + '</h3>' +
+    '<div class="meta">' + table.label + '</div>' +
+    '<p style="margin:6px 0 0; font-size:12px; line-height:1.5; color:var(--text);">' + (BUSINESS_DESCRIPTIONS_SHORT[table.name] || "") + '</p>';
+  card.addEventListener("click", () => showEntity(table.name));
+  return card;
+}
+
+function renderList(section) {
+  section.innerHTML = "";
+  for (const cat of MODEL.categories) {
+    const heading = document.createElement("h2");
+    heading.className = "cat-heading " + categoryClass(cat.key);
+    heading.textContent = cat.label + " (" + cat.tables.length + " Entities)";
+    heading.style.cursor = "pointer";
+    heading.title = "Open ERD for category " + cat.label;
+    heading.addEventListener("click", () => {
+      nav.querySelector('[data-view="category"]').click();
+      const stageEl = document.querySelector("#view-category .cat-bar");
+      if (stageEl) {
+        const btns = stageEl.querySelectorAll("button");
+        const idx = MODEL.categories.findIndex((c) => c.key === cat.key);
+        if (btns[idx]) btns[idx].click();
+      }
+    });
+    section.appendChild(heading);
+    const grid = document.createElement("div");
+    grid.className = "table-grid";
+    for (const tableName of cat.tables) {
+      const table = MODEL.tables.find((t) => t.name === tableName);
+      if (table) grid.appendChild(cardFor(table));
+    }
+    section.appendChild(grid);
+  }
+}
+
+function renderBigPicture(section) {
+  section.innerHTML =
+    '<h2 class="cat-heading cat-core">Big Picture — all entities</h2>' +
+    '<p class="desc">All entities and their domain relationships. Technical audit links (“who created/updated what”) (' +
+    STATS.auditEdgeCount +
+    " of " +
+    STATS.fkCount +
+    ") are hidden — almost all would point at <code>user</code> and clutter the picture; they appear on each entity’s detail view. An edge always connects two entities: one row on one side, many on the other.</p>";
+  section.appendChild(diagramHost(DIAGRAMS.big, "big-picture"));
+}
+
+function renderCategory(stage, catKey) {
+  const cat = MODEL.categories.find((c) => c.key === catKey);
+  if (!cat) return;
+  stage.innerHTML = "";
+
+  const heading = document.createElement("h2");
+  heading.className = "cat-heading " + categoryClass(cat.key);
+  heading.textContent = cat.label + " (" + cat.tables.length + " Entities)";
+  stage.appendChild(heading);
+
+  const chips = document.createElement("div");
+  chips.className = "member-chips";
+  for (const tableName of cat.tables) {
+    const b = document.createElement("button");
+    b.textContent = tableName;
+    b.addEventListener("click", () => showEntity(tableName));
+    chips.appendChild(b);
+  }
+  stage.appendChild(chips);
+
+  stage.appendChild(
+    diagramHost(DIAGRAMS.categories[cat.key], "category-" + cat.key),
+  );
+}
+
+function renderCategories(section) {
+  section.innerHTML = "";
+  const bar = document.createElement("div");
+  bar.className = "cat-bar";
+  MODEL.categories.forEach((cat, i) => {
+    const b = document.createElement("button");
+    b.textContent = cat.label + " · " + cat.tables.length;
+    if (i === 0) b.classList.add("active");
+    b.addEventListener("click", () => {
+      bar.querySelectorAll("button").forEach((x) => x.classList.toggle("active", x === b));
+      renderCategory(stage, cat.key);
+    });
+    bar.appendChild(b);
+  });
+  section.appendChild(bar);
+  const stage = document.createElement("div");
+  section.appendChild(stage);
+  renderCategory(stage, MODEL.categories[0].key);
+}
+
+// Feld-Beschreibungen: was ist das Feld fachlich — für Stakeholder lesbar,
+// statt rohe Schema-Kommentare mit Doku-Verweisen. Zwei Ebenen:
+// 1. COMMON_FIELDS — gleiche Bedeutung in fast jeder Entity (Audit, IDs, SF-Referenzen)
+// 2. ENTITY_FIELDS[entity] — entity-spezifische Felder. Key = "entity.field".
+const COMMON_FIELDS = {
+  id: "Unique internal id for this row.",
+  created_at: "When this row was created.",
+  updated_at: "When this row was last updated.",
+  deleted_at: "When set, the row is soft-deleted (kept for restore/trash).",
+  user_id: "References the authenticated user.",
+  status: "Lifecycle or distribution status for this row.",
+  slug: "URL-safe identifier; uniqueness rules usually apply among non-deleted rows.",
+  name: "Display name of this row.",
+  title: "Display title of this row.",
+  description: "Free-text description.",
+  email: "Email address associated with this row.",
+  role: "Role string where applicable.",
+};
+
+// Entity-specific field blurbs — fill as the domain grows. Key = "entity.field".
+const ENTITY_FIELDS = {
+};
+
+// Connections-Diagramm: die Entity in der Mitte + alle Beziehungen, ohne
+// Feld-Boxen — aus MODEL.edges generiert, nicht aus den fertigen Diagrammen.
+function buildConnectionsDiagram(name) {
+  const labelOf = (t) => {
+    const table = MODEL.tables.find((x) => x.name === t);
+    return table ? (table.label || t) : t;
+  };
+  const catOf = (t) => {
+    const table = MODEL.tables.find((x) => x.name === t);
+    return table ? table.category : "";
+  };
+  const related = new Set([name]);
+  for (const e of MODEL.edges) {
+    if (e.fromTable === name) related.add(e.toTable);
+    if (e.toTable === name) related.add(e.fromTable);
+  }
+  let src = "erDiagram\n  direction LR\n";
+  for (const t of related) src += "  " + t + "[\"" + labelOf(t) + "\"]\n";
+  for (const e of MODEL.edges) {
+    if (e.fromTable !== name && e.toTable !== name) continue;
+    const logical = e.kind === "logical";
+    const arrow = logical ? "||..o{" : "||--o{";
+    src += "  " + e.fromTable + " " + arrow + " " + e.toTable + " : \"" + e.fromColumn + "\"\n";
+  }
+  void catOf;
+  return src;
+}
+
+// Einklappbarer Diagramm-Block: Header-Zeile mit Aufklapp-Button, Inhalt
+// standardmäßig zugeklappt. Das Mermaid rendert erst beim ersten Aufklappen
+// (vergeudet sonst bei 2 Diagrammen pro Entity-Seite die halbe Ladezeit).
+function collapsibleDiagramHost(title, src, pngName) {
+  const wrap = document.createElement("div");
+  wrap.className = "collapsible-diagram";
+  const head = document.createElement("button");
+  head.type = "button";
+  head.className = "collapsible-head";
+  head.innerHTML = '<span class="chev">▸</span> ' + title;
+  const body = document.createElement("div");
+  body.className = "collapsible-body";
+  body.style.display = "none";
+  head.addEventListener("click", () => {
+    const open = body.style.display !== "none";
+    body.style.display = open ? "none" : "block";
+    head.querySelector(".chev").textContent = open ? "▸" : "▾";
+    if (!open && !body.dataset.rendered) {
+      body.appendChild(diagramHost(src, pngName));
+      body.dataset.rendered = "1";
+    }
+  });
+  wrap.appendChild(head);
+  wrap.appendChild(body);
+  return wrap;
+}
+
+async function showEntity(name) {
+  const table = MODEL.tables.find((t) => t.name === name);
+  if (!table) return;
+  nav.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
+  document.querySelectorAll("section.view").forEach((s) => s.classList.remove("active"));
+  const section = q("#view-entity");
+  section.classList.add("active");
+
+  const sfRefs = SFREFS.filter((r) => r.table === table.name);
+  const incoming = MODEL.edges.filter((e) => e.toTable === table.name);
+  const outgoing = MODEL.edges.filter((e) => e.fromTable === table.name);
+  let html = '<div class="back"><button id="back-btn">← Back to entity list</button></div>';
+  html += '<h2 class="entity-title ' + categoryClass(table.category) + '">' + table.name + "</h2>";
+  html += '<div class="desc">' + (BUSINESS_DESCRIPTIONS[table.name] || table.description || "") + '</div>';
+  section.innerHTML = html;
+  section.appendChild(collapsibleDiagramHost("Diagram — fields & relationships", DIAGRAMS.entities[name], name));
+  section.appendChild(collapsibleDiagramHost("Diagram — connections (relationships only)", buildConnectionsDiagram(name), name + "-connections"));
+  const detail = document.createElement("div");
+  detail.className = "entity-detail";
+  section.appendChild(detail);
+
+  let dhtml = '<table class="fields"><thead><tr><th>Field</th><th>SQL type</th><th>Null</th><th>Default</th><th>Key</th><th>Description</th></tr></thead><tbody>';
+  for (const c of table.columns) {
+    const fieldDesc = ENTITY_FIELDS[table.name + "." + c.name] || COMMON_FIELDS[c.name] || c.comment || "";
+    dhtml += "<tr><td class=\"mono\">" + c.name + "</td><td class=\"mono\">" + c.sqlType +
+      "</td><td>" + (c.nullable ? "✓" : "—") + "</td><td class=\"mono\">" +
+      (c.defaultValue ?? "—") + "</td><td>" + (c.isPrimaryKey ? '<span class="badge">PK</span>' : "") +
+      (c.references ? '<span class="badge">FK→' + c.references.table + "</span>" : "") +
+      (/_sf_id$|^salesforce_id$/.test(c.name) && c.sqlType === "char(18)" ? '<span class="badge sfref">EXT</span>' : "") +
+      "</td><td>" + fieldDesc + "</td></tr>";
+  }
+  dhtml += "</tbody></table>";
+
+  // Technische Details: Beziehungen (im Diagramm sichtbar), Constraints,
+  // Indizes, SF-Referenzen — für Menschen zugeklappt, für KI lesbar im DOM.
+  let thtml = "";
+  thtml += "<h3>Relationships</h3><ul>";
+  for (const e of outgoing) {
+    const logical = e.kind === "logical";
+    thtml += "<li><code>" + table.name + "." + e.fromColumn + "</code> → <b>" + e.toTable + "</b>" +
+      (e.onDelete ? " (ON DELETE " + e.onDelete + ")" : "") +
+      (logical ? ' <span class="badge">logical, no FK</span>' : "") + "</li>";
+  }
+  for (const e of incoming) {
+    const logical = e.kind === "logical";
+    thtml += "<li>← <b>" + e.fromTable + "." + e.fromColumn + "</b> " +
+      (logical ? "logically references" : "references") + " this entity" +
+      (logical ? ' <span class="badge">logical, no FK</span>' : "") + "</li>";
+  }
+  thtml += "</ul>";
+  if (table.uniqueConstraints.length) {
+    thtml += "<h3>Unique constraints</h3><ul>";
+    for (const u of table.uniqueConstraints) thtml += "<li><code>" + u.columns.join(", ") + "</code> (" + u.name + ")</li>";
+    thtml += "</ul>";
+  }
+  if (table.indexes.length) {
+    thtml += "<h3>Indexes</h3><ul>";
+    for (const i of table.indexes) thtml += "<li><code>" + (i.unique ? "UNIQUE " : "") + "(" + i.columns.join(", ") + ")</code>" + (i.partial ? " WHERE " + i.partial : "") + "</li>";
+    thtml += "</ul>";
+  }
+  if (sfRefs.length) {
+    thtml += '<h3 class="sfref">External references (no FKs)</h3><ul>';
+    for (const r of sfRefs) thtml += '<li class="sfref"><code>' + r.column + "</code> → SF " + r.sfObject + "</li>";
+    thtml += "</ul>";
+  }
+
+  const fieldsWrap = document.createElement("div");
+  fieldsWrap.className = "tech-details";
+  const fieldsHead = document.createElement("button");
+  fieldsHead.type = "button";
+  fieldsHead.className = "tech-details-head";
+  fieldsHead.innerHTML = '<span class="chev">▸</span> Field list (' + table.columns.length + ' fields)';
+  const fieldsBody = document.createElement("div");
+  fieldsBody.className = "tech-details-body";
+  fieldsBody.innerHTML = dhtml;
+  fieldsHead.addEventListener("click", () => {
+    const open = fieldsWrap.classList.toggle("open");
+    fieldsHead.querySelector(".chev").textContent = open ? "▾" : "▸";
+  });
+  fieldsWrap.appendChild(fieldsHead);
+  fieldsWrap.appendChild(fieldsBody);
+  section.appendChild(fieldsWrap);
+
+  const techWrap = document.createElement("div");
+  techWrap.className = "tech-details";
+  const techHead = document.createElement("button");
+  techHead.type = "button";
+  techHead.className = "tech-details-head";
+  techHead.innerHTML = '<span class="chev">▸</span> Technical details (relationships, constraints, indexes)';
+  const techBody = document.createElement("div");
+  techBody.className = "tech-details-body";
+  techBody.innerHTML = thtml;
+  techHead.addEventListener("click", () => {
+    const open = techWrap.classList.toggle("open");
+    techHead.querySelector(".chev").textContent = open ? "▾" : "▸";
+  });
+  techWrap.appendChild(techHead);
+  techWrap.appendChild(techBody);
+  section.appendChild(techWrap);
+
+  document.getElementById("back-btn").addEventListener("click", () => {
+    nav.querySelector('[data-view="list"]').click();
+  });
+}
+
+nav.addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const view = btn.dataset.view;
+  nav.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b === btn));
+  document.querySelectorAll("section.view").forEach((s) => s.classList.remove("active"));
+  const section = document.getElementById("view-" + view);
+  section.classList.add("active");
+  if (view === "list" && !section.dataset.rendered) { renderList(section); section.dataset.rendered = "1"; }
+  if (view === "bigpicture" && !section.dataset.rendered) { renderBigPicture(section); section.dataset.rendered = "1"; }
+  if (view === "decisions" && !section.dataset.rendered) { renderDecisions(section); section.dataset.rendered = "1"; }
+  if (view === "nichtcrud" && !section.dataset.rendered) { renderNichtCrud(section); section.dataset.rendered = "1"; }
+  if (view === "category" && !section.dataset.rendered) { renderCategories(section); section.dataset.rendered = "1"; }
+  if (view === "raw" && !section.dataset.rendered) {
+    section.querySelector("pre").textContent = JSON.stringify(MODEL, null, 2);
+    section.dataset.rendered = "1";
+  }
+});
+
+renderList(q("#view-list"));
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "helloworld",
+  "private": true,
+  "packageManager": "pnpm@12.8.1",
+  "scripts": {
+    "erd:build": "tsx spark/scripts/erd/parse-schema.ts && tsx spark/scripts/erd/generate-diagrams.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.5"
+  }
+}
