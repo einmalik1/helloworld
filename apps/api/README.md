@@ -14,4 +14,4 @@ pnpm run dev
 pnpm run --filter api dev
 ```
 
-ORM/schema details (Drizzle) will be documented here when packages land.
+ORM/schema details (Drizzle) live in `@helloworld/modules` when wired — see [`packages/modules`](../../packages/modules/README.md) and [`spec/tech-stack.md`](../../spec/tech-stack.md#packagesmodules).

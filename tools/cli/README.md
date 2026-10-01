@@ -32,7 +32,7 @@ tools/cli/
 │   │   ├── config.ts          # Local config CRUD / env
 │   │   ├── health.ts          # api + worker /health
 │   │   └── …                  # Domain commands as features land
-│   ├── api.ts                 # thin wiring → packages/api-client (or temporary local until package exists)
+│   ├── api.ts                 # thin wiring → packages/api-client
 │   └── config.ts              # XDG path, Zod schema, environments
 └── test/
 ```
