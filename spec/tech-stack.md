@@ -39,11 +39,11 @@ Versions below are the latest published on npm as of 2026-10-01 (pin in lockfile
 | E2E | Playwright | 1.63.0 | `@playwright/test` — `tests/e2e` |
 | Visual regression | Visual Regression Tracker | remote | Self-hosted **outside** this repo; this app only connects — see below |
 | Deploy | Coolify | CLI 1.8.0 | Projects / QA+Prod via Coolify CLI; targets in `spark/repo-profile.yaml` — see below |
-| Shared libs (`packages/`) | types / modules / config / api-client | planned | See Shared packages below — not scaffolded yet |
+| Shared libs (`packages/`) | types / modules / config / api-client | scaffolded | See Shared packages below — dirs present; implementation not wired |
 
 ## Shared packages (`packages/`)
 
-Planned workspace libraries — directories scaffolded under `packages/*`; implementation not wired yet. Apps and tools consume these as workspace deps. Further module-level detail lands in each package README when implemented.
+Workspace libraries — directories scaffolded under `packages/*`; implementation not wired yet. Apps and tools consume these as workspace deps. Further module-level detail lands in each package README when implemented.
 
 Dependency direction (bottom → top):
 
@@ -109,7 +109,7 @@ Typed **client SDK** for consumers of the REST surfaces. Transport is **ky**; th
 | vitest | `vitest.config.ts` | Shared Vitest base (SWC/decorators as needed) |
 | oxlint | `oxlintrc.json` | Shared lint rules |
 
-Workspaces extend these bases (e.g. `"extends": "@helloworld/config/tsconfig"` — exact package name TBD when scaffolding).
+Workspaces extend these bases when the files exist (e.g. `"extends": "@helloworld/config/tsconfig"`).
 
 ## Terminal clients (`tools/cli`, `tools/tui`)
 

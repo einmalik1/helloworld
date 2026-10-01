@@ -82,7 +82,14 @@ Key Spark paths: `spark/repo-profile.yaml`, `spark/agents/` (roles + `common/`),
 
 ### Shared (`packages/`)
 
-Shared libraries for apps and tools. Subpackages are added as needed.
+Shared libraries for apps and tools. Directories scaffolded; implementation not wired yet — details: [`packages/README.md`](packages/README.md), [`spec/tech-stack.md`](spec/tech-stack.md#shared-packages-packages).
+
+| Package | Path | Role |
+|---|---|---|
+| **types** | `packages/types` | Domain Zod schemas, inferred types, shared error classes |
+| **modules** | `packages/modules` | NestJS infrastructure (config, DB, health, auth, OpenAPI) |
+| **api-client** | `packages/api-client` | Typed REST client SDK (`ky`) for api + worker — not MCP |
+| **config** | `packages/config` | Shared tooling only (tsconfig, vitest, oxlint) |
 
 ## Local development
 

@@ -28,7 +28,7 @@ tools/tui/
 ├── src/
 │   ├── main.tsx                 # Entry — TTY check, render <App />
 │   ├── app.tsx                  # Root state: tabs, selection, overlays, poll, health
-│   ├── api.ts                   # thin wiring → packages/api-client (or temporary local until package exists)
+│   ├── api.ts                   # thin wiring → packages/api-client
 │   ├── config.ts                # XDG path, Zod schema, environments
 │   └── tui/
 │       ├── types.ts             # Tab, Toast, ConfirmAction, …

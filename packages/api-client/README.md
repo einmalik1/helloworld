@@ -7,7 +7,7 @@ Depends on `@helloworld/types` when wired.
 
 **Not** for MCP — share domain types only; MCP stays its own protocol.
 
-## Layout
+## Layout (intent)
 
 ```text
 src/
