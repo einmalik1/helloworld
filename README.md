@@ -82,7 +82,15 @@ Key Spark paths: `spark/repo-profile.yaml`, `spark/agents/` (roles + `common/`),
 
 ### Shared (`packages/`)
 
-Shared libraries for apps and tools. Subpackages are added as needed.
+Shared libraries for apps and tools. Detail: [`packages/README.md`](packages/README.md).
+
+| Package | Path | Role |
+|---|---|---|
+| **types** | `packages/types` | Entity + API Zod (`pnpm generate`); shared errors (hand-authored) |
+| **modules** | `packages/modules` | NestJS infrastructure for `apps/api` (scaffold) |
+| **terminal** | `packages/terminal` | Terminal toolkit for CLI/TUI (`log` wired; config/tty scaffold) |
+| **api-client** | `packages/api-client` | Orval SDK + ky mutator (skips until OpenAPI exists) |
+| **config** | `packages/config` | Shared tooling only (tsconfig, vitest, oxlint) |
 
 ## Local development
 
