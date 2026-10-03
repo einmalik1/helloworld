@@ -1,6 +1,6 @@
 # packages
 
-Shared libraries for apps and tools. Directories scaffolded; implementation TBD — see [`spec/tech-stack.md`](../spec/tech-stack.md#shared-packages-packages).
+Shared libraries for apps and tools. See [`spec/tech-stack.md`](../spec/tech-stack.md#shared-packages-packages).
 
 | Package | Path | Role |
 |---|---|---|

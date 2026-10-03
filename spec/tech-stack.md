@@ -40,11 +40,11 @@ Versions below are the latest published on npm as of 2026-10-01 (pin in lockfile
 | E2E | Playwright | 1.63.0 | `@playwright/test` — `tests/e2e` |
 | Visual regression | Visual Regression Tracker | remote | Self-hosted **outside** this repo; this app only connects — see below |
 | Deploy | Coolify + Docker | CLI 1.8.0 | QA/Prod on Coolify; **one multi-stage Dockerfile per app** — Coolify builds from Git; see Coolify below |
-| Shared libs (`packages/`) | types / modules / config / api-client / terminal | planned | See Shared packages below — not scaffolded yet |
+| Shared libs (`packages/`) | types / modules / config / api-client / terminal | scaffolded | See Shared packages below |
 
 ## Shared packages (`packages/`)
 
-Planned workspace libraries — directories scaffolded under `packages/*`; implementation not wired yet. Apps and tools consume these as workspace deps. Further module-level detail lands in each package README when implemented.
+Workspace libraries under `packages/*`. **types** has generated entity/API Zod; **terminal/log** is implemented; **modules**, **api-client** transport, and **config** files are still scaffold / intent. Apps and tools consume these as workspace deps. Detail: each package README.
 
 Dependency direction (bottom → top):
 
@@ -138,7 +138,7 @@ Shared **terminal toolkit** for tools under `tools/` (CLI, TUI, future shell-sty
 | vitest | `vitest.config.ts` | Shared Vitest base (SWC/decorators as needed) |
 | oxlint | `oxlintrc.json` | Shared lint rules |
 
-Workspaces extend these bases (e.g. `"extends": "@helloworld/config/tsconfig"` — exact package name TBD when scaffolding).
+Workspaces extend these bases when the files exist (e.g. `"extends": "@helloworld/config/tsconfig"`).
 
 ## Terminal clients (`tools/cli`, `tools/tui`)
 
@@ -264,7 +264,7 @@ CLI/TUI  →  tslog + ora (stderr) ; results on stdout   (via packages/terminal/
 
 | Step | Tool | Role |
 |---|---|---|
-| Persistenz SoT | `schema.sql` → Entity Zod (`types` stage) | Table shapes in `packages/types/src/schema/` |
+| Persistence SoT | `schema.sql` → Entity Zod (`types` stage) | Table shapes in `packages/types/src/schema/` |
 | API SoT | API Zod (`api` stage) | Create/Update/Response in `packages/types/src/api/` |
 | Nest adapters | `nest_dto` stage | `createZodDto` under `apps/api/src/{resource}/dto/` |
 | Typecheck | `tsc --noEmit` | Verifies the whole graph compiles; **does not** emit JS |
@@ -352,7 +352,7 @@ Layered SoT (not a single file):
 
 | Layer | Location | How |
 |---|---|---|
-| Persistenz / Entity | `packages/types/src/schema/` | Generator **types** stage from `schema.sql` |
+| Persistence / Entity | `packages/types/src/schema/` | Generator **types** stage from `schema.sql` |
 | API contracts | `packages/types/src/api/` | Generator **api** stage (Create / Update / Response from entity) |
 | Nest DTO classes | `apps/api/src/{resource}/dto/` | Generator **nest_dto** stage — `createZodDto(...)` only |
 | OpenAPI document | Nest + **nestjs-zod** + `@nestjs/swagger` | Build export → `openapi.json` (and optional Swagger UI at runtime) |
