@@ -14,4 +14,4 @@ src/
 └── index.ts
 ```
 
-Runtime dependency (intent): `zod` only. Consumed by `packages/modules`, `packages/api-client`, and apps/tools.
+Runtime dependency (intent): `zod` only. Consumed by `packages/modules`, `packages/api-client`, `packages/terminal`, and apps/tools.

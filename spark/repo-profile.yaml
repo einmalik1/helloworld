@@ -31,6 +31,8 @@ release_paths:
 
 deployment:
   hub: custom
+  # Coolify builds each app from its multi-stage Dockerfile (Git + Dockerfile pack).
+  # See spec/tech-stack.md § Coolify. Optional later: registry pull-only deploys.
 
 coolify:
   # Fill UUIDs and context once Coolify projects exist.
@@ -38,6 +40,8 @@ coolify:
   instance_url: ""
   team_id: 0
   project_uuid: ""
+  build_pack: dockerfile
+  # Per-app Dockerfile paths when apps[] is filled, e.g. apps/api/Dockerfile (context: repo root).
   environments:
     - slug: production
       name: production
@@ -159,6 +163,7 @@ review:
     shared_packages:
       - packages/types
       - packages/modules
+      - packages/terminal
       - packages/api-client
       - packages/config
   security:

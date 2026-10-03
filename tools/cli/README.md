@@ -7,13 +7,15 @@ Separate from [`tools/tui`](../tui/README.md) (Ink UI). Stack inventory: [`spec/
 ## Role
 
 Thin client: local config → HTTP → print result / exit code.  
-**Not** NestJS, no database, no logging stack, no Playwright.
+**Not** NestJS, no database, no Pino, no Playwright.
 
 | Concern | Choice |
 |---|---|
 | Framework | Commander **15.0.0** |
 | HTTP | ky **2.1.0** via `packages/api-client` (when wired) |
-| Validation | Zod (local config schema) |
+| Terminal toolkit | `packages/terminal` (`config` / `log` / `tty`) |
+| User config | `@helloworld/terminal/config` |
+| Logging | `@helloworld/terminal/log` — **tslog** + **ora** (stderr); results on stdout |
 | Shared types | `packages/types` (when wired) |
 | Binary | `helloworld` → `bin/run.js` → built entry |
 | Tests | Vitest under `tools/cli` (and `tests/cli` for service-backed runs) |
@@ -32,8 +34,9 @@ tools/cli/
 │   │   ├── config.ts          # Local config CRUD / env
 │   │   ├── health.ts          # api + worker /health
 │   │   └── …                  # Domain commands as features land
-│   ├── api.ts                 # thin wiring → packages/api-client (or temporary local until package exists)
-│   └── config.ts              # XDG path, Zod schema, environments
+│   ├── api.ts                 # thin wiring → packages/api-client
+│   └── config.ts              # thin wiring → @helloworld/terminal/config
+│                              # (+ terminal/log: tslog, ora, printJson)
 └── test/
 ```
 
@@ -41,8 +44,9 @@ No Ink / React imports in this package.
 
 ## Configuration
 
-Path: `$XDG_CONFIG_HOME/helloworld/config.json` or `~/.config/helloworld/config.json`  
-(same file as the TUI — shared environments).
+Owned by [`@helloworld/terminal/config`](../../packages/terminal/README.md) — same file as the TUI.
+
+Path (typical): `$XDG_CONFIG_HOME/helloworld/config.json` or `~/.config/helloworld/config.json`.
 
 Intent (shape may grow with features):
 
@@ -60,7 +64,7 @@ Intent (shape may grow with features):
 | Key | Scope | Meaning |
 |---|---|---|
 | `apiUrl` / `workerUrl` | per environment | Base URLs for ky `prefixUrl` |
-| credentials | per environment | As required by API auth (Better Auth client flow TBD) |
+| credentials / apiKey | per environment | Better Auth API key (`@better-auth/api-key`); never commit |
 | `environment` | global | Default env for TUI; CLI overrides via `--env` |
 
 Missing file → safe defaults for local. Corrupt/unreadable file → hard error (no silent prod→localhost fallback).

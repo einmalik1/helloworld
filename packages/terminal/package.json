@@ -1,0 +1,19 @@
+{
+  "name": "@helloworld/terminal",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./config": "./src/config/index.ts",
+    "./log": "./src/log/index.ts",
+    "./tty": "./src/tty/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ora": "9.4.1",
+    "tslog": "5.2.0"
+  }
+}

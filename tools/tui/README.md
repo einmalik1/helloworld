@@ -7,14 +7,16 @@ Separate from [`tools/cli`](../cli/README.md) (Commander). Stack inventory: [`sp
 ## Role
 
 Operator UI: browse status, confirm actions, edit local/remote settings in an alternate-screen Ink app.  
-**Not** NestJS, no database, no logging stack. Requires an interactive TTY (non-TTY → exit with hint to use the CLI).
+**Not** NestJS, no database, no Pino. Requires an interactive TTY (non-TTY → exit with hint to use the CLI).
 
 | Concern | Choice |
 |---|---|
 | UI | Ink **7.1.1** + React **19.3.0** |
 | Text fields | `ink-text-input` **6.0.0** |
 | HTTP | ky **2.1.0** via `packages/api-client` (when wired) |
-| Validation | Zod (local config schema) |
+| Terminal toolkit | `packages/terminal` (`config` / `log` / `tty`) |
+| User config | `@helloworld/terminal/config` |
+| Logging | `@helloworld/terminal/log` — **tslog** (+ **ora** if needed); fatals on stderr; UI toasts for UX |
 | Shared types | `packages/types` (when wired) |
 | Binary | `helloworld-tui` → `bin/run.js` → built entry |
 | Tests | Vitest under `tools/tui` (and `tests/tui` for interaction/snapshots) |
@@ -28,8 +30,8 @@ tools/tui/
 ├── src/
 │   ├── main.tsx                 # Entry — TTY check, render <App />
 │   ├── app.tsx                  # Root state: tabs, selection, overlays, poll, health
-│   ├── api.ts                   # thin wiring → packages/api-client (or temporary local until package exists)
-│   ├── config.ts                # XDG path, Zod schema, environments
+│   ├── api.ts                   # thin wiring → packages/api-client
+│   ├── config.ts                # thin wiring → @helloworld/terminal/config
 │   └── tui/
 │       ├── types.ts             # Tab, Toast, ConfirmAction, …
 │       ├── tabs/                # One view per tab
@@ -42,7 +44,9 @@ No Commander imports in this package. CLI stays in `tools/cli`.
 
 ## Configuration
 
-Same XDG file as the CLI: `$XDG_CONFIG_HOME/helloworld/config.json` / `~/.config/helloworld/config.json`.
+Owned by [`@helloworld/terminal/config`](../../packages/terminal/README.md) — same file as the CLI.
+
+Path (typical): `$XDG_CONFIG_HOME/helloworld/config.json` / `~/.config/helloworld/config.json`.
 
 TUI-oriented keys (in addition to URLs / credentials):
 
@@ -84,4 +88,4 @@ helloworld-tui
 | Role | Source of truth, DB, jobs | Thin interactive client |
 | Persist | PostgreSQL / object store | XDG config JSON only |
 | Errors | neverthrow / HTTP mapping | Toast / fatal exit |
-| Auth | Better Auth (server) | Sends credentials from local config (flow TBD) |
+| Auth | Better Auth (server) | Sends API key from local config (`@better-auth/api-key`) |

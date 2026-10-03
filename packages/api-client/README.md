@@ -17,4 +17,5 @@ src/
 └── index.ts
 ```
 
-Consumers: `tools/cli`, `tools/tui`, optionally `apps/web`.
+**Consumers:** `tools/cli`, `tools/tui`, optionally `apps/web`.  
+Terminal tools resolve URLs/keys via `@helloworld/terminal/config`, then call this SDK. Web does not use `packages/terminal`.

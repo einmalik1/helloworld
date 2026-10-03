@@ -12,7 +12,7 @@ src/
 ├── config/      # createAppConfigModule — Zod env at boot
 ├── database/    # DatabaseModule + DatabaseService (Drizzle + PostgreSQL)
 ├── health/      # HealthModule (e.g. @nestjs/terminus)
-├── auth/        # Better Auth wiring for Nest
+├── auth/        # Better Auth + @better-auth/api-key (sessions + API-key guard)
 ├── openapi/     # setupOpenApi — Swagger UI + JSON
 └── index.ts
 ```

@@ -25,7 +25,7 @@ spark/       # repo profile, agent roles, Coolify QA/Prod
 | **web** | `apps/web` | React web frontend |
 | **api** | `apps/api` | REST backend for persistence and domain API |
 | **worker** | `apps/worker` | Background jobs and automation |
-| **docs** | `apps/docs` | HTTP documentation site (publishes `spec/`) |
+| **docs** | `apps/docs` | Docs site: Fumadocs on Next.js; publishes `spec/` |
 | **storybook** | `apps/storybook` | Deployed UI component gallery |
 | **mcp** | `apps/mcp` | MCP server for agent integration |
 
@@ -75,7 +75,7 @@ Domain glossary: root `CONTEXT.md`. Details: `spec/README.md`.
 | Component | Path | Role |
 |---|---|---|
 | **spark** | `spark` | Repo profile, agent rules, automation |
-| **coolify** | `spark/repo-profile.yaml` | QA and production deploy targets |
+| **coolify** | `spark/repo-profile.yaml` | QA/Prod targets; one multi-stage Dockerfile per app, Coolify builds from Git — see [`spec/tech-stack.md`](spec/tech-stack.md#coolify-build-deploy-data-services) |
 | **erd scripts** | `spark/scripts/erd` | SQL → diagrams / HTML viewer |
 
 Key Spark paths: `spark/repo-profile.yaml`, `spark/agents/` (roles + `common/`), `spark/plans/`. Short pointer: root `agents.md`. Worktrees via Orca.

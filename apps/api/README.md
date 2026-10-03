@@ -2,6 +2,10 @@
 
 REST backend for persistence and domain API. Data via Postgres; files via S3. Auth via Better Auth (see [`spec/tech-stack.md`](../../spec/tech-stack.md)).
 
+## Deploy
+
+QA/Prod: Coolify Application. Image from multi-stage `apps/api/Dockerfile` (build context = monorepo root). Coolify builds from Git on deploy — see [`spec/tech-stack.md`](../../spec/tech-stack.md#coolify-build-deploy-data-services). Dockerfile not scaffolded yet.
+
 ## Local
 
 **Prerequisites:** local Postgres and (for file features) S3 — root [Local development](../../README.md#local-development). Config from the **root** `.env` only (section `# --- api ---`); do not add `apps/api/.env`.
