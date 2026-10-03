@@ -1,0 +1,16 @@
+# Data model catalog
+
+Generated from `schema-model.json`. Categories from `spark/repo-profile.yaml`.
+Do not edit by hand — run `pnpm erd:build`.
+
+| Category | Tables |
+|---|---|
+{% for cat in categories -%}
+| [{{ cat.label }}](categories/{{ cat.key }}.md) (`{{ cat.key }}`) | {{ cat.tables|length }} |
+{% endfor %}
+
+## All tables
+
+{% for table in tables -%}
+- [`{{ table.name }}`](tables/{{ table.name }}.md) — {{ table.label }} ({{ table.category }})
+{% endfor %}

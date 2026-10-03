@@ -213,7 +213,7 @@ const STATS = {{STATS}};
 const DIAGRAMS = {{DIAGRAMS}};
 const SFREFS = {{SFREFS}};
 // Nicht-CRUD-Katalog: beim Build aus der Markdown-Quelle gerendert, siehe
-// scripts/erd/markdown-to-html.ts. NICHT_CRUD_SOURCE ist der repo-relative Pfad
+// spark/generators (nicht-crud markdown → HTML). NICHT_CRUD_SOURCE ist der repo-relative Pfad
 // der Quelldatei — er wird in der Ansicht angezeigt, damit jeder weiß, wo die
 // Inhalte gepflegt werden.
 const NICHT_CRUD_HTML = {{NICHT_CRUD_HTML}};
@@ -1116,7 +1116,7 @@ function renderDecisions(section) {
   section.innerHTML = "";
   const intro = document.createElement("p");
   intro.className = "decisions-intro";
-  intro.textContent = "No architectural decisions are wired into the viewer yet. Add them in spark/scripts/erd/viewer-template.html (renderDecisions) or keep them in spec/decisions.";
+  intro.textContent = "No architectural decisions are wired into the viewer yet. Add them in spark/generators/erd/templates/viewer.html (renderDecisions) or keep them in spec/decisions.";
   section.appendChild(intro);
 }
 

@@ -77,6 +77,39 @@ doc_publish_defaults:
 telemetry:
   enabled: false
 
+# Schema / ERD / docs / types codegen — SoT for generator config (categories + per-stage knobs).
+# DDL SoT remains spec/erd/schema.sql; tables assign category keys via COMMENT ON TABLE.
+generators:
+  schema_sql: spec/erd/schema.sql
+  schema_model: spec/erd/generated/schema-model.json
+  categories:
+    - key: core
+      label: Core
+      color: "#2563eb"
+    - key: social
+      label: Social
+      color: "#059669"
+  erd:
+    enabled: true
+    out_dir: spec/erd/generated
+    nicht_crud_katalog: spec/erd/nicht-crud-katalog.md
+    audit_fk_columns:
+      - created_by
+      - updated_by
+      - granted_by
+      - revoked_by
+      - changed_by
+      - actor_id
+  docs:
+    enabled: true
+    out_dir: spec/erd/generated/docs
+  types:
+    enabled: true
+    out_dirs:
+      # Artifact copy under ERD generated/ is fine; package source uses schema/ (not a "generated/" folder).
+      - spec/erd/generated/types
+      - packages/types/src/schema
+
 rules_paths:
   always:
     - agents.md

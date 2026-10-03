@@ -1,0 +1,26 @@
+# {{ table.name }}
+
+| | |
+|---|---|
+| Label | {{ table.label }} |
+| Category | `{{ table.category }}` |
+| Spec | {{ table.spec or "—" }} |
+| Description | {{ table.description or "—" }} |
+
+## Columns
+
+| Name | SQL type | Logical | Nullable | Default | PK | FK | Comment |
+|---|---|---|---|---|---|---|---|
+{% for c in table.columns -%}
+| `{{ c.name }}` | `{{ c.sqlType }}` | {{ c.logicalType }} | {{ c.nullable }} | {{ c.defaultValue or "—" }} | {{ c.isPrimaryKey }} | {% if c.references %}`{{ c.references.table }}.{{ c.references.column }}`{% else %}—{% endif %} | {{ c.comment or "—" }} |
+{% endfor %}
+
+## Constraints
+
+- Primary key: {% if table.primaryKey %}`{{ table.primaryKey|join("`, `") }}`{% else %}—{% endif %}
+{% for u in table.uniqueConstraints -%}
+- Unique `{{ u.name }}`: `{{ u.columns|join("`, `") }}`
+{% endfor %}
+{% for ch in table.checkConstraints -%}
+- Check `{{ ch.name }}`: `{{ ch.definition }}`
+{% endfor %}

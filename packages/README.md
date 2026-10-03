@@ -4,7 +4,7 @@ Shared libraries for apps and tools. Directories scaffolded; implementation TBD 
 
 | Package | Path | Role |
 |---|---|---|
-| `@helloworld/types` | `types/` | Domain Zod schemas, inferred types, shared error classes |
+| `@helloworld/types` | `types/` | Domain Zod schemas (table shapes via `pnpm erd:build` → `src/schema/`), errors hand-authored |
 | `@helloworld/modules` | `modules/` | NestJS infrastructure (config, DB, health, auth, OpenAPI) |
 | `@helloworld/terminal` | `terminal/` | Terminal toolkit — config, stdio log, TTY (CLI/TUI/…); not web |
 | `@helloworld/api-client` | `api-client/` | Typed REST client SDK (`ky`) for api + worker — not MCP |

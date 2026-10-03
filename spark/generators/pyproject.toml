@@ -1,0 +1,13 @@
+[project]
+name = "helloworld-generators"
+version = "0.1.0"
+description = "SQL → JSON → ERD / docs / types generators for Hello World"
+requires-python = ">=3.12"
+dependencies = [
+  "jinja2>=3.1",
+  "pyyaml>=6.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

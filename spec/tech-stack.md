@@ -340,6 +340,19 @@ Intent: **Zod** remains the type / validation source of truth, and the API still
 
 Exact bridge (Zod → OpenAPI schema without duplicating DTOs) is still to decide when wiring `apps/api` (e.g. nestjs-zod / zod-to-openapi style helpers vs. decorator-generated Swagger from shared Zod schemas). Goal: one schema definition, not parallel class-validator DTOs and Zod.
 
+## Schema generators (`spark/generators/`)
+
+Python + Jinja2 codegen driven by [`spark/repo-profile.yaml`](../spark/repo-profile.yaml) `generators:` (shared **categories** + `erd` / `docs` / `types` knobs).
+
+| Stage | Role |
+|---|---|
+| core | `schema.sql` → `schema-model.json` (categories from profile) |
+| erd | JSON → Mermaid, draw.io, `erd.html` |
+| docs | JSON → Markdown catalog under `generated/docs/` |
+| types | JSON → Zod under `spec/erd/generated/types/` (artifact) and `packages/types/src/schema/` (package source; files marked Generated) |
+
+Run: `pnpm erd:build`. Detail: [`spark/generators/README.md`](../spark/generators/README.md).
+
 ## Out of scope here
 
 - Domain vocabulary → root `CONTEXT.md`

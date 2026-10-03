@@ -1,0 +1,21 @@
+# Category: {{ category.label }}
+
+Key: `{{ category.key }}` · Color: `{{ category.color }}`
+
+## Tables
+
+{% for name in category.tables -%}
+- [`{{ name }}`](../tables/{{ name }}.md)
+{% endfor %}
+
+## Edges involving this category
+
+{% if edges %}
+| From | Column | To | Kind |
+|---|---|---|---|
+{% for e in edges -%}
+| {{ e.fromTable }} | {{ e.fromColumn }} | {{ e.toTable }}.{{ e.toColumn }} | {{ e.kind }} |
+{% endfor %}
+{% else %}
+_No edges._
+{% endif %}

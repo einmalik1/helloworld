@@ -9,9 +9,11 @@ Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagestypes).
 
 ```text
 src/
-├── errors.ts      # base + domain error classes (when wired)
-├── *.types.ts     # domain Zod schemas
-└── index.ts
+├── schema/        # table Zod schemas from pnpm erd:build (files marked Generated — do not hand-edit)
+├── errors.ts      # base + domain error classes (hand-authored when wired)
+└── index.ts       # re-exports schema (+ errors later)
 ```
+
+**Regenerate table schemas:** edit `spec/erd/schema.sql` and/or `spark/repo-profile.yaml` `generators.categories`, then `pnpm erd:build`.
 
 Runtime dependency (intent): `zod` only. Consumed by `packages/modules`, `packages/api-client`, `packages/terminal`, and apps/tools.

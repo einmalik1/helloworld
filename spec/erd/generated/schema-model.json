@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-10-01T12:27:35.517Z",
+  "generatedAt": "2026-10-03T07:31:52.821739Z",
   "sourceFile": "spec/erd/schema.sql",
   "tables": [
     {
-      "name": "greetings",
+      "name": "person",
       "category": "core",
-      "label": "Greeting",
+      "label": "Person",
       "spec": "spec/features/README.md",
-      "description": "Example greeting row for the template",
+      "description": "Someone who authors greetings or reacts to them",
       "columns": [
         {
           "name": "id",
@@ -20,6 +20,180 @@
           "logicalReference": null,
           "isPrimaryKey": true,
           "comment": null
+        },
+        {
+          "name": "display_name",
+          "sqlType": "text",
+          "logicalType": "Text",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Public name shown next to greetings"
+        },
+        {
+          "name": "email",
+          "sqlType": "text",
+          "logicalType": "Text",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Unique contact address"
+        },
+        {
+          "name": "created_at",
+          "sqlType": "timestamptz",
+          "logicalType": "Timestamp (TZ)",
+          "nullable": false,
+          "hasDefault": true,
+          "defaultValue": "now()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": null
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "person_unique",
+          "columns": [
+            "email"
+          ]
+        }
+      ],
+      "checkConstraints": [],
+      "indexes": [],
+      "foreignKeys": []
+    },
+    {
+      "name": "channel",
+      "category": "core",
+      "label": "Channel",
+      "spec": "spec/features/README.md",
+      "description": "Surface where greetings are published (web, cli, \u2026)",
+      "columns": [
+        {
+          "name": "id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": true,
+          "hasDefault": true,
+          "defaultValue": "gen_random_uuid()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": true,
+          "comment": null
+        },
+        {
+          "name": "slug",
+          "sqlType": "text",
+          "logicalType": "Text",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Stable machine key for the channel"
+        },
+        {
+          "name": "name",
+          "sqlType": "text",
+          "logicalType": "Text",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Human-readable channel title"
+        },
+        {
+          "name": "created_at",
+          "sqlType": "timestamptz",
+          "logicalType": "Timestamp (TZ)",
+          "nullable": false,
+          "hasDefault": true,
+          "defaultValue": "now()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": null
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "channel_unique",
+          "columns": [
+            "slug"
+          ]
+        }
+      ],
+      "checkConstraints": [],
+      "indexes": [],
+      "foreignKeys": []
+    },
+    {
+      "name": "greeting",
+      "category": "core",
+      "label": "Greeting",
+      "spec": "spec/features/README.md",
+      "description": "A hello message posted by a person on a channel",
+      "columns": [
+        {
+          "name": "id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": true,
+          "hasDefault": true,
+          "defaultValue": "gen_random_uuid()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": true,
+          "comment": null
+        },
+        {
+          "name": "author_id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": {
+            "table": "person",
+            "column": "id",
+            "onDelete": "CASCADE"
+          },
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Person who wrote the greeting"
+        },
+        {
+          "name": "channel_id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": {
+            "table": "channel",
+            "column": "id",
+            "onDelete": "RESTRICT"
+          },
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Channel where the greeting appears"
         },
         {
           "name": "message",
@@ -52,10 +226,158 @@
       "uniqueConstraints": [],
       "checkConstraints": [],
       "indexes": [],
-      "foreignKeys": []
+      "foreignKeys": [
+        {
+          "column": "author_id",
+          "references": "person.id",
+          "onDelete": "CASCADE"
+        },
+        {
+          "column": "channel_id",
+          "references": "channel.id",
+          "onDelete": "RESTRICT"
+        }
+      ]
+    },
+    {
+      "name": "greeting_reaction",
+      "category": "social",
+      "label": "Greeting reaction",
+      "spec": "spec/features/README.md",
+      "description": "Emoji reaction from a person on a greeting",
+      "columns": [
+        {
+          "name": "id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": true,
+          "hasDefault": true,
+          "defaultValue": "gen_random_uuid()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": true,
+          "comment": null
+        },
+        {
+          "name": "greeting_id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": {
+            "table": "greeting",
+            "column": "id",
+            "onDelete": "CASCADE"
+          },
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Greeting being reacted to"
+        },
+        {
+          "name": "person_id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": {
+            "table": "person",
+            "column": "id",
+            "onDelete": "CASCADE"
+          },
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Person who reacted"
+        },
+        {
+          "name": "emoji",
+          "sqlType": "text",
+          "logicalType": "Text",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Reaction emoji (e.g. thumbs-up)"
+        },
+        {
+          "name": "created_at",
+          "sqlType": "timestamptz",
+          "logicalType": "Timestamp (TZ)",
+          "nullable": false,
+          "hasDefault": true,
+          "defaultValue": "now()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": null
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniqueConstraints": [
+        {
+          "name": "greeting_reaction_unique",
+          "columns": [
+            "greeting_id",
+            "person_id",
+            "emoji"
+          ]
+        }
+      ],
+      "checkConstraints": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "column": "greeting_id",
+          "references": "greeting.id",
+          "onDelete": "CASCADE"
+        },
+        {
+          "column": "person_id",
+          "references": "person.id",
+          "onDelete": "CASCADE"
+        }
+      ]
     }
   ],
-  "edges": [],
+  "edges": [
+    {
+      "fromTable": "greeting",
+      "fromColumn": "author_id",
+      "toTable": "person",
+      "toColumn": "id",
+      "kind": "fk",
+      "onDelete": "CASCADE"
+    },
+    {
+      "fromTable": "greeting",
+      "fromColumn": "channel_id",
+      "toTable": "channel",
+      "toColumn": "id",
+      "kind": "fk",
+      "onDelete": "RESTRICT"
+    },
+    {
+      "fromTable": "greeting_reaction",
+      "fromColumn": "greeting_id",
+      "toTable": "greeting",
+      "toColumn": "id",
+      "kind": "fk",
+      "onDelete": "CASCADE"
+    },
+    {
+      "fromTable": "greeting_reaction",
+      "fromColumn": "person_id",
+      "toTable": "person",
+      "toColumn": "id",
+      "kind": "fk",
+      "onDelete": "CASCADE"
+    }
+  ],
   "externalReferences": [],
   "categories": [
     {
@@ -63,7 +385,17 @@
       "label": "Core",
       "color": "#2563eb",
       "tables": [
-        "greetings"
+        "person",
+        "channel",
+        "greeting"
+      ]
+    },
+    {
+      "key": "social",
+      "label": "Social",
+      "color": "#059669",
+      "tables": [
+        "greeting_reaction"
       ]
     }
   ]

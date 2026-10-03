@@ -23,7 +23,7 @@
 | Layer | Path | Role |
 |---|---|---|
 | Source | `spec/` | Hand-authored product truth |
-| Generated | `spec/erd/generated/` | From `pnpm erd:build` |
+| Generated | `spec/erd/generated/` | From `pnpm erd:build` (`spark/generators/`; categories in `repo-profile.yaml`) |
 | Publish | `apps/docs` | HTTP site serving / embedding `spec/` |
 
 Do not rewrite plans under `spark/plans/` into `spec/` automatically — plans are process; specs are the durable contract.

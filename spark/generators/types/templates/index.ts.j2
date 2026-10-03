@@ -1,0 +1,7 @@
+/**
+ * Generated table schemas — do not edit by hand.
+ * Regenerate: pnpm erd:build
+ */
+{% for name in exports -%}
+export * from "./{{ name }}.js";
+{% endfor %}

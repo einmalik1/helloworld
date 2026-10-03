@@ -11,7 +11,7 @@ See root `README.md` for the layout inventory (`apps/`, `tools/`, `infra/`, `tes
 ## Data model
 
 Authoritative DDL: [`erd/schema.sql`](erd/schema.sql).  
-Regenerate diagrams: `pnpm erd:build` → [`erd/generated/`](erd/generated/).
+Regenerate: `pnpm erd:build` (Python generators under `spark/generators/`, config in `spark/repo-profile.yaml`) → [`erd/generated/`](erd/generated/).
 
 ## Related
 

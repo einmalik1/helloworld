@@ -1,2 +1,1 @@
-// @helloworld/types — domain schemas & errors (scaffold)
-export {};
+export * from "./schema/index.js";

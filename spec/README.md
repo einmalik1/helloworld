@@ -11,6 +11,6 @@ Product specification — source of truth for features, domain decisions, archit
 | `architecture.md` | System picture and boundaries (tech-agnostic) |
 | `tech-stack.md` | Technology stack inventory |
 | `erd/schema.sql` | Data model (hand-edit only) |
-| `erd/generated/` | ERD output from `pnpm erd:build` — do not edit |
+| `erd/generated/` | Output from `pnpm erd:build` (JSON, ERD, docs/, types/) — do not edit |
 
 Related: root `CONTEXT.md` (ubiquitous language). Plans live under `spark/plans/` (process), not here.

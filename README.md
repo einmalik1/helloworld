@@ -66,7 +66,7 @@ Product specification — source of truth. Published by `apps/docs`.
 | `decisions/` | ADRs |
 | `architecture.md` | System picture (tech-agnostic) |
 | `tech-stack.md` | Technology stack |
-| `erd/schema.sql` | Data model (hand-edit); run `pnpm erd:build` |
+| `erd/schema.sql` | DDL SoT (hand-edit); categories in `spark/repo-profile.yaml`; run `pnpm erd:build` |
 
 Domain glossary: root `CONTEXT.md`. Details: `spec/README.md`.
 
@@ -76,7 +76,7 @@ Domain glossary: root `CONTEXT.md`. Details: `spec/README.md`.
 |---|---|---|
 | **spark** | `spark` | Repo profile, agent rules, automation |
 | **coolify** | `spark/repo-profile.yaml` | QA/Prod targets; one multi-stage Dockerfile per app, Coolify builds from Git — see [`spec/tech-stack.md`](spec/tech-stack.md#coolify-build-deploy-data-services) |
-| **erd scripts** | `spark/scripts/erd` | SQL → diagrams / HTML viewer |
+| **generators** | `spark/generators` | SQL → JSON → ERD / docs / types (Jinja2); config in `repo-profile.yaml` |
 
 Key Spark paths: `spark/repo-profile.yaml`, `spark/agents/` (roles + `common/`), `spark/plans/`. Short pointer: root `agents.md`. Worktrees via Orca.
 
@@ -119,9 +119,9 @@ pnpm run test
 | `pnpm run build` | Full monorepo build |
 | `pnpm run test` | All tests |
 | `pnpm run lint` | Oxlint across the workspace |
-| `pnpm run typecheck` | `tsc --noEmit` across the workspace |
+| `pnpm run typecheck` | Runs `typecheck` only in workspace packages that define the script |
 | `pnpm run format` | Oxfmt across the workspace |
-| `pnpm run erd:build` | Regenerate ERD diagrams from `spec/erd/schema.sql` |
+| `pnpm run erd:build` | Regenerate schema-model.json, ERD, docs catalog, Zod types |
 
 App-specific (still run from **repo root**):
 
