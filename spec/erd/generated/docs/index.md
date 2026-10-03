@@ -1,7 +1,7 @@
 # Data model catalog
 
 Generated from `schema-model.json`. Categories from `spark/repo-profile.yaml`.
-Do not edit by hand — run `pnpm erd:build`.
+Do not edit by hand — run `pnpm generate`.
 
 | Category | Tables |
 |---|---|

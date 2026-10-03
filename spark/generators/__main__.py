@@ -1,21 +1,26 @@
-"""CLI: load repo-profile → core → erd → docs → types."""
+"""CLI: load repo-profile → core → erd → docs → types → api → nest_dto."""
 
 from __future__ import annotations
 
 import argparse
 import json
 import sys
+from pathlib import Path
 
+from generators.api.generate import generate_api
 from generators.config import find_repo_root, load_generators_config
 from generators.core.parse_schema import build_schema_model, write_schema_model
 from generators.docs.generate import generate_docs
 from generators.erd.generate import generate_erd
+from generators.nest_dto.generate import generate_nest_dto
 from generators.types.generate import generate_types
+
+ALL_STAGES = ("core", "erd", "docs", "types", "api", "nest_dto")
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Hello World generators (SQL → JSON → ERD / docs / types)"
+        description="Hello World generators (SQL → JSON → ERD / docs / types / api / nest_dto)"
     )
     parser.add_argument(
         "--repo-root",
@@ -25,20 +30,20 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--only",
-        choices=("core", "erd", "docs", "types"),
+        choices=ALL_STAGES,
         action="append",
         help="Run only selected stage(s); default = all",
     )
     args = parser.parse_args(argv)
 
     try:
-        root = find_repo_root() if not args.repo_root else __import__("pathlib").Path(args.repo_root)
+        root = find_repo_root() if not args.repo_root else Path(args.repo_root)
         cfg = load_generators_config(root.resolve())
     except (FileNotFoundError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    stages = set(args.only) if args.only else {"core", "erd", "docs", "types"}
+    stages = set(args.only) if args.only else set(ALL_STAGES)
 
     model = None
     if "core" in stages:
@@ -57,6 +62,10 @@ def main(argv: list[str] | None = None) -> int:
         generate_docs(cfg, model)
     if "types" in stages:
         generate_types(cfg, model)
+    if "api" in stages:
+        generate_api(cfg, model)
+    if "nest_dto" in stages:
+        generate_nest_dto(cfg, model)
 
     return 0
 

@@ -3,7 +3,15 @@
   "private": true,
   "packageManager": "pnpm@12.8.1",
   "scripts": {
-    "erd:build": "python3 spark/generators/run.py",
+    "generate": "pnpm generate:code && pnpm generate:client",
+    "generate:code": "python3 spark/generators/run.py",
+    "generate:core": "python3 spark/generators/run.py --only core",
+    "generate:erd": "python3 spark/generators/run.py --only erd",
+    "generate:docs": "python3 spark/generators/run.py --only docs",
+    "generate:types": "python3 spark/generators/run.py --only types",
+    "generate:api": "python3 spark/generators/run.py --only api",
+    "generate:nest-dto": "python3 spark/generators/run.py --only nest_dto",
+    "generate:client": "pnpm --filter @helloworld/api-client generate",
     "typecheck": "pnpm -r --if-present run typecheck"
   }
 }

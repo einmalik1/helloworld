@@ -66,7 +66,7 @@ Product specification — source of truth. Published by `apps/docs`.
 | `decisions/` | ADRs |
 | `architecture.md` | System picture (tech-agnostic) |
 | `tech-stack.md` | Technology stack |
-| `erd/schema.sql` | DDL SoT (hand-edit); categories in `spark/repo-profile.yaml`; run `pnpm erd:build` |
+| `erd/schema.sql` | DDL SoT (hand-edit); categories in `spark/repo-profile.yaml`; run `pnpm generate` |
 
 Domain glossary: root `CONTEXT.md`. Details: `spec/README.md`.
 
@@ -76,7 +76,7 @@ Domain glossary: root `CONTEXT.md`. Details: `spec/README.md`.
 |---|---|---|
 | **spark** | `spark` | Repo profile, agent rules, automation |
 | **coolify** | `spark/repo-profile.yaml` | QA/Prod targets; one multi-stage Dockerfile per app, Coolify builds from Git — see [`spec/tech-stack.md`](spec/tech-stack.md#coolify-build-deploy-data-services) |
-| **generators** | `spark/generators` | SQL → JSON → ERD / docs / types (Jinja2); config in `repo-profile.yaml` |
+| **generators** | `spark/generators` | SQL → ERD / docs / Zod / Nest DTOs; then Orval client — `pnpm generate` |
 
 Key Spark paths: `spark/repo-profile.yaml`, `spark/agents/` (roles + `common/`), `spark/plans/`. Short pointer: root `agents.md`. Worktrees via Orca.
 
@@ -121,7 +121,8 @@ pnpm run test
 | `pnpm run lint` | Oxlint across the workspace |
 | `pnpm run typecheck` | Runs `typecheck` only in workspace packages that define the script |
 | `pnpm run format` | Oxfmt across the workspace |
-| `pnpm run erd:build` | Regenerate schema-model.json, ERD, docs catalog, Zod types |
+| `pnpm generate` | Full codegen: schema model, ERD, docs, Zod, Nest DTOs, Orval client |
+| `pnpm generate:<stage>` | Single stage: `core`, `erd`, `docs`, `types`, `api`, `nest-dto`, `client` |
 
 App-specific (still run from **repo root**):
 

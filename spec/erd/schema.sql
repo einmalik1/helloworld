@@ -13,8 +13,10 @@
 --     (labels/colors are defined there — not via -- @category in this file).
 --   * No seed data, no GRANTs, no DROP statements.
 --
--- Regenerate JSON + ERD + docs + types:
---   pnpm erd:build
+-- Regenerate (full pipeline including client when openapi.json exists):
+--   pnpm generate
+-- Code stages only:
+--   pnpm generate:code
 --     (= python3 spark/generators/run.py)
 --
 -- Output: paths from spark/repo-profile.yaml generators.*

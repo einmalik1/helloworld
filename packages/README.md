@@ -4,10 +4,10 @@ Shared libraries for apps and tools. Directories scaffolded; implementation TBD 
 
 | Package | Path | Role |
 |---|---|---|
-| `@helloworld/types` | `types/` | Domain Zod schemas (table shapes via `pnpm erd:build` → `src/schema/`), errors hand-authored |
+| `@helloworld/types` | `types/` | Entity Zod (`src/schema/`) + API Zod (`src/api/`) via `pnpm generate`; errors hand-authored |
 | `@helloworld/modules` | `modules/` | NestJS infrastructure (config, DB, health, auth, OpenAPI) |
 | `@helloworld/terminal` | `terminal/` | Terminal toolkit — config, stdio log, TTY (CLI/TUI/…); not web |
-| `@helloworld/api-client` | `api-client/` | Typed REST client SDK (`ky`) for api + worker — not MCP |
+| `@helloworld/api-client` | `api-client/` | Orval SDK from OpenAPI + ky mutator — not MCP |
 | `@helloworld/config` | `config/` | Shared tooling only (tsconfig, vitest, oxlint) |
 
 ```text

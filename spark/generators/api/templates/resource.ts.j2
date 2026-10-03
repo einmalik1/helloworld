@@ -1,0 +1,21 @@
+{{ header }}
+import { z } from "zod";
+import { {{ pascal }}Schema } from "../schema/{{ table_name }}.js";
+
+{% if omit_fields -%}
+export const Create{{ pascal }}Schema = {{ pascal }}Schema.omit({
+{%- for field in omit_fields %}
+  {{ field }}: true,
+{%- endfor %}
+});
+{% else -%}
+export const Create{{ pascal }}Schema = {{ pascal }}Schema;
+{% endif %}
+
+export const Update{{ pascal }}Schema = Create{{ pascal }}Schema.partial();
+
+export const {{ pascal }}ResponseSchema = {{ pascal }}Schema;
+
+export type Create{{ pascal }} = z.infer<typeof Create{{ pascal }}Schema>;
+export type Update{{ pascal }} = z.infer<typeof Update{{ pascal }}Schema>;
+export type {{ pascal }}Response = z.infer<typeof {{ pascal }}ResponseSchema>;

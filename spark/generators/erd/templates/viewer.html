@@ -206,7 +206,7 @@
 <section class="view" id="view-entity"></section>
 <section class="view" id="view-raw"><pre style="font-size:12px; overflow:auto; max-height:70vh"></pre></section>
 </main>
-<footer>Source: spec/erd/schema.sql (single source of truth) · generated via <code>pnpm erd:build</code> · Mermaid loads from CDN; everything else runs offline.</footer>
+<footer>Source: spec/erd/schema.sql (single source of truth) · generated via <code>pnpm generate</code> · Mermaid loads from CDN; everything else runs offline.</footer>
 <script>
 const MODEL = {{MODEL}};
 const STATS = {{STATS}};
@@ -1127,7 +1127,7 @@ function renderDecisions(section) {
 function renderNichtCrud(section) {
   section.innerHTML =
     '<div class="md-source-note"><span>Mirrored from <code>' + NICHT_CRUD_SOURCE + '</code>.</span>' +
-    '<span>The markdown file is the source — after changing it, run <code>pnpm erd:build</code>.</span></div>' +
+    '<span>The markdown file is the source — after changing it, run <code>pnpm generate</code>.</span></div>' +
     '<div class="md-body">' + NICHT_CRUD_HTML + "</div>";
 }
 

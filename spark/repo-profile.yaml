@@ -109,6 +109,17 @@ generators:
       # Artifact copy under ERD generated/ is fine; package source uses schema/ (not a "generated/" folder).
       - spec/erd/generated/types
       - packages/types/src/schema
+  api:
+    enabled: true
+    out_dir: packages/types/src/api
+    # Plus PK columns that have a DB default (e.g. gen_random_uuid).
+    create_omit_columns:
+      - created_at
+      - updated_at
+  nest_dto:
+    enabled: true
+    out_dir: apps/api/src
+    import_types_from: "@helloworld/types/api"
 
 rules_paths:
   always:

@@ -2,25 +2,21 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from generators.config import GeneratorsConfig
+from generators.core.naming import pascal
 
 TEMPLATES = Path(__file__).resolve().parent / "templates"
-
-
-def _pascal(name: str) -> str:
-    return "".join(p[:1].upper() + p[1:] for p in re.split(r"[_\s]+", name) if p)
 
 
 def sql_to_zod(sql_type: str) -> str:
     t = sql_type.lower().strip()
     if t == "uuid":
-        return "z.string().uuid()"
+        return "z.uuid()"  # Zod 4 top-level; z.string().uuid() is deprecated
     if t in ("text", "citext") or t.startswith("varchar") or t.startswith("char"):
         return "z.string()"
     if t in ("integer", "smallint", "int", "int4", "int2"):
@@ -82,8 +78,8 @@ def generate_types(cfg: GeneratorsConfig, model: dict[str, Any]) -> None:
         "index.ts": index_tpl.render(exports=export_names),
     }
     for table in model["tables"]:
-        pascal = _pascal(table["name"])
-        schema_name = f"{pascal}Schema"
+        p = pascal(table["name"])
+        schema_name = f"{p}Schema"
         field_lines: list[str] = []
         for field in _fields_for_table(table):
             expr = field["zod"] + ("" if field["required"] else ".optional()")
@@ -93,7 +89,7 @@ def generate_types(cfg: GeneratorsConfig, model: dict[str, Any]) -> None:
         files[f"{table['name']}.ts"] = (
             "/**\n"
             " * Generated from schema-model.json — do not edit by hand.\n"
-            " * Regenerate: pnpm erd:build\n"
+            " * Regenerate: pnpm generate\n"
             " */\n"
             'import { z } from "zod";\n'
             "\n"
@@ -101,7 +97,7 @@ def generate_types(cfg: GeneratorsConfig, model: dict[str, Any]) -> None:
             f"{body}\n"
             "});\n"
             "\n"
-            f"export type {pascal} = z.infer<typeof {schema_name}>;\n"
+            f"export type {p} = z.infer<typeof {schema_name}>;\n"
         )
 
     for rel in cfg.types.out_dirs:

@@ -40,6 +40,22 @@ class TypesConfig:
 
 
 @dataclass
+class ApiConfig:
+    enabled: bool = True
+    out_dir: str = "packages/types/src/api"
+    create_omit_columns: list[str] = field(
+        default_factory=lambda: ["created_at", "updated_at"]
+    )
+
+
+@dataclass
+class NestDtoConfig:
+    enabled: bool = True
+    out_dir: str = "apps/api/src"
+    import_types_from: str = "@helloworld/types/api"
+
+
+@dataclass
 class GeneratorsConfig:
     repo_root: Path
     schema_sql: str
@@ -48,6 +64,8 @@ class GeneratorsConfig:
     erd: ErdConfig
     docs: DocsConfig
     types: TypesConfig
+    api: ApiConfig
+    nest_dto: NestDtoConfig
 
     def path(self, rel: str) -> Path:
         return (self.repo_root / rel).resolve()
@@ -71,7 +89,7 @@ def load_generators_config(repo_root: Path | None = None) -> GeneratorsConfig:
     if not block or not isinstance(block, dict):
         raise ValueError(
             f"Missing required `generators:` section in {profile_path}. "
-            "Add categories and erd/docs/types settings (see spark/generators/README.md)."
+            "Add categories and erd/docs/types/api/nest_dto settings (see spark/generators/README.md)."
         )
 
     raw_cats = block.get("categories")
@@ -96,6 +114,8 @@ def load_generators_config(repo_root: Path | None = None) -> GeneratorsConfig:
     erd_raw = block.get("erd") or {}
     docs_raw = block.get("docs") or {}
     types_raw = block.get("types") or {}
+    api_raw = block.get("api") or {}
+    nest_raw = block.get("nest_dto") or {}
 
     schema_sql = block.get("schema_sql") or "spec/erd/schema.sql"
     schema_model = block.get("schema_model") or "spec/erd/generated/schema-model.json"
@@ -118,6 +138,19 @@ def load_generators_config(repo_root: Path | None = None) -> GeneratorsConfig:
         enabled=bool(types_raw.get("enabled", True)),
         out_dirs=[str(p) for p in out_dirs],
     )
+    omit = api_raw.get("create_omit_columns")
+    if omit is None:
+        omit = ["created_at", "updated_at"]
+    api = ApiConfig(
+        enabled=bool(api_raw.get("enabled", True)),
+        out_dir=str(api_raw.get("out_dir") or "packages/types/src/api"),
+        create_omit_columns=[str(c) for c in omit],
+    )
+    nest_dto = NestDtoConfig(
+        enabled=bool(nest_raw.get("enabled", True)),
+        out_dir=str(nest_raw.get("out_dir") or "apps/api/src"),
+        import_types_from=str(nest_raw.get("import_types_from") or "@helloworld/types/api"),
+    )
 
     return GeneratorsConfig(
         repo_root=root,
@@ -127,4 +160,6 @@ def load_generators_config(repo_root: Path | None = None) -> GeneratorsConfig:
         erd=erd,
         docs=docs,
         types=types,
+        api=api,
+        nest_dto=nest_dto,
     )

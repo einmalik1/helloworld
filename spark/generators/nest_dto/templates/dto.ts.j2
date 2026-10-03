@@ -1,0 +1,5 @@
+{{ header }}
+import { createZodDto } from "nestjs-zod";
+import { {{ schema_name }} } from "{{ import_from }}";
+
+export class {{ class_name }} extends createZodDto({{ schema_name }}) {}

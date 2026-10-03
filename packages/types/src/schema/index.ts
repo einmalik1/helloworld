@@ -1,6 +1,6 @@
 /**
  * Generated table schemas — do not edit by hand.
- * Regenerate: pnpm erd:build
+ * Regenerate: pnpm generate
  */
 export * from "./person.js";
 export * from "./channel.js";

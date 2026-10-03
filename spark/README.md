@@ -8,7 +8,7 @@ Repo profile and agent roles. Coolify deploy targets (QA and production) live in
 | `agents/common/` | Shared rules for all agents |
 | `agents/<role>/` | Role kits (code-analyzer, documenter, log-analyzer, …) |
 | `plans/` | Active / drafts / archive / inbox (process) |
-| `generators/` | Python+Jinja2: SQL→JSON→ERD/docs/types (config in `repo-profile.yaml`) |
+| `generators/` | Python+Jinja2 codegen (`pnpm generate`); config in `repo-profile.yaml` |
 | `releases/` | Release manifest and notes (later) |
 | `templates/` | Plan templates |
 

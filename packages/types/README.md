@@ -9,11 +9,19 @@ Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagestypes).
 
 ```text
 src/
-├── schema/        # table Zod schemas from pnpm erd:build (files marked Generated — do not hand-edit)
+├── schema/        # Entity Zod — generated (`pnpm generate:types`)
+├── api/           # API Zod (Create/Update/Response) — generated (`pnpm generate:api`)
 ├── errors.ts      # base + domain error classes (hand-authored when wired)
-└── index.ts       # re-exports schema (+ errors later)
+└── index.ts       # re-exports schema + api
 ```
 
-**Regenerate table schemas:** edit `spec/erd/schema.sql` and/or `spark/repo-profile.yaml` `generators.categories`, then `pnpm erd:build`.
+| Subpath | Import | Role |
+|---|---|---|
+| `schema/` | `@helloworld/types/schema` | Persistenz / Entity |
+| `api/` | `@helloworld/types/api` | HTTP contracts for Nest DTOs + `api-client` |
 
-Runtime dependency (intent): `zod` only. Consumed by `packages/modules`, `packages/api-client`, `packages/terminal`, and apps/tools.
+**Regenerate:** edit `spec/erd/schema.sql` and/or `spark/repo-profile.yaml` `generators:`, then `pnpm generate` (or `pnpm generate:types` / `generate:api`).
+
+**API Create convention:** omit PK-with-default + `generators.api.create_omit_columns` (`created_at`, `updated_at`). Update = Create.partial(). Response = entity schema.
+
+Runtime dependency: `zod`. Nest `createZodDto` wrappers live under `apps/api` (nest_dto stage), not here.

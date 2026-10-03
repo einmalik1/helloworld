@@ -18,4 +18,18 @@ pnpm run dev
 pnpm run --filter api dev
 ```
 
+## Generated Nest DTOs
+
+`pnpm generate` / `pnpm generate:nest-dto` writes thin `createZodDto` wrappers:
+
+```text
+apps/api/src/{resource}/dto/
+  create-{resource}.dto.ts
+  update-{resource}.dto.ts
+  {resource}-response.dto.ts
+  index.ts
+```
+
+Schemas come from `@helloworld/types/api`. Do not hand-edit these files. App wiring still needs `nestjs-zod` when Nest is scaffolded.
+
 ORM/schema details (Drizzle) will be documented here when packages land.
