@@ -100,12 +100,12 @@ export const customFetch = async <T>(url: string, options?: Options): Promise<T>
 
 ## Customization (do not edit generated/)
 
-| Hebel | Datei | Wofür |
+| Lever | File | Purpose |
 |---|---|---|
 | Transport / auth | `src/http.ts` | ky, headers, timeouts, error mapping |
 | Facade | `src/index.ts` | `createApiClient(opts)`, re-exports, helpers |
-| Per-route | `orval.config.ts` → `override` | einzelne Operationen anders |
-| Templates | Orval custom templates | nur wenn Struktur grundsätzlich nicht passt |
+| Per-route | `orval.config.ts` → `override` | change individual operations |
+| Templates | Orval custom templates | only when the default structure does not fit |
 
 ## Consumers
 

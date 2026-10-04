@@ -295,7 +295,7 @@ CLI/TUI  →  tslog + ora (stderr) ; results on stdout   (via packages/terminal/
 
 | Step | Tool | Role |
 |---|---|---|
-| Persistenz SoT | `schema.sql` → Entity Zod (`types` stage) | Table shapes in `packages/types/src/schema/` |
+| Persistence SoT | `schema.sql` → Entity Zod (`types` stage) | Table shapes in `packages/types/src/schema/` |
 | API SoT | API Zod (`api` stage) | Create/Update/Response in `packages/types/src/api/` |
 | Nest adapters | `nest_dto` stage | `createZodDto` under `apps/api/src/{resource}/dto/` |
 | Typecheck | `tsc --noEmit` | Verifies the whole graph compiles; **does not** emit JS |
@@ -422,7 +422,7 @@ Layered SoT (not a single file):
 
 | Layer | Location | How |
 |---|---|---|
-| Persistenz / Entity | `packages/types/src/schema/` | Generator **types** stage from `schema.sql` |
+| Persistence / entity | `packages/types/src/schema/` | Generator **types** stage from `schema.sql` |
 | API contracts | `packages/types/src/api/` | Generator **api** stage (Create / Update / Response from entity) |
 | Nest DTO classes | `apps/api/src/{resource}/dto/` | Generator **nest_dto** stage — `createZodDto(...)` only |
 | OpenAPI document | Nest + **nestjs-zod** + `@nestjs/swagger` | Build export → `openapi.json` (and optional Swagger UI at runtime) |
