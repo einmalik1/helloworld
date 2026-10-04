@@ -1,8 +1,8 @@
 # Tech-stack specification backlog
 
-Working backlog from comparing root [`TECH-STACK.md`](../TECH-STACK.md) (reference / prior project) against [`tech-stack.md`](tech-stack.md) and related component READMEs. Goal: close **specification** gaps so this monorepo can serve as a strong template before implementation waves.
+Working backlog for closing **specification** gaps against [`tech-stack.md`](tech-stack.md) and component READMEs so this monorepo can serve as a strong template before implementation waves.
 
-Do **not** treat root `TECH-STACK.md` as product SoT — pull good patterns into `spec/` + component READMEs; leave product-specific c3p0 encyclopedias behind.
+Useful patterns from a prior Nest/CLI project were **salvaged into the topic sections below** (marked *Prior reference*). Do not re-import that foreign doc; product-specific encyclopedias (meetings, dual-mode binary, static `API_KEY`, runtime DDL) stay rejected — see Appendix.
 
 ## Product vs process
 
@@ -113,6 +113,10 @@ Decisions about the running system: components, architecture, stack/versions, co
 - [ ] Align Better Auth schema with chosen ownership
 - [ ] Coolify / local docs for applying migrations
 
+### Prior reference (rejected pattern — for ADR contrast only)
+
+Prior project used **no** migration runner: DDL in `onModuleInit()` via `CREATE TABLE IF NOT EXISTS` + idempotent `ALTER TABLE … ADD COLUMN IF NOT EXISTS`. Schema lived at `packages/modules/src/database/schema.ts`; `DatabaseService` held domain query methods (no generic CRUD). **Do not adopt** runtime DDL — keep as rejected alternative in the ADR.
+
 ---
 
 ## 3. API contract conventions
@@ -144,6 +148,33 @@ Decisions about the running system: components, architecture, stack/versions, co
 
 - [ ] Global filter + OpenAPI examples matching the contract
 - [ ] Shared list query DTO pattern; `tests/api` against the envelope
+
+### Prior reference (adapt)
+
+**Fixed routes (adopt as defaults unless decided otherwise):**
+
+| Method | Path | Role |
+|---|---|---|
+| CRUD | `/resource`, `/resource/:id` | list / get / create / patch / delete |
+| `GET` | `/health` | public health |
+| `GET` | `/api/docs` | Swagger UI |
+| `GET` | `/openapi.json` | OpenAPI document (also build-time export) |
+
+**Error envelope (candidate):** filter normalizes to `{ error: "..." }` or `{ error: "...", errors: [...] }` — not `{ message }` only. Map via error classes / status table, **not** `message.includes("not found")`.
+
+**List query DTO (candidate hand-written, not generated):**
+
+```typescript
+const querySchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+});
+export class ListQueryDto extends createZodDto(querySchema) {}
+```
+
+**neverthrow split (already in api README prose):** Service returns `ok`/`err`; Controller alone throws `HttpException` on `isErr()`.
+
+**OpenAPI (prior):** Swagger UI `/api/docs`, JSON `/openapi.json`, API-key scheme documented, `cleanupOpenApiDoc()` on export.
 
 ---
 
@@ -220,6 +251,10 @@ Decisions about the running system: components, architecture, stack/versions, co
 
 - [ ] Auth module, guards, Better Auth routes, web client session, tool credential storage
 
+### Prior reference (rejected — for ADR contrast)
+
+Static env `API_KEY` + global `ApiKeyModule` checking header `x-api-key`, opt-out `@Public()`. **Rejected** in favour of Better Auth managed keys + sessions; keep header name `x-api-key` as a strong candidate for the API-key plugin path.
+
 ---
 
 ## 10. Security / ops baseline
@@ -273,13 +308,28 @@ Runtime/deploy shape of the product (how each service ships). Build *tooling* de
 
 ### Spec to write
 
-- [ ] Concrete stage contract: lockfile-first layer cache → `pnpm install --frozen-lockfile` → Turbo/`^build` → slim runtime `CMD ["node", "dist/main.js"]`
-- [ ] Copy good bits from prior `TECH-STACK.md` Docker section; drop product-specific paths
+- [ ] Concrete stage contract (see prior reference below); adapt filter name `@helloworld/…`, paths `apps/api`, etc.
 - [ ] Per-app Deploy blurb points at shared contract
 
 ### Impl (later)
 
 - [ ] Add `apps/*/Dockerfile` for each Coolify app
+
+### Prior reference (adapt)
+
+Multi-stage, build context = monorepo root:
+
+1. **installer** — copy lockfile + workspace `package.json` first → `pnpm install --frozen-lockfile` (layer cache)
+2. **builder** — `pnpm run build --filter <api-package>` (needs `^build` / Turbo so `packages/*` emit `dist/`)
+3. **production** — `node:26-alpine`, non-root user, expose app port, run built JS only
+
+```dockerfile
+FROM node:26-alpine AS production
+WORKDIR /app/apps/api
+USER nodeapp
+EXPOSE 3000
+CMD ["node", "dist/main.js"]
+```
 
 ---
 
@@ -337,11 +387,41 @@ Runtime/deploy shape of the product (how each service ships). Build *tooling* de
 
 - [ ] Mutator timeouts, Terminus indicators, Zod `envSchema` matching the table
 
+### Prior reference (adapt)
+
+**ky:** general timeout **30s**; health checks **3s** (prior CLI `api.ts`).
+
+**TUI config globals (candidates):** `pollInterval` default 30 (range 5–300); `pageSize` default 15 (range 5–100). Resolve URL/key: active environment → built-in defaults; missing file → defaults; corrupt file → hard error.
+
+**Env table shape (adapt names to helloworld — do not copy static `API_KEY` / `SERVER_HTTP_PORT` / `LOG_LEVEL` default `warn`):**
+
+| Variable (prior) | helloworld intent | Required | Default |
+|---|---|---|---|
+| `SERVER_HTTP_PORT` | `API_PORT` (see `.env.example`) | — | `3000` |
+| `DATABASE_URL` | same | ✓ | — |
+| `API_KEY` | Better Auth keys / `BETTER_AUTH_*` — not a single static key | ✓ (secrets) | — |
+| `LOG_LEVEL` | same | — | **`info`** (template), not `warn` |
+| `NODE_ENV` | same | — | `development` |
+
+**envSchema sketch (adapt keys):**
+
+```typescript
+export const envSchema = z.object({
+  API_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
+  DATABASE_URL: z.string().min(1),
+  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  BETTER_AUTH_SECRET: z.string().min(1),
+  BETTER_AUTH_URL: z.string().url(),
+  WEB_ORIGIN: z.string().url(),
+  // … S3_* when this process needs object storage
+});
+```
+
 ---
 
 ## 16. Search / knowledge-graph service
 
-New long-running **app/service** in the template: a searchable knowledge graph over domain entities (Hello World: greetings, channels, people, reactions, …). Not covered by prior `TECH-STACK.md`. Complements Postgres (system of record) rather than replacing it.
+New long-running **app/service** in the template: a searchable knowledge graph over domain entities (Hello World: greetings, channels, people, reactions, …). No prior-project salvage for this. Complements Postgres (system of record) rather than replacing it.
 
 | | |
 |---|---|
@@ -429,6 +509,25 @@ Decisions about how we develop, document, generate, and change the system.
 - [ ] Nest: `@nestjs/cli`, `nest-cli.json`, `nest build` / `nest start --watch`
 - [ ] Docker runtime stages consume `dist/` only
 
+### Prior reference (adapt)
+
+`turbo.json` task sketch (align with intent already in `tech-stack.md`):
+
+```json
+{
+  "tasks": {
+    "build": { "dependsOn": ["^build"], "outputs": ["dist/**"] },
+    "dev": { "dependsOn": ["^build"], "cache": false, "persistent": true },
+    "test": { "dependsOn": ["build"] },
+    "lint": {},
+    "typecheck": {},
+    "format": { "cache": false }
+  }
+}
+```
+
+App scripts (prior): `"build": "nest build"`, `"dev": "nest start --watch"`, `"typecheck": "tsc --noEmit"`. Tools: plain `tsc` (no Nest CLI).
+
 ---
 
 ## 6. Workflow “new resource”
@@ -465,6 +564,19 @@ Depends on product **#1** (migrations) for the migrate step.
 
 - [ ] Ensure each step has a real command; keep README in sync
 
+### Prior reference (adapt)
+
+Prior “new feature” steps (pre-generator era — merge with generate pipeline above):
+
+1. Zod schemas in `packages/types` (or dto/) — today: prefer `schema.sql` → `pnpm generate`
+2. Drizzle schema in `packages/modules`
+3. `DatabaseService` methods
+4. Feature module: `.module` / `.controller` / `.service`
+5. Import in `AppModule`
+6. Tests under app test folder
+
+Prior blueprint also had a greenfield monorepo checklist (config → types → modules → nest app → patterns → turbo) — useful only if scaffolding a *new* repo from this template; keep as optional spark/agent note later.
+
 ---
 
 ## 7. Nest reference snippets
@@ -500,6 +612,87 @@ Coding conventions / scaffolding patterns (how we implement Nest). Product contr
 
 - [ ] Scaffold real files from those sketches
 
+### Prior reference (adapt — Nest 12 / Better Auth / helloworld names)
+
+**`main.ts` sketch:**
+
+```typescript
+async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create(AppModule);
+  app.useLogger(app.get(Logger));
+  app.useGlobalPipes(new ZodValidationPipe());
+  app.useGlobalFilters(new HttpExceptionFilter());
+  setupOpenApi(app, { title: "Hello World API", description: "REST API" });
+  const configService = app.get(ConfigService<AppConfig, true>);
+  const port = configService.get("API_PORT", { infer: true });
+  await app.listen(port);
+}
+```
+
+**`LoggerModule.forRoot` sketch:**
+
+```typescript
+LoggerModule.forRoot({
+  pinoHttp: {
+    level: process.env.LOG_LEVEL ?? "info",
+    autoLogging: false,
+    transport: process.env.NODE_ENV !== "production"
+      ? { target: "pino-pretty", options: { singleLine: true } }
+      : undefined,
+  },
+});
+```
+
+**`AppModule` import order (replace `ApiKeyModule` with Better Auth module):**
+
+```typescript
+@Module({
+  imports: [
+    createAppConfigModule({ envSchema }),
+    // AuthModule — Better Auth session + API-key guard (not static ApiKeyModule)
+    DatabaseModule,
+    HealthModule,
+    LoggerModule.forRoot({ /* pino above */ }),
+    // Feature modules…
+  ],
+})
+export class AppModule {}
+```
+
+**Service / controller Result mapping:**
+
+```typescript
+// Service
+async findAll(): Promise<Result<Entity[], DatabaseError>> {
+  try { /* ... */ return ok(entities); }
+  catch (e) { return err(new DatabaseError(e)); }
+}
+
+// Controller
+const result = await this.service.findAll();
+if (result.isErr()) throw new HttpException({ error: String(result.error) }, /* status from map */);
+return result.value;
+```
+
+**Exception filter intent:** `@Catch(HttpException)` → `response.status(status).json(body)` with envelope from **#3**.
+
+**Vitest module test sketch** (override auth guard, not `ApiKeyGuard` name forever):
+
+```typescript
+const moduleRef = await Test.createTestingModule({
+  imports: [/* test config */],
+  controllers: [ResourceController],
+  providers: [{ provide: ResourceService, useValue: mockService }],
+})
+  .overrideGuard(/* AuthGuard */)
+  .useValue({ canActivate: () => true })
+  .compile();
+```
+
+**Layout rule (already in api README):** multiple files → subfolder; single service may sit at feature root. Optional external sync tree: `src/{feature}/sync/` + `{provider}/`.
+
+**Do not** add per-route `@UsePipes(new ZodValidationPipe(Dto))` as the default when a global pipe exists.
+
 ---
 
 ## 8. TypeScript / module contract
@@ -527,6 +720,13 @@ Coding conventions / scaffolding patterns (how we implement Nest). Product contr
 
 - [ ] Land `tsconfig.base.json`, vitest SWC, verify Nest DI under TS 7
 
+### Prior reference (adapt)
+
+- Target **ES2023**; `moduleResolution` `nodenext`; relative imports with `.js` suffix; `"type": "module"`
+- Nest: `experimentalDecorators` + `emitDecoratorMetadata`
+- Vitest: `unplugin-swc` for decorator support in tests
+- Shared bases in `packages/config`: `tsconfig.base.json`, `vitest.config.ts`, `oxlintrc.json`
+
 ---
 
 ## 9. Root dependency rule
@@ -552,6 +752,12 @@ Coding conventions / scaffolding patterns (how we implement Nest). Product contr
 ### Impl (later)
 
 - [ ] Add missing root tooling deps / scripts (`dev`, `build`, `lint`, `format`, `test`, `docker:local:*`) when wiring Turbo
+
+### Prior reference (adapt)
+
+Prior rule: root `package.json` contains **only `turbo`** as a dependency; new libraries belong in the consuming workspace. Decide whether helloworld also allows root-level oxlint/oxfmt/typescript as shared tooling (see Decide above).
+
+Filter usage: `pnpm run --filter <pkg> …` / `pnpm add <pkg> --filter <pkg>` from repo root.
 
 ---
 
@@ -617,21 +823,30 @@ This topic is the **process** of writing ADRs (naming, structure, when). Candida
 
 - [ ] Optional husky/lefthook / CI workflow matching the gate
 
+### Prior reference (adapt)
+
+- Branches: `feature/*`, `fix/*`, `chore/*`
+- Commits: Conventional Commits
+- Pre-merge: `format` → `lint` → `typecheck` → `test`
+
 ---
 
 # Appendix
 
-## Explicitly do **not** port from `TECH-STACK.md`
+## Rejected prior-project patterns (do not port)
 
 | Prior pattern | Why not |
 |---|---|
-| Dual-mode single binary CLI/TUI | Template chose two installable tools |
+| Dual-mode single binary CLI/TUI (`argv.length` → Ink vs Commander) | Template: two installable tools (`helloworld` / `helloworld-tui`) |
 | Static env `API_KEY` / `ApiKeyModule` | Better Auth managed keys + sessions |
 | Runtime DDL in `onModuleInit()` | Prefer real migrations (**#1**) |
 | Status via `message.includes("not found")` | Explicit error-class → status map (**#3**) |
 | `LOG_LEVEL` default `warn` | Template default `info` |
 | Silent migration of flat legacy CLI configs | Greenfield template — hard error on corrupt config is enough |
 | Product command/keybinding encyclopedia (meetings, Confluence, …) | Keep CLI/TUI READMEs structural |
+| Older pins (Nest 11, pnpm 11, TS 5.7, Vitest 4, ky 1.x, …) | Use [`tech-stack.md`](tech-stack.md) inventory |
+
+CLI/TUI structural intent (separate binaries, XDG config, Commander vs Ink boundaries) already lives in [`tools/cli/README.md`](../tools/cli/README.md) and [`tools/tui/README.md`](../tools/tui/README.md) — no need to keep the foreign doc for that.
 
 ---
 
@@ -642,3 +857,4 @@ This topic is the **process** of writing ADRs (naming, structure, when). Candida
 | 2026-10-04 | Backlog created from chat analysis; #2 marked Spec done |
 | 2026-10-04 | Added **#16** Search / knowledge-graph service (new app; access via REST / MCP / facade TBD) |
 | 2026-10-04 | Restructured into **Product** vs **Process** chapters; topic numbers kept for cross-links |
+| 2026-10-04 | Salvaged prior-project snippets into topic *Prior reference* sections; removed root foreign `TECH-STACK.md` |
