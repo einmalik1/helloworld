@@ -8,6 +8,10 @@ Keep it factual. Chosen technologies live in [`tech-stack.md`](tech-stack.md). R
 
 See root `README.md` for the layout inventory (`apps/`, `tools/`, `infra/`, `tests/`, `spark/`, `packages/`).
 
+## Configuration boundary
+
+Runtime configuration for all services and tools is a **single repo-root env file** (sectioned by component). Components validate only the keys they need; they do not each own a private env file. Details: root `README.md` (Environment) and [`tech-stack.md`](tech-stack.md#root-environment).
+
 ## Data model
 
 Authoritative DDL: [`erd/schema.sql`](erd/schema.sql).  

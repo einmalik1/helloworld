@@ -3,7 +3,8 @@
 Domain Zod schemas, inferred TypeScript types, and shared error classes.
 
 No NestJS, no DB, no services — schemas/types/errors only.  
-Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagestypes).
+Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagestypes).  
+Build: `tsc` → `dist/`; consumers import built exports (scaffold may still point at `src/` until wired) — [`Build / emit contract`](../../spec/tech-stack.md#build--emit-contract).
 
 ## Layout
 

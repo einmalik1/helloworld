@@ -9,7 +9,11 @@ Object storage for files (S3 API).
 MinIO-compatible stand-in for the monorepo happy path (root [Local development](../../README.md#local-development)):
 
 ```bash
+pnpm run docker:local:up          # intent — includes s3
+# or:
 docker compose up -d s3
 ```
 
-Needed whenever you exercise uploads or other object-storage features in `api` / `worker` / e2e. Bucket names and credentials via env; app code talks S3 (`@aws-sdk/client-s3`).
+**Compose (intent):** service `s3` in the root Compose file (or included from `infra/s3`). Credentials and bucket from root `.env` (`S3_*` section) — no `infra/s3/.env`.
+
+Needed for uploads / object-storage features in `api` / `worker` / e2e. App code uses `@aws-sdk/client-s3`.

@@ -17,7 +17,8 @@ Thin client: local config → HTTP → print result / exit code.
 | User config | `@helloworld/terminal/config` |
 | Logging | `@helloworld/terminal/log` — **tslog** + **ora** (stderr); results on stdout |
 | Shared types | `packages/types` (when wired) |
-| Binary | `helloworld` → `bin/run.js` → built entry |
+| Binary | `helloworld` → `bin/run.js` → `dist/…` |
+| Build | `tsc` → `dist/` — [`Build / emit contract`](../../spec/tech-stack.md#build--emit-contract) |
 | Tests | Vitest under `tools/cli` (and `tests/cli` for service-backed runs) |
 
 ## Layout (intent)

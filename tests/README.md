@@ -23,4 +23,4 @@ Most suites expect services already running (see root [Local development](../REA
 | `tests/cli` / `tests/tui` | target services those tools call |
 | `tests/mcp` | `mcp` (+ backends it proxies) |
 
-Framework details live in each suite README when wired.
+Framework details live in each suite README. API HTTP suites use Vitest + **supertest** against the running API (see [`tests/api/README.md`](api/README.md)); Nest unit/module tests stay under `apps/api` with `@nestjs/testing`.

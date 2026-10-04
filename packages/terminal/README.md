@@ -2,7 +2,8 @@
 
 Shared toolkit for **terminal tools** under `tools/` (`cli`, `tui`, later shell-style tools).
 
-Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagesterminal).
+Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagesterminal).  
+Build: `tsc` → `dist/` — [`Build / emit contract`](../../spec/tech-stack.md#build--emit-contract).
 
 **Not** for `apps/web`. **Not** `packages/config` (tsconfig/vitest/oxlint).
 

@@ -6,10 +6,14 @@ Relational database persistence for `api` (and optionally `worker`).
 
 ## Local
 
-Started as part of the monorepo happy path (root [Local development](../../README.md#local-development)):
+Part of the monorepo happy path (root [Local development](../../README.md#local-development)).
 
 ```bash
+pnpm run docker:local:up          # intent — all local data services
+# or:
 docker compose up -d postgres
 ```
 
-Compose service definition will live here (or a root compose that includes this service). Schema and ORM do not live here — they belong in related packages or `api`.
+**Compose (intent):** service `postgres` in a root `docker-compose.yml` (or `infra/postgres` compose included from root). Image/credentials aligned with root `.env` `DATABASE_URL` — no separate env file under `infra/`.
+
+Schema and ORM do not live here — DDL in `spec/erd/schema.sql`; Drizzle in `packages/modules` / `apps/api`.

@@ -18,7 +18,8 @@ Operator UI: browse status, confirm actions, edit local/remote settings in an al
 | User config | `@helloworld/terminal/config` |
 | Logging | `@helloworld/terminal/log` — **tslog** (+ **ora** if needed); fatals on stderr; UI toasts for UX |
 | Shared types | `packages/types` (when wired) |
-| Binary | `helloworld-tui` → `bin/run.js` → built entry |
+| Binary | `helloworld-tui` → `bin/run.js` → `dist/…` |
+| Build | `tsc` → `dist/` — [`Build / emit contract`](../../spec/tech-stack.md#build--emit-contract) |
 | Tests | Vitest under `tools/tui` (and `tests/tui` for interaction/snapshots) |
 
 ## Layout (intent)

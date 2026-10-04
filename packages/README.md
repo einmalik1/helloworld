@@ -2,6 +2,8 @@
 
 Shared libraries for apps and tools. Directories scaffolded; implementation TBD — see [`spec/tech-stack.md`](../spec/tech-stack.md#shared-packages-packages).
 
+**Build:** runtime packages emit to `dist/` (`tsc`); `exports` must point at `dist/`, not `src/`. Tooling-only: `packages/config`. Contract: [`spec/tech-stack.md` — Build / emit](../spec/tech-stack.md#build--emit-contract).
+
 | Package | Path | Role |
 |---|---|---|
 | `@helloworld/types` | `types/` | Entity Zod (`src/schema/`) + API Zod (`src/api/`) via `pnpm generate`; errors hand-authored |

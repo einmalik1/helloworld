@@ -40,11 +40,33 @@ Versions below are the latest published on npm as of 2026-10-01 (pin in lockfile
 | E2E | Playwright | 1.63.0 | `@playwright/test` — `tests/e2e` |
 | Visual regression | Visual Regression Tracker | remote | Self-hosted **outside** this repo; this app only connects — see below |
 | Deploy | Coolify + Docker | CLI 1.8.0 | QA/Prod on Coolify; **one multi-stage Dockerfile per app** — Coolify builds from Git; see Coolify below |
-| Shared libs (`packages/`) | types / modules / config / api-client / terminal | planned | See Shared packages below — not scaffolded yet |
+| Shared libs (`packages/`) | types / modules / config / api-client / terminal | scaffolded | Intent + dirs; emit to `dist/` (except config) — see Shared packages + [Build / emit](#build--emit-contract) |
+| API HTTP tests | Vitest + `@nestjs/testing` + **supertest** | — | Unit next to code; suite under `tests/api` — see Testing below |
+
+## Monorepo tasks (Turbo)
+
+Root scripts and filters: root [`README.md`](../README.md#scripts-root). Intent for `turbo.json` when wired:
+
+| Task | Behaviour |
+|---|---|
+| `build` | `dependsOn: ["^build"]`, `outputs: ["dist/**"]` (plus app-specific outs e.g. `.next/**`) — workspace libs before apps |
+| `dev` | Persistent, no cache; waits on `^build` for workspace libs |
+| `test` | After `build` where required; cached |
+| `lint` / `typecheck` / `format` | Per workspace, parallel via Turbo |
+
+Also: `pnpm run docker:local:up` / `docker:local:down` for Compose stand-ins under `infra/` (see Local env / Coolify).
+
+Emit contract (who builds what): [Build / emit contract](#build--emit-contract).
+
+## Root environment
+
+**One** repo-root `.env` (from [`.env.example`](../.env.example)), sections sorted by service — **never** `apps/*/.env` or `tools/*/.env`.
+
+Processes started from the repo root read this file into `process.env`. Nest apps validate a **subset** via Zod `envSchema` in `createAppConfigModule` (keys still come from the same root file). Variable catalog and section headers live in `.env.example`; Nest-facing rules in [`apps/api/README.md`](../apps/api/README.md#configuration-root-env).
 
 ## Shared packages (`packages/`)
 
-Planned workspace libraries — directories scaffolded under `packages/*`; implementation not wired yet. Apps and tools consume these as workspace deps. Further module-level detail lands in each package README when implemented.
+Workspace libraries under `packages/*` — directories exist; runtime wiring TBD. Apps and tools consume them as workspace deps after **`tsc` → `dist/`** (except `packages/config`). Module-level detail: each package README; emit rules: [Build / emit contract](#build--emit-contract).
 
 Dependency direction (bottom → top):
 
@@ -87,7 +109,8 @@ Cross-cutting Nest modules (subpath exports per module when wired):
 | Database | `DatabaseModule` + `DatabaseService` — Drizzle + PostgreSQL schema/queries |
 | Health | `HealthModule` — `GET /health` (e.g. `@nestjs/terminus`) |
 | Auth | Better Auth + `@better-auth/api-key` — Nest wiring (sessions + API-key verify guard) |
-| OpenAPI | `setupOpenApi(app, options)` — Swagger UI + JSON export from shared setup |
+| OpenAPI | `setupOpenApi(app, options)` — Swagger UI + JSON; **nestjs-zod** `cleanupOpenApiDoc` on the exported document |
+| Auth guards | Session and/or API-key verify; **`@Public()`** opt-out for routes such as `/health` |
 | Logging (optional shared) | nestjs-pino `LoggerModule` bootstrap helper if extracted from apps |
 
 ### `packages/api-client`
@@ -138,7 +161,7 @@ Shared **terminal toolkit** for tools under `tools/` (CLI, TUI, future shell-sty
 | vitest | `vitest.config.ts` | Shared Vitest base (SWC/decorators as needed) |
 | oxlint | `oxlintrc.json` | Shared lint rules |
 
-Workspaces extend these bases (e.g. `"extends": "@helloworld/config/tsconfig"` — exact package name TBD when scaffolding).
+Workspaces extend these bases (e.g. `"extends": "@helloworld/config/tsconfig"`).
 
 ## Terminal clients (`tools/cli`, `tools/tui`)
 
@@ -183,11 +206,19 @@ Detail and local usage: [`tools/cli/README.md`](../tools/cli/README.md), [`tools
 | `@nestjs/platform-express` | 12.1.2 | HTTP server (Express adapter) |
 | `@nestjs/config` | 12.0.1 | Env configuration (via shared config module) |
 | `@nestjs/swagger` | 12.0.2 | OpenAPI at the REST endpoints (Swagger UI / document) |
+| `@nestjs/terminus` | (Nest 12 line) | Health checks used by `packages/modules` HealthModule |
 | `@nestjs/schedule` | 12.0.2 | Scheduler infrastructure (optional, e.g. cron) |
 | `@nestjs/testing` | 12.1.2 | Test modules (dev) |
+| `nestjs-zod` | (pin when wiring) | `createZodDto`, global `ZodValidationPipe`, OpenAPI cleanup |
 | `nestjs-pino` | 5.3.0 | Nest logger integration — `LoggerModule` + `@InjectPinoLogger` |
 | `pino` | 10.3.1 | Underlying logger (via nestjs-pino) |
 | `pino-pretty` | (dev) | Human-readable logs outside production |
+| `postgres` | (pin when wiring) | postgres.js driver for Drizzle |
+| `supertest` | (dev) | HTTP integration tests against Nest |
+
+### Nest conventions (summary)
+
+Patterns for controllers, services (**neverthrow**), DTOs, exception filter, `@Public()`, and AppModule composition: **[`apps/api/README.md`](../apps/api/README.md#nestjs-conventions)**. Shared infra module contracts: [`packages/modules/README.md`](../packages/modules/README.md).
 
 ## Logging
 
@@ -268,10 +299,45 @@ CLI/TUI  →  tslog + ora (stderr) ; results on stdout   (via packages/terminal/
 | API SoT | API Zod (`api` stage) | Create/Update/Response in `packages/types/src/api/` |
 | Nest adapters | `nest_dto` stage | `createZodDto` under `apps/api/src/{resource}/dto/` |
 | Typecheck | `tsc --noEmit` | Verifies the whole graph compiles; **does not** emit JS |
-| Emit / bundle | App bundler / Nest build (TBD per package) | Produces runnable output |
+| Emit / bundle | per workspace — see [Build / emit contract](#build--emit-contract) | Produces `dist/` (or app bundler out); packages export built JS, not `src/` |
 | OpenAPI | `@nestjs/swagger` + nestjs-zod | HTTP contract from API Zod / Nest DTOs |
 
-`tsc --noEmit` is not a generator — it is the safety net after Zod (and any codegen) so wrong types fail in CI before ship. Wire it as a Turbo task (e.g. `typecheck`) across packages.
+`tsc --noEmit` is not a generator — it is the safety net after Zod (and any codegen) so wrong types fail in CI before ship. Wire it as a Turbo task (e.g. `typecheck`) across packages. Typecheck never substitutes for `build`.
+
+## Build / emit contract
+
+Classic Nest monorepo: every publishable TypeScript workspace **emits JavaScript to `dist/`**. Consumers import built output, not TypeScript source. Typecheck stays separate (`tsc --noEmit`).
+
+| Workspace | `build` | Outputs | `package.json` exports | Notes |
+|---|---|---|---|---|
+| `packages/types` | `tsc` | `dist/**` | `./dist/…` (not `./src/…`) | Zod schemas + errors |
+| `packages/modules` | `tsc` | `dist/**` | `./dist/…` + subpath exports | Nest infra |
+| `packages/terminal` | `tsc` | `dist/**` | `./dist/…` (`config` / `log` / `tty`) | tools only |
+| `packages/api-client` | `tsc` (after Orval) | `dist/**` | `./dist/…` | generate → then emit |
+| `packages/config` | — | — | JSON/TS config files as today | tooling only, no app emit |
+| `apps/api` | `nest build` | `dist/**` | — | Dev: `nest start --watch` (`@nestjs/cli`) |
+| `apps/worker` | Nest or `tsc` when scaffolded | `dist/**` | — | Same contract: runnable `dist` |
+| `tools/cli` | `tsc` | `dist/**` | bin → `dist/…` | No Nest CLI |
+| `tools/tui` | `tsc` | `dist/**` | bin → `dist/…` | Ink/React entry |
+| `apps/web` | bundler (TBD) | bundler out | — | Not Nest; still a real emit |
+| `apps/docs` | `next build` | `.next/**` | — | Next host |
+| `apps/storybook` | Storybook build | static out | — | |
+| `apps/mcp` | when scaffolded | `dist/**` or host out | — | Same idea: no runtime TS source |
+
+### Module / compiler rules (all TS workspaces)
+
+- `"type": "module"`
+- `moduleResolution`: `nodenext` — relative imports use `.js` suffixes
+- Strict TypeScript; Nest apps/packages that use decorators: `experimentalDecorators` + `emitDecoratorMetadata`
+- Root quality gate still: `format` → `lint` → `typecheck` → `test`; CI/deploy also runs `build` where images or bins need `dist`
+
+### Docker / Coolify
+
+Multi-stage images run **built** output only (e.g. Nest: `CMD ["node", "dist/main.js"]`). Build context = monorepo root so Turbo/`^build` compiles `packages/*` before the app runtime stage copies artefacts. Detail: [Coolify](#coolify-build-deploy-data-services).
+
+### Scaffold status
+
+Workspace `exports` today may still point at `./src/*.ts`. That is temporary — wiring must add per-package `build` scripts and flip `exports` to `dist/` to match this contract. Remove this note once the flip is done.
 
 ## Docs site (`apps/docs`)
 
@@ -325,15 +391,18 @@ QA and production run on **Coolify**. Each long-running app ships its **own mult
 
 **Build contract (intent):**
 
-- Multi-stage: deps → build → slim runtime (e.g. Node 26 alpine / distroless-style as chosen when wiring)
+- Multi-stage: deps → Turbo/`pnpm` **build** (`^build` → `dist/**`) → slim runtime (e.g. Node 26 alpine / distroless-style as chosen when wiring)
+- Runtime stage runs built JS only (Nest: `node dist/main.js`) — see [Build / emit contract](#build--emit-contract)
 - Coolify app = one Git source + Dockerfile path (+ base directory if required); same repo, different Dockerfile per service
 - Optional later: CI push to a registry and Coolify **Docker Image** deploy (pull-only) — not the default path; default is **build on Coolify from Dockerfile**
 
-**Local:** Compose stand-ins under `infra/` for Postgres / S3-compatible storage — not the QA/Prod topology. App processes for local dev still start from the repo root (`pnpm`); Dockerfiles are primarily for Coolify (and optional local image smoke tests).
+**Local data services:** Compose stand-ins under `infra/` (Postgres, MinIO-compatible S3) — not the QA/Prod topology. Intent scripts from root: `pnpm run docker:local:up` / `docker:local:down` (or `docker compose up -d postgres s3` until those aliases exist). Details: [`infra/postgres/README.md`](../infra/postgres/README.md), [`infra/s3/README.md`](../infra/s3/README.md).
+
+App processes for local dev start from the repo root (`pnpm`); Dockerfiles are primarily for Coolify (and optional local image smoke tests).
 
 UUIDs, instance URL, and CLI context stay in `spark/repo-profile.yaml` (and local CLI config) — never commit API tokens.
 
-**Local env:** one repo-root `.env` (from `.env.example`), sections sorted by service — not per-app env files. Start processes from the repo root.
+**Local env:** one repo-root `.env` only — see [Root environment](#root-environment).
 
 ## Auth (Better Auth)
 
@@ -343,6 +412,7 @@ UUIDs, instance URL, and CLI context stay in `spark/repo-profile.yaml` (and loca
 | API keys | `@better-auth/api-key` **1.7.7** | Create/manage/verify keys for CLI, TUI, automation — [plugin docs](https://www.better-auth.com/docs/plugins/api-key) |
 | Nest adapter | `packages/modules` `auth/` | Guard(s): session cookie and/or API key header → `verifyApiKey` |
 | Clients | `packages/api-client` + tools | Key from `@helloworld/terminal/config` (header name TBD when wiring, often `x-api-key`) |
+| Public routes | `@Public()` | Opt out of global auth guard (e.g. `GET /health`, auth bootstrap routes as needed) |
 
 Not a static env-only global key like a lone `ApiKeyModule` — keys are managed entities (user/org, permissions, optional rate limits). Session auth (web) and API-key auth (machines) run in parallel.
 
@@ -358,7 +428,18 @@ Layered SoT (not a single file):
 | OpenAPI document | Nest + **nestjs-zod** + `@nestjs/swagger` | Build export → `openapi.json` (and optional Swagger UI at runtime) |
 | Client SDK | **Orval** + ky mutator | `openapi.json` → `packages/api-client/src/generated/` |
 
-Bridge choice: **nestjs-zod** (`createZodDto`, `ZodValidationPipe`, OpenAPI cleanup). API Zod stays in `@helloworld/types/api`; Nest files are thin generated wrappers; Orval consumes the exported OpenAPI — no second hand-written client.
+Bridge choice: **nestjs-zod** — `createZodDto` (generated Nest DTOs), global **`ZodValidationPipe`** in `main.ts`, and **`cleanupOpenApiDoc`** when exporting / serving OpenAPI so Zod-shaped schemas stay valid for Swagger/Orval. API Zod stays in `@helloworld/types/api`; Nest files are thin generated wrappers; Orval consumes the exported OpenAPI — no second hand-written client.
+
+## Testing (intent)
+
+| Layer | Tool | Where |
+|---|---|---|
+| Unit | Vitest (+ SWC for Nest decorators via `packages/config`) | Next to code under `apps/` / `packages/` / `tools/` |
+| Nest module | `@nestjs/testing` | Controllers/services isolated; mock `DatabaseService` / externals |
+| HTTP | **supertest** | Nest app bootstrap or running API — `apps/api` unit-ish + `tests/api` suite |
+| E2E / visual | Playwright (+ VRT agent) | `tests/e2e` |
+
+Root quality gate (when wired): `format` → `lint` → `typecheck` → `test`. Suite prerequisites: [`tests/README.md`](../tests/README.md).
 
 ## Schema generators (`spark/generators/`)
 
@@ -381,4 +462,6 @@ Run: `pnpm generate` (full) or `pnpm generate:<stage>`. Detail: [`spark/generato
 
 - Domain vocabulary → root `CONTEXT.md`
 - Feature behaviour → `spec/features/`
-- Component wiring details → each app/tool README once the stack lands
+- Nest controller/service/filter detail → [`apps/api/README.md`](../apps/api/README.md#nestjs-conventions)
+- Module contracts → [`packages/modules/README.md`](../packages/modules/README.md)
+- Other component wiring → each app/tool README

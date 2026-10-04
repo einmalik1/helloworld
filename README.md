@@ -92,9 +92,9 @@ Always work from the **repo root**. One shared env file; start apps via root scr
 # 1. Dependencies (all workspaces)
 pnpm install
 
-# 2. Local data services (Postgres + S3-compatible)
-#    Compose files land under infra/ — until then, start whatever stand-ins you use.
-docker compose up -d postgres s3
+# 2. Local data services (Postgres + S3-compatible stand-ins under infra/)
+pnpm run docker:local:up
+#    until wired: docker compose up -d postgres s3
 
 # 3. Env — single root file only (never apps/*/.env or tools/*/.env)
 cp .env.example .env
@@ -110,6 +110,17 @@ pnpm run typecheck
 pnpm run test
 ```
 
+### Turbo tasks (intent)
+
+When `turbo.json` is wired — detail: [`spec/tech-stack.md`](spec/tech-stack.md#monorepo-tasks-turbo).
+
+| Task | Behaviour |
+|---|---|
+| `build` | `dependsOn: ["^build"]`, `outputs: ["dist/**"]` (plus app outs) — see [`Build / emit`](spec/tech-stack.md#build--emit-contract) |
+| `dev` | Persistent, no cache; waits on `^build` for libs |
+| `test` | After `build` where needed; cached |
+| `lint` / `typecheck` / `format` | Per workspace, parallel |
+
 ### Scripts (root)
 
 | Command | Role |
@@ -121,6 +132,8 @@ pnpm run test
 | `pnpm run lint` | Oxlint across the workspace |
 | `pnpm run typecheck` | Runs `typecheck` only in workspace packages that define the script |
 | `pnpm run format` | Oxfmt across the workspace |
+| `pnpm run docker:local:up` | Start Compose stand-ins (Postgres, S3, …) — intent |
+| `pnpm run docker:local:down` | Stop local Compose stand-ins — intent |
 | `pnpm generate` | Full codegen: schema model, ERD, docs, Zod, Nest DTOs, Orval client |
 | `pnpm generate:<stage>` | Single stage: `core`, `erd`, `docs`, `types`, `api`, `nest-dto`, `client` |
 
@@ -137,10 +150,11 @@ pnpm run --filter web dev
 
 | Rule | Detail |
 |---|---|
-| One file | Root `.env` only (template: `.env.example`) |
-| Sorted by service | Sections for shared, Postgres, S3, `api`, `web`, `worker`, `mcp`, … |
-| No per-app env | Do **not** place `.env` under `apps/` or `tools/` — that splits config and breaks root starts |
-| Start from root | `pnpm run dev` / `pnpm run --filter <pkg> …` with cwd = repo root |
+| One file | Root `.env` only (template: `.env.example`) — **central** for every app and tool |
+| Sorted by service | Sections: Shared (`NODE_ENV`, `LOG_LEVEL`), Postgres, S3, `api`, `web`, `worker`, `mcp`, … |
+| No per-app env | Do **not** place `.env` under `apps/`, `tools/`, or `tests/` |
+| Nest validation | Each Nest app’s Zod `envSchema` selects keys from the **same** root file — see [`apps/api/README.md`](apps/api/README.md#configuration-root-env) |
+| Start from root | `pnpm run dev` / `pnpm run --filter <pkg> …` with cwd = repo root so the root env is what processes see |
 
 ### What needs what
 

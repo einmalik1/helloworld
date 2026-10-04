@@ -2,7 +2,8 @@
 
 Typed REST SDK for `apps/api` (and later `apps/worker`). **Orval** generates the client from OpenAPI; **ky** is the transport via a hand-written mutator.
 
-Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagesapi-client).
+Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagesapi-client).  
+Build: Orval into `src/generated/` → then `tsc` → `dist/` — [`Build / emit contract`](../../spec/tech-stack.md#build--emit-contract).
 
 **Not** for MCP — share domain types only; MCP stays its own protocol.
 
