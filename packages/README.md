@@ -1,6 +1,6 @@
 # packages
 
-Shared libraries for apps and tools. Directories scaffolded; implementation TBD — see [`spec/tech-stack.md`](../spec/tech-stack.md#shared-packages-packages).
+Shared libraries for apps and tools. Packages exist; runtime wiring varies by package — see [`spec/tech-stack.md`](../spec/tech-stack.md#shared-packages-packages).
 
 **Build:** runtime packages emit to `dist/` (`tsc`); `exports` must point at `dist/`, not `src/`. Tooling-only: `packages/config`. Contract: [`spec/tech-stack.md` — Build / emit](../spec/tech-stack.md#build--emit-contract).
 

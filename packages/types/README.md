@@ -18,7 +18,7 @@ src/
 
 | Subpath | Import | Role |
 |---|---|---|
-| `schema/` | `@helloworld/types/schema` | Persistenz / Entity |
+| `schema/` | `@helloworld/types/schema` | Persistence / entity |
 | `api/` | `@helloworld/types/api` | HTTP contracts for Nest DTOs + `api-client` |
 
 **Regenerate:** edit `spec/erd/schema.sql` and/or `spark/repo-profile.yaml` `generators:`, then `pnpm generate` (or `pnpm generate:types` / `generate:api`).

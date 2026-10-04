@@ -82,7 +82,15 @@ Key Spark paths: `spark/repo-profile.yaml`, `spark/agents/` (roles + `common/`),
 
 ### Shared (`packages/`)
 
-Shared libraries for apps and tools. Subpackages are added as needed.
+Shared libraries for apps and tools. Detail: [`packages/README.md`](packages/README.md).
+
+| Package | Path | Role |
+|---|---|---|
+| **types** | `packages/types` | Entity Zod + API Zod via `pnpm generate`; shared errors |
+| **modules** | `packages/modules` | NestJS infrastructure (config, DB, health, auth, OpenAPI) |
+| **terminal** | `packages/terminal` | Terminal toolkit for CLI/TUI (`config` / `log` / `tty`) |
+| **api-client** | `packages/api-client` | Orval SDK from OpenAPI + ky mutator |
+| **config** | `packages/config` | Shared tooling only (tsconfig, vitest, oxlint) |
 
 ## Local development
 
@@ -101,13 +109,13 @@ cp .env.example .env
 #    Edit `.env`; keep sections sorted by service (see file headers).
 
 # 4. Dev (from root — typical UI + API loop via Turborepo when wired)
-pnpm run dev
+pnpm run dev                 # intent until Turbo/apps land
 
 # 5. Quality gates (from root, before commit)
-pnpm run format
-pnpm run lint
-pnpm run typecheck
-pnpm run test
+pnpm run format              # intent
+pnpm run lint                # intent
+pnpm run typecheck           # wired (`pnpm -r --if-present run typecheck`)
+pnpm run test                # intent
 ```
 
 ### Turbo tasks (intent)
@@ -123,19 +131,22 @@ When `turbo.json` is wired — detail: [`spec/tech-stack.md`](spec/tech-stack.md
 
 ### Scripts (root)
 
+Wired today vs planned surface (document the full gate even before every package implements it):
+
 | Command | Role |
 |---|---|
 | `pnpm install` | Dependencies for all workspaces |
-| `pnpm run dev` | Apps in watch mode (from root) |
-| `pnpm run build` | Full monorepo build |
-| `pnpm run test` | All tests |
-| `pnpm run lint` | Oxlint across the workspace |
 | `pnpm run typecheck` | Runs `typecheck` only in workspace packages that define the script |
-| `pnpm run format` | Oxfmt across the workspace |
+| `pnpm generate` | Full codegen: schema model, ERD, docs, Zod, Nest DTOs, Orval client |
+| `pnpm generate:code` | Python stages only (`core` → `nest_dto`) |
+| `pnpm generate:<stage>` | Single stage: `core`, `erd`, `docs`, `types`, `api`, `nest-dto`, `client` |
+| `pnpm run dev` | Apps in watch mode (from root) — intent |
+| `pnpm run build` | Full monorepo build — intent |
+| `pnpm run test` | All tests — intent |
+| `pnpm run lint` | Oxlint across the workspace — intent |
+| `pnpm run format` | Oxfmt across the workspace — intent |
 | `pnpm run docker:local:up` | Start Compose stand-ins (Postgres, S3, …) — intent |
 | `pnpm run docker:local:down` | Stop local Compose stand-ins — intent |
-| `pnpm generate` | Full codegen: schema model, ERD, docs, Zod, Nest DTOs, Orval client |
-| `pnpm generate:<stage>` | Single stage: `core`, `erd`, `docs`, `types`, `api`, `nest-dto`, `client` |
 
 App-specific (still run from **repo root**):
 
