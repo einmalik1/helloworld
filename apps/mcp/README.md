@@ -14,4 +14,4 @@ QA/Prod: Coolify Application. Multi-stage `apps/mcp/Dockerfile` (monorepo-root b
 pnpm run --filter mcp dev
 ```
 
-Stack details come later.
+Stack: `@modelcontextprotocol/sdk` over **HTTP**; domain via `apps/api` + service API key; Pino — [`spec/tech-stack.md`](../../spec/tech-stack.md#mcp-appsmcp).

@@ -18,4 +18,4 @@ pnpm run dev
 pnpm run --filter web dev
 ```
 
-Stack and bundler details come later — see [`spec/tech-stack.md`](../../spec/tech-stack.md).
+Stack: React 19 + **Vite** (port `5173`), shadcn/ui + Tailwind, driver.js tours; API via session cookies (+ optional Orval client) — [`spec/tech-stack.md`](../../spec/tech-stack.md#web-appsweb).

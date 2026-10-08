@@ -14,4 +14,4 @@ QA/Prod: Coolify Application. Multi-stage `apps/worker/Dockerfile` (monorepo-roo
 pnpm run --filter worker dev
 ```
 
-Stack and queue details come later.
+Stack: Nest 12 standalone + `@nestjs/schedule`; internal HTTP (`/health`); Pino — [`spec/tech-stack.md`](../../spec/tech-stack.md#worker-appsworker).

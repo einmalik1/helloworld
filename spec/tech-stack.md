@@ -19,13 +19,14 @@ Versions below are the latest published on npm as of 2026-10-01 (pin in lockfile
 | Validation / type SoT | Zod | 4.6.5 | Schemas as source of truth; TS types derived — see OpenAPI note below |
 | Service errors | neverthrow | 8.2.0 | Result types instead of thrown errors in the service layer |
 | Logging | by surface | — | **Service** = Pino (+ pino-pretty local); **Web** = console/reporter; **CLI/TUI** = tslog + ora via `packages/terminal/log` |
-| Web (`apps/web`) | React | 19.3.0 | `react` / `react-dom`; bundler TBD |
+| Web (`apps/web`) | React + Vite | react 19.3.0; **vite 8.3.4** | `react` / `react-dom`; bundler **Vite** (dev port `5173`) — see [Web](#web-appsweb) |
+| UI kit (`apps/web`) | shadcn/ui + Tailwind | Tailwind **4.3.3** | [shadcn/ui](https://ui.shadcn.com/) (CLI-copied components) on Tailwind — see [Web](#web-appsweb) |
 | Guided tours (`apps/web`) | driver.js | 1.9.0 | Product tours / highlights / feature intros — [driver.js](https://github.com/nilbuild/driver.js); zero deps, TypeScript; import `driver.js/dist/driver.css` |
 | API (`apps/api`) | NestJS | 12.x | Express adapter + modules below |
-| Worker (`apps/worker`) | | | |
+| Worker (`apps/worker`) | NestJS standalone | 12.x | Same Nest line as API; jobs via `@nestjs/schedule` — see [Worker](#worker-appsworker) |
 | Docs site (`apps/docs`) | Fumadocs on Next.js | fumadocs core/ui 16.15.17, mdx 15.4.5; **next 16.3.8** | [Fumadocs](https://github.com/fuma-nama/fumadocs) UI/MDX; host **Next.js** (App Router) — publishes `spec/` |
-| Storybook (`apps/storybook`) | Storybook | 10.6.1 | UI component gallery |
-| MCP (`apps/mcp`) | | | |
+| Storybook (`apps/storybook`) | Storybook + `react-vite` | 10.6.1 | UI gallery; framework adapter **`@storybook/react-vite`** (matches Vite web) |
+| MCP (`apps/mcp`) | `@modelcontextprotocol/sdk` | 1.32.1 | Remote **HTTP** MCP server; Pino logging — see [MCP](#mcp-appsmcp) |
 | CLI (`tools/cli`) | Commander | 15.0.0 | Non-interactive terminal client; HTTP via `ky` — see Terminal clients below |
 | TUI (`tools/tui`) | Ink + React | ink 7.1.1, react 19.3.0 | Interactive terminal UI; same API surface via `ky` — separate binary from CLI |
 | HTTP client (cli/tui) | ky | 2.1.0 | Transport inside `@helloworld/api-client` (Orval mutator) |
@@ -208,7 +209,7 @@ Detail and local usage: [`tools/cli/README.md`](../tools/cli/README.md), [`tools
 | `@nestjs/config` | 12.0.1 | Env configuration (via shared config module) |
 | `@nestjs/swagger` | 12.0.2 | OpenAPI at the REST endpoints (Swagger UI / document) |
 | `@nestjs/terminus` | (Nest 12 line) | Health checks used by `packages/modules` HealthModule |
-| `@nestjs/schedule` | 12.0.2 | Scheduler infrastructure (optional, e.g. cron) |
+| `@nestjs/schedule` | 12.0.2 | Cron / scheduled job triggers — **worker job model** (no separate broker in v1) |
 | `@nestjs/testing` | 12.1.2 | Test modules (dev) |
 | `nestjs-zod` | (pin when wiring) | `createZodDto`, global `ZodValidationPipe`, OpenAPI cleanup |
 | `nestjs-pino` | 5.3.0 | Nest logger integration — `LoggerModule` + `@InjectPinoLogger` |
@@ -220,6 +221,50 @@ Detail and local usage: [`tools/cli/README.md`](../tools/cli/README.md), [`tools
 ### Nest conventions (summary)
 
 Patterns for controllers, services (**neverthrow**), DTOs, exception filter, `@Public()`, and AppModule composition: **[`apps/api/README.md`](../apps/api/README.md#nestjs-conventions)**. Shared infra module contracts: [`packages/modules/README.md`](../packages/modules/README.md).
+
+## Worker (`apps/worker`)
+
+Long-running Nest **standalone** app for background / scheduled work. Shares `packages/modules` (Config / Database / Health / Logging) with `apps/api` — same DI, `/health`, and Pino pipeline.
+
+| Decision | Choice | Notes |
+|---|---|---|
+| Runtime | Nest 12 standalone | Not a plain Node script; reusable Nest modules |
+| Job model | **`@nestjs/schedule` 12.0.2** | Cron / interval triggers and in-process scheduled work. **No** separate queue broker (e.g. pg-boss) in v1 |
+| HTTP surface | Internal only | `GET /health` (+ optional admin later). CLI/TUI may probe worker URLs from root `.env` |
+| OpenAPI / Orval | **None in v1** | Not a second Orval input; typed clients stay on `apps/api` OpenAPI only |
+| Logging | **Service** (Pino) | Same rules as `apps/api` — see [Logging](#logging) |
+| Config | Root `.env` `# --- worker ---` | e.g. `WORKER_CONCURRENCY`; no `apps/worker/.env` |
+
+Emit: Nest/`tsc` → `dist/` — [Build / emit contract](#build--emit-contract). Deploy: [Coolify](#coolify-build-deploy-data-services). App intent: [`apps/worker/README.md`](../apps/worker/README.md).
+
+## MCP (`apps/mcp`)
+
+Remote MCP server for agents. Thin process: tools/resources call **`apps/api` over HTTP** with a Better Auth **service API key** — do **not** embed Nest modules or use `packages/api-client`.
+
+| Decision | Choice | Notes |
+|---|---|---|
+| SDK | **`@modelcontextprotocol/sdk` 1.32.1** | Official MCP TypeScript SDK |
+| Transport | **HTTP** (remote) | Default for Coolify / remote agents; stdio not the v1 deploy path |
+| Domain access | HTTP → `apps/api` | Service API key; keeps MCP thin; **no** `packages/api-client` |
+| Logging | **Service** (Pino) | Long-running HTTP Node server → Pino / stdout (not tslog) |
+| Config | Root `.env` `# --- mcp ---` | `MCP_HOST` / `MCP_PORT` (example `3100`); no `apps/mcp/.env` |
+
+Emit: `dist/` when scaffolded. Deploy: Coolify Application — [Docker images](#docker-images-per-app). App intent: [`apps/mcp/README.md`](../apps/mcp/README.md).
+
+## Web (`apps/web`)
+
+React SPA (or SPA-style app) with **Vite**. Storybook uses the matching **`react-vite`** adapter.
+
+| Decision | Choice | Notes |
+|---|---|---|
+| Bundler | **Vite 8.3.4** (+ `@vitejs/plugin-react` **6.1.2**) | Matches `WEB_PORT` / `WEB_ORIGIN` **`5173`** in [`.env.example`](../.env.example) |
+| UI | **shadcn/ui** on **Tailwind CSS 4.3.3** | CLI-copied components; template default kit |
+| Tours | driver.js **1.9.0** | Already in inventory |
+| Data / API | Optional Orval `api-client` + cookie session | Better Auth session cookies to `apps/api`; web does **not** use `packages/terminal` |
+| Storybook | `@storybook/react-vite` **10.6.1** | Same Vite toolchain as `apps/web` |
+| Logging | Web client rules | `console` / UI; no Pino in the browser — see [Logging](#logging) |
+
+Emit: Vite build out (not Nest `dist/main.js`) — [Build / emit contract](#build--emit-contract). Deploy: [Coolify](#coolify-build-deploy-data-services). App intent: [`apps/web/README.md`](../apps/web/README.md), [`apps/storybook/README.md`](../apps/storybook/README.md).
 
 ## Logging
 
@@ -233,7 +278,7 @@ Logging is **surface-specific**. One library does not fit service, browser, and 
 | `tools/cli` | **CLI** | `@helloworld/terminal/log` — **tslog** + **ora**; stdout results / `--json` (no Pino) | Terminal / pipes / CI logs |
 | `tools/tui` | **CLI-family** | UI toasts + `terminal/log` (**tslog**) for fatals on stderr | Terminal |
 | `packages/api-client` | Library | No logger — do not log inside the SDK | Caller decides |
-| `apps/mcp` | TBD | If long-running Node server → **Service** rules; if thin stdio bridge → **CLI** rules | — |
+| `apps/mcp` | **Service** | Pino (HTTP MCP server) | stdout → Coolify/container log drain |
 
 ### 1. Service logging (`apps/api`, `apps/worker`, …)
 
@@ -317,13 +362,13 @@ Classic Nest monorepo: every publishable TypeScript workspace **emits JavaScript
 | `packages/api-client` | `tsc` (after Orval) | `dist/**` | `./dist/…` | generate → then emit |
 | `packages/config` | — | — | JSON/TS config files as today | tooling only, no app emit |
 | `apps/api` | `nest build` | `dist/**` | — | Dev: `nest start --watch` (`@nestjs/cli`) |
-| `apps/worker` | Nest or `tsc` when scaffolded | `dist/**` | — | Same contract: runnable `dist` |
+| `apps/worker` | `nest build` (standalone) | `dist/**` | — | Same Nest emit as API; runnable `dist` |
 | `tools/cli` | `tsc` | `dist/**` | bin → `dist/…` | No Nest CLI |
 | `tools/tui` | `tsc` | `dist/**` | bin → `dist/…` | Ink/React entry |
-| `apps/web` | bundler (TBD) | bundler out | — | Not Nest; still a real emit |
+| `apps/web` | `vite build` | Vite out (e.g. `dist/**`) | — | Not Nest; real emit for Coolify static/Node preview |
 | `apps/docs` | `next build` | `.next/**` | — | Next host |
-| `apps/storybook` | Storybook build | static out | — | |
-| `apps/mcp` | when scaffolded | `dist/**` or host out | — | Same idea: no runtime TS source |
+| `apps/storybook` | Storybook (`react-vite`) build | static out | — | Same Vite line as web |
+| `apps/mcp` | `tsc` when scaffolded | `dist/**` | — | HTTP MCP server; no runtime TS source |
 
 ### Module / compiler rules (all TS workspaces)
 
@@ -414,7 +459,7 @@ Each row’s Deploy intent follows the [stage contract](#docker--coolify-stage-c
 |---|---|---|---|
 | `apps/api` | `apps/api/Dockerfile` | Application | Nest API; monorepo-root context; prune/build → `node dist/main.js` as `nodeapp` — [stage contract](#docker--coolify-stage-contract) |
 | `apps/worker` | `apps/worker/Dockerfile` | Application | Background jobs; same prune/build/runtime pattern — [stage contract](#docker--coolify-stage-contract) |
-| `apps/web` | `apps/web/Dockerfile` | Application | React frontend; same contract (bundler out instead of Nest `dist/main.js`) — [stage contract](#docker--coolify-stage-contract) |
+| `apps/web` | `apps/web/Dockerfile` | Application | React + Vite frontend; same contract (Vite out instead of Nest `dist/main.js`) — [stage contract](#docker--coolify-stage-contract) |
 | `apps/docs` | `apps/docs/Dockerfile` | Application | Fumadocs + Next.js; same contract (`.next` runtime) — [stage contract](#docker--coolify-stage-contract) |
 | `apps/storybook` | `apps/storybook/Dockerfile` | Application | UI gallery; same contract (static/Storybook out) — [stage contract](#docker--coolify-stage-contract) |
 | `apps/mcp` | `apps/mcp/Dockerfile` | Application | MCP server; monorepo-root context if shared packages needed — [stage contract](#docker--coolify-stage-contract) |
