@@ -377,25 +377,49 @@ QA and production run on **Coolify**. Each long-running app ships its **own mult
 | [Garage](https://garagehq.deuxfleurs.fr/) | Coolify one-click service | S3-compatible object store for `infra/s3` / app uploads |
 | Better Auth | app code (`better-auth` + `@better-auth/api-key` **1.7.7**) | Sessions + managed API keys in `apps/api`; not a Coolify service |
 
+### Docker / Coolify stage contract
+
+Shared contract for every Coolify app image. Per-app Dockerfiles follow this shape; Deploy blurbs below point here. Emit rules: [Build / emit contract](#build--emit-contract).
+
+| Decision | Choice | Notes |
+|---|---|---|
+| Install strategy | **`turbo prune --docker`** | Preferred for Nest apps (small context; matches Turbo). Fallback: filtered `pnpm deploy --filter <pkg>` if prune friction with workspace layout. Avoid full-root install in the runtime image. |
+| Base image | **`node:26-alpine`** | Template default for build and runtime stages. Distroless-style later only if stricter runtime is required. |
+| Health probe | **Coolify HTTP on `/health`** | Source of truth for QA/Prod. Dockerfile `HEALTHCHECK` is **optional** (useful for local `docker run` UX only — do not duplicate probes as a requirement). |
+| Non-root user | **`nodeapp` UID/GID `1001`** | Create in the runtime stage; do not run as root. (`node` as username is acceptable only if it maps to the same UID.) |
+
+**Multi-stage shape** (build context = **monorepo root**):
+
+1. **Prune / deps** — `turbo prune --docker --scope=<app-package>` (or equivalent filter) → copy pruned lockfile + workspace manifests → `pnpm install --frozen-lockfile` (layer cache).
+2. **Builder** — `pnpm` / Turbo **build** for the app (`dependsOn: ["^build"]` → workspace `packages/*` emit `dist/**` before the app).
+3. **Runtime** — `FROM node:26-alpine`; copy only built artefacts + production node_modules needed to run; `USER nodeapp` (UID 1001); expose the app port; `CMD` runs built JS only (Nest: `node dist/main.js`).
+
+```dockerfile
+# Runtime stage sketch (Nest API) — adapt WORKDIR / CMD per app
+FROM node:26-alpine AS production
+RUN addgroup -g 1001 nodeapp && adduser -u 1001 -G nodeapp -s /bin/sh -D nodeapp
+WORKDIR /app/apps/api
+USER nodeapp
+EXPOSE 3000
+CMD ["node", "dist/main.js"]
+```
+
+Coolify app = one Git source + Dockerfile path (+ base directory if required); same repo, different Dockerfile per service. Default deploy path: **build on Coolify from Dockerfile**. Optional later: CI push to a registry and Coolify **Docker Image** deploy (pull-only) — not the default.
+
 ### Docker images (per app)
 
-| App | Dockerfile (intent) | Coolify | Notes |
+Each row’s Deploy intent follows the [stage contract](#docker--coolify-stage-contract) above.
+
+| App | Dockerfile (intent) | Coolify | Deploy |
 |---|---|---|---|
-| `apps/api` | `apps/api/Dockerfile` | Application | Nest API; build context = **monorepo root** (needs `packages/*`) |
-| `apps/worker` | `apps/worker/Dockerfile` | Application | Background jobs; same monorepo context pattern |
-| `apps/web` | `apps/web/Dockerfile` | Application | React frontend |
-| `apps/docs` | `apps/docs/Dockerfile` | Application | Fumadocs + Next.js docs site |
-| `apps/storybook` | `apps/storybook/Dockerfile` | Application | UI gallery |
-| `apps/mcp` | `apps/mcp/Dockerfile` | Application | MCP server |
+| `apps/api` | `apps/api/Dockerfile` | Application | Nest API; monorepo-root context; prune/build → `node dist/main.js` as `nodeapp` — [stage contract](#docker--coolify-stage-contract) |
+| `apps/worker` | `apps/worker/Dockerfile` | Application | Background jobs; same prune/build/runtime pattern — [stage contract](#docker--coolify-stage-contract) |
+| `apps/web` | `apps/web/Dockerfile` | Application | React frontend; same contract (bundler out instead of Nest `dist/main.js`) — [stage contract](#docker--coolify-stage-contract) |
+| `apps/docs` | `apps/docs/Dockerfile` | Application | Fumadocs + Next.js; same contract (`.next` runtime) — [stage contract](#docker--coolify-stage-contract) |
+| `apps/storybook` | `apps/storybook/Dockerfile` | Application | UI gallery; same contract (static/Storybook out) — [stage contract](#docker--coolify-stage-contract) |
+| `apps/mcp` | `apps/mcp/Dockerfile` | Application | MCP server; monorepo-root context if shared packages needed — [stage contract](#docker--coolify-stage-contract) |
 | `tools/cli`, `tools/tui` | — | **not** deployed | Installable clients only |
 | Postgres / Garage | Coolify service images | Database / service | No custom Dockerfile in this repo |
-
-**Build contract (intent):**
-
-- Multi-stage: deps → Turbo/`pnpm` **build** (`^build` → `dist/**`) → slim runtime (e.g. Node 26 alpine / distroless-style as chosen when wiring)
-- Runtime stage runs built JS only (Nest: `node dist/main.js`) — see [Build / emit contract](#build--emit-contract)
-- Coolify app = one Git source + Dockerfile path (+ base directory if required); same repo, different Dockerfile per service
-- Optional later: CI push to a registry and Coolify **Docker Image** deploy (pull-only) — not the default path; default is **build on Coolify from Dockerfile**
 
 **Local data services:** Compose stand-ins under `infra/` (Postgres, MinIO-compatible S3) — not the QA/Prod topology. Intent scripts from root: `pnpm run docker:local:up` / `docker:local:down` (or `docker compose up -d postgres s3` until those aliases exist). Details: [`infra/postgres/README.md`](../infra/postgres/README.md), [`infra/s3/README.md`](../infra/s3/README.md).
 
