@@ -5,7 +5,7 @@ Chosen technologies for Hello World. Keep this inventory factual.
 Architecture (components and boundaries) stays technology-agnostic in [`architecture.md`](architecture.md).  
 Rationale for contested choices lives in [`decisions/`](decisions/).
 
-Versions below are the latest published on npm as of 2026-10-01 (pin in lockfile when wiring packages).
+Versions below are the latest published on npm as of 2026-10-08 (pin in lockfile when wiring packages).
 
 ## Inventory
 
@@ -14,7 +14,7 @@ Versions below are the latest published on npm as of 2026-10-01 (pin in lockfile
 | Package manager | pnpm | 12.8.1 | Workspace + lockfile `pnpm-lock.yaml` |
 | Language | TypeScript | 7.0.2 | Across the monorepo |
 | Typecheck | `tsc --noEmit` | (via typescript) | CI/local gate: typecheck only, no JS emit — see below |
-| Runtime | Node.js | 26 | Current line (local 26.7.0); pin exact patch in `.nvmrc` / CI when wiring |
+| Runtime | Node.js | **26.7.0** | Exact patch in root **`.nvmrc`**; root **`engines.node`**: `>=26 <27` (CI + local stay aligned) |
 | Monorepo tooling | Turborepo | 2.11.6 | `turbo` — builds/tasks across the workspace |
 | Validation / type SoT | Zod | 4.6.5 | Schemas as source of truth; TS types derived — see OpenAPI note below |
 | Service errors | neverthrow | 8.2.0 | Result types instead of thrown errors in the service layer |
@@ -208,14 +208,14 @@ Detail and local usage: [`tools/cli/README.md`](../tools/cli/README.md), [`tools
 | `@nestjs/platform-express` | 12.1.2 | HTTP server (Express adapter) |
 | `@nestjs/config` | 12.0.1 | Env configuration (via shared config module) |
 | `@nestjs/swagger` | 12.0.2 | OpenAPI at the REST endpoints (Swagger UI / document) |
-| `@nestjs/terminus` | (Nest 12 line) | Health checks used by `packages/modules` HealthModule |
+| `@nestjs/terminus` | **12.1.0** | Health checks used by `packages/modules` HealthModule (Nest 12 line) |
 | `@nestjs/schedule` | 12.0.2 | Cron / scheduled job triggers — **worker job model** (no separate broker in v1) |
 | `@nestjs/testing` | 12.1.2 | Test modules (dev) |
-| `nestjs-zod` | (pin when wiring) | `createZodDto`, global `ZodValidationPipe`, OpenAPI cleanup |
+| `nestjs-zod` | **5.5.0** | `createZodDto`, global `ZodValidationPipe`, OpenAPI cleanup |
 | `nestjs-pino` | 5.3.0 | Nest logger integration — `LoggerModule` + `@InjectPinoLogger` |
 | `pino` | 10.3.1 | Underlying logger (via nestjs-pino) |
-| `pino-pretty` | (dev) | Human-readable logs outside production |
-| `postgres` | (pin when wiring) | postgres.js driver for Drizzle |
+| `pino-pretty` | **13.2.0** (dev) | Human-readable logs outside production |
+| `postgres` | **3.4.9** | postgres.js driver for Drizzle |
 | `supertest` | (dev) | HTTP integration tests against Nest |
 
 ### Nest conventions (summary)
@@ -295,7 +295,7 @@ Operational, structured, machine-consumable. Wire `nestjs-pino`: `LoggerModule.f
 
 Bootstrap helper may live in `packages/modules` or each app’s `AppModule` — same pattern.
 
-**Versions:** `pino` **10.3.1**, `nestjs-pino` **5.3.0**, `pino-pretty` (dev).
+**Versions:** `pino` **10.3.1**, `nestjs-pino` **5.3.0**, `pino-pretty` **13.2.0** (dev).
 
 ### 2. Web application logging (`apps/web`, browser side of `apps/docs`)
 
@@ -504,7 +504,7 @@ Bridge choice: **nestjs-zod** — `createZodDto` (generated Nest DTOs), global *
 
 | Layer | Tool | Where |
 |---|---|---|
-| Unit | Vitest (+ SWC for Nest decorators via `packages/config`) | Next to code under `apps/` / `packages/` / `tools/` |
+| Unit | Vitest (+ SWC for Nest decorators via `packages/config`) | Next to code under `apps/` / `packages/` / `tools/`. Pin **`unplugin-swc` 2.0.0** (npm latest as of 2026-10-08) only if tech-stack **#8** (GH [#15](https://github.com/einmalik1/helloworld/issues/15)) selects SWC for Vitest/Nest |
 | Nest module | `@nestjs/testing` | Controllers/services isolated; mock `DatabaseService` / externals |
 | HTTP | **supertest** | Nest app bootstrap or running API — `apps/api` unit-ish + `tests/api` suite |
 | E2E / visual | Playwright (+ VRT agent) | `tests/e2e` |
