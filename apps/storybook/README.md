@@ -14,4 +14,4 @@ No Postgres/S3 required for component stories (unless a story hits live APIs). O
 pnpm run --filter storybook dev
 ```
 
-Framework and setup come later.
+Framework: Storybook **10.6** + `@storybook/react-vite` (same Vite line as `apps/web`) — [`spec/tech-stack.md`](../../spec/tech-stack.md#web-appsweb).
