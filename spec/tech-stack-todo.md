@@ -208,6 +208,7 @@ export class ListQueryDto extends createZodDto(querySchema) {}
 - [ ] **define** Storybook framework adapter (`react-vite` etc.)
 - [ ] **define** client data fetching / API usage (`api-client` + session/cookies vs other)
 - [ ] **define** UI library baseline (none / shadcn / …) if template-relevant
+- [x] **define** guided tours: [driver.js](https://github.com/nilbuild/driver.js) **1.9.0** — inventory in [`tech-stack.md`](tech-stack.md)
 
 ### Spec to write
 

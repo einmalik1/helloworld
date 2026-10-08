@@ -20,6 +20,7 @@ Versions below are the latest published on npm as of 2026-10-01 (pin in lockfile
 | Service errors | neverthrow | 8.2.0 | Result types instead of thrown errors in the service layer |
 | Logging | by surface | — | **Service** = Pino (+ pino-pretty local); **Web** = console/reporter; **CLI/TUI** = tslog + ora via `packages/terminal/log` |
 | Web (`apps/web`) | React | 19.3.0 | `react` / `react-dom`; bundler TBD |
+| Guided tours (`apps/web`) | driver.js | 1.9.0 | Product tours / highlights / feature intros — [driver.js](https://github.com/nilbuild/driver.js); zero deps, TypeScript; import `driver.js/dist/driver.css` |
 | API (`apps/api`) | NestJS | 12.x | Express adapter + modules below |
 | Worker (`apps/worker`) | | | |
 | Docs site (`apps/docs`) | Fumadocs on Next.js | fumadocs core/ui 16.15.17, mdx 15.4.5; **next 16.3.8** | [Fumadocs](https://github.com/fuma-nama/fumadocs) UI/MDX; host **Next.js** (App Router) — publishes `spec/` |
