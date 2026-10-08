@@ -60,6 +60,35 @@ Also: `pnpm run docker:local:up` / `docker:local:down` for Compose stand-ins und
 
 Emit contract (who builds what): [Build / emit contract](#build--emit-contract).
 
+What may live in root `package.json`: [Root dependencies](#root-dependencies).
+
+## Root dependencies
+
+Root `package.json` is **orchestration + shared quality tooling only** — not an application package. Agents and CI run one `pnpm lint` / `pnpm format` / `pnpm typecheck` from the repo root.
+
+| Allowed at root (`devDependencies`) | Role |
+|---|---|
+| `turbo` | Monorepo task runner |
+| `oxlint`, `oxfmt` | Workspace-wide lint / format |
+| `typescript` | Shared `tsc` / typecheck meta |
+| `vitest` (optional meta) | Root test orchestration when useful; suite configs stay with packages / `tests/` |
+
+**Not** at root: application or runtime libraries (Nest, React, Drizzle, ky, Better Auth, …). New libraries belong in the **consuming workspace** — add with `pnpm add <pkg> --filter <workspace>` from the repo root. Run workspace scripts the same way: `pnpm run --filter <pkg> …`.
+
+Shared tooling config (tsconfig, oxlint, vitest presets) lives in `packages/config`; root only declares the CLIs that invoke them.
+
+### Generators’ Python deps (outside npm)
+
+Schema codegen under [`spark/generators/`](../spark/generators/) is **Python + Jinja2**, not an npm workspace. Deps are **not** listed in root or workspace `package.json`.
+
+| Item | Location |
+|---|---|
+| Entry | `python3 spark/generators/run.py` (via root `pnpm generate*` scripts) |
+| Venv | `spark/generators/.venv` — created on first `run.py` use |
+| Packages | `jinja2`, `pyyaml` (installed into that venv; see `spark/generators/pyproject.toml`) |
+
+Detail: [`spark/generators/README.md`](../spark/generators/README.md). Pipeline summary: [Schema generators](#schema-generators-sparkgenerators).
+
 ## Root environment
 
 **One** repo-root `.env` (from [`.env.example`](../.env.example)), sections sorted by service — **never** `apps/*/.env` or `tools/*/.env`.
@@ -513,7 +542,7 @@ Root quality gate (when wired): `format` → `lint` → `typecheck` → `test`. 
 
 ## Schema generators (`spark/generators/`)
 
-Python + Jinja2 codegen driven by [`spark/repo-profile.yaml`](../spark/repo-profile.yaml) `generators:`.
+Python + Jinja2 codegen driven by [`spark/repo-profile.yaml`](../spark/repo-profile.yaml) `generators:`. Python deps live in `spark/generators/.venv` — **outside** npm; rule: [Root dependencies](#root-dependencies).
 
 | Stage | Role |
 |---|---|
