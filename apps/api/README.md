@@ -41,12 +41,16 @@ Names align with root [`.env.example`](../../.env.example) sections. Add keys th
 |---|---|---|---|---|
 | `NODE_ENV` | Shared | no | `development` | Runtime mode (`development` / `production` / …) |
 | `LOG_LEVEL` | Shared | no | **`info`** | Pino level: `debug` \| `info` \| `warn` \| `error` |
-| `DATABASE_URL` | Postgres | **yes** | — | PostgreSQL connection string (postgres.js / Drizzle / health DB ping) |
+| `DATABASE_URL` | Postgres | **yes** | — | PostgreSQL connection string (postgres.js / Drizzle / health DB ping; AGE uses the same DB) |
 | `API_HOST` | api | no | `0.0.0.0` | HTTP listen host |
 | `API_PORT` | api | no | `3000` | HTTP listen port |
 | `BETTER_AUTH_SECRET` | api | **yes** | — | Better Auth signing secret (local template value in `.env.example` only) |
 | `BETTER_AUTH_URL` | api | **yes** | — | Better Auth base URL (e.g. `http://localhost:3000`) |
 | `WEB_ORIGIN` | api | **yes** | — | Trusted web origin for CORS / Better Auth `trustedOrigins` |
+| `TYPESENSE_HOST` | typesense | when search wired | `localhost` | Typesense host (api + worker S2S) |
+| `TYPESENSE_PORT` | typesense | when search wired | `8108` | Typesense HTTP port |
+| `TYPESENSE_PROTOCOL` | typesense | when search wired | `http` | `http` (local) / `https` (QA/Prod as provisioned) |
+| `TYPESENSE_API_KEY` | typesense | when search wired | — | Typesense API key (server-side only; never to browsers/CLI) |
 | `S3_ENDPOINT` | Object storage | when using S3 | — | S3-compatible endpoint |
 | `S3_REGION` | Object storage | when using S3 | `us-east-1` | Region |
 | `S3_ACCESS_KEY_ID` | Object storage | when using S3 | — | Access key |
@@ -73,6 +77,7 @@ export const envSchema = z.object({
   BETTER_AUTH_SECRET: z.string().min(1),
   BETTER_AUTH_URL: z.string().url(),
   WEB_ORIGIN: z.string().url(),
+  // TYPESENSE_* — include when retrieve/search is wired
   // S3_* — include when this process touches object storage
 });
 
@@ -154,9 +159,28 @@ const listQuerySchema = z.object({
 
 | Method | Path | Notes |
 |---|---|---|
-| `GET` | `/health` | `@Public()` |
+| `GET` | `/health` | `@Public()` — process up + DB ping (+ Typesense when search wired) |
 | `GET` | `/api/docs` | Swagger UI |
 | `GET` | `/openapi.json` | Runtime OpenAPI document **and** build-time `openapi:export` for Orval CI |
+
+### Retrieve / search facade
+
+Structured graph + search over secondary indexes. Engines (Apache AGE on Postgres, Typesense) are **network-internal** — clients never see Cypher or Typesense protocol. Rationale: [`spec/decisions/0004-search-knowledge-graph.md`](../../spec/decisions/0004-search-knowledge-graph.md). Inventory: [`spec/tech-stack.md` § Search / knowledge graph](../../spec/tech-stack.md#search--knowledge-graph).
+
+| Method | Path | Auth | Response |
+|---|---|---|---|
+| `GET` | `/graph/related` | session or `x-api-key` | `{ nodes, edges }` — neighbors of one entity |
+| `GET` | `/graph/subgraph` | session or `x-api-key` | `{ nodes, edges }` — ego network; query `depth` default `1`, max `3` |
+| `GET` | `/search` | session or `x-api-key` | `{ items: [{ id, type, title, body?, score? }], total }` |
+
+| Concern | Contract |
+|---|---|
+| Graph query params | `entityType`, `entityId`, optional `depth` |
+| Search query params | `q`, optional `types` (comma-separated), `limit` (default `20`, max `100`) |
+| Node/edge JSON | Product shapes for Cytoscape / clients — not AGE wire format |
+| Writes | Unchanged CRUD → Postgres first; worker projects to AGE + Typesense |
+| Health | Terminus: DB ping covers AGE host; **add Typesense probe** when search is wired |
+| Forbidden | Exposing Cypher, Typesense URLs/keys, or a public `apps/graph` |
 
 ## NestJS conventions
 
