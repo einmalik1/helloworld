@@ -9,10 +9,11 @@ Remote MCP server for agent integration. Thin HTTP process in front of `apps/api
 | SDK | **`@modelcontextprotocol/sdk` 1.32.1** |
 | Transport | **HTTP** (remote / Coolify); not stdio as the v1 deploy path |
 | Domain access | HTTP → `apps/api` with a Better Auth **service API key** — **no** Nest-in-MCP, **no** `packages/api-client` |
+| Retrieve / search | MCP tools call api `GET /graph/*` and `GET /search` only — **never** AGE or Typesense directly |
 | Logging | **Service** — Pino (long-running Node HTTP server) |
 | Build | `tsc` → `dist/` when scaffolded |
 
-Global inventory: [`spec/tech-stack.md`](../../spec/tech-stack.md#mcp-appsmcp).
+Global inventory: [`spec/tech-stack.md`](../../spec/tech-stack.md#mcp-appsmcp). Facade contract: [`apps/api/README.md` § Retrieve / search](../api/README.md#retrieve--search-facade). ADR: [`0004`](../../spec/decisions/0004-search-knowledge-graph.md).
 
 ## Deploy
 
