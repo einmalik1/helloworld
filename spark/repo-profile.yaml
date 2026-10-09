@@ -63,7 +63,7 @@ doc_feature_paths:
   - spec/features/
 
 doc_architecture_paths:
-  - agents.md
+  - AGENTS.md
   - spec/architecture.md
   - spec/tech-stack.md
 
@@ -123,7 +123,7 @@ generators:
 
 rules_paths:
   always:
-    - agents.md
+    - AGENTS.md
     - spark/agents/common/
 
 repo:

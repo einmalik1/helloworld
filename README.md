@@ -68,7 +68,7 @@ Product specification — source of truth. Published by `apps/docs`.
 | `tech-stack.md` | Technology stack (factual inventory; “why” → ADRs) |
 | `erd/schema.sql` | DDL SoT (hand-edit); categories in `spark/repo-profile.yaml`; run `pnpm generate` |
 
-Domain glossary: root `CONTEXT.md`. Details: `spec/README.md`. Agent process pointers (incl. ADRs): `spark/agents/common/conventions.md`.
+Domain glossary: root `CONTEXT.md`. Details: `spec/README.md`. Agent process pointers (ADRs, git conventions): [`spark/agents/common/conventions.md`](spark/agents/common/conventions.md).
 
 ### Platform (`spark/`)
 
@@ -78,7 +78,7 @@ Domain glossary: root `CONTEXT.md`. Details: `spec/README.md`. Agent process poi
 | **coolify** | `spark/repo-profile.yaml` | QA/Prod targets; one multi-stage Dockerfile per app, Coolify builds from Git — see [`spec/tech-stack.md`](spec/tech-stack.md#coolify-build-deploy-data-services) |
 | **generators** | `spark/generators` | SQL → ERD / docs / Zod / Nest DTOs; then Orval client — `pnpm generate` |
 
-Key Spark paths: `spark/repo-profile.yaml`, `spark/agents/` (roles + `common/`), `spark/plans/`. Short pointer: root `agents.md`. Worktrees via Orca.
+Key Spark paths: `spark/repo-profile.yaml`, `spark/agents/` (roles + `common/`), `spark/plans/`. Short pointer: root [`AGENTS.md`](AGENTS.md). Worktrees via Orca.
 
 ### Shared (`packages/`)
 
@@ -103,11 +103,12 @@ cp .env.example .env
 # 4. Dev (from root — typical UI + API loop via Turborepo when wired)
 pnpm run dev
 
-# 5. Quality gates (from root, before commit)
+# 5. Pre-merge gate (from root) — format → lint → typecheck → smoke (+ build when emit matters)
+#    Full suite is for CI / deeper checks — see spark/agents/common/conventions.md#git-conventions
 pnpm run format
 pnpm run lint
 pnpm run typecheck
-pnpm run test
+# smoke: use the workspace smoke task when wired (not `pnpm run test` full suite)
 ```
 
 ### Turbo tasks (intent)

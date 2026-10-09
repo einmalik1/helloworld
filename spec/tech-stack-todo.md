@@ -41,6 +41,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 **Already closed in spec**
 
 - **#2 Build / emit contract** (process) — written in [`tech-stack.md`](tech-stack.md#build--emit-contract). Remaining work is mostly implementation (flip `exports` to `dist/`, wire `build` / `turbo.json`).
+- **#14 Git conventions** (process) — branches, Conventional Commits, smoke pre-merge gate in [`spark/agents/common/conventions.md#git-conventions`](../spark/agents/common/conventions.md#git-conventions).
 
 ---
 
@@ -70,12 +71,12 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 | 8 | TypeScript / module contract | Spec partial | partial | open | `tech-stack.md` § Module/compiler + `packages/config` |
 | 9 | Root dependency rule | Spec | open | open | `tech-stack.md` § Monorepo + root `README.md` |
 | 12 | ADRs / decisions (process) | Spec | open | n/a | `spec/decisions/NNNN-*.md` |
-| 14 | Git conventions | Spec | open | optional | `spark/agents/common/` or root README |
+| 14 | Git conventions | Spec | **done** | optional | `spark/agents/common/conventions.md` (+ pointers in `AGENTS.md` / `README.md`) |
 
 **Suggested order (spec work only)**
 
 1. **Product:** 1 → 4 → **16** (with MCP access path) → 3+5 → 10, 11, 13, 15  
-2. **Process:** 6+7 → 9, 8-rest → **12** in parallel as product decisions land → 14 optional → **2** implement  
+2. **Process:** 6+7 → 9, 8-rest → **12** in parallel as product decisions land → **14** done → **2** implement  
 
 ---
 
@@ -805,20 +806,20 @@ This topic is the **process** of writing ADRs (naming, structure, when). Candida
 |---|---|
 | **Lane** | Process |
 | **Hauptproblem** | Spec |
-| **Spec status** | Spec open |
+| **Spec status** | Spec done — [`spark/agents/common/conventions.md#git-conventions`](../spark/agents/common/conventions.md#git-conventions); pointers in [`AGENTS.md`](../AGENTS.md) + root [`README.md`](../README.md) |
 | **Impl status** | Optional (hooks / CI) |
-| **Spec targets** | Prefer `spark/agents/common/` or root [`README.md`](../README.md); **not** required inside `tech-stack.md` inventory |
+| **Spec targets** | Process home: `spark/agents/common/conventions.md` — **not** inside `tech-stack.md` inventory |
 
 ### Decide
 
-- [ ] **define** branch naming (`feature/*`, `fix/*`, `chore/*` — adopt prior project or variant)
-- [ ] **define** commit convention (Conventional Commits — yes/no)
-- [ ] **define** pre-merge quality gate: `format` → `lint` → `typecheck` → `test` (+ `build` where relevant)
+- [x] **define** branch naming (`feature/*`, `fix/*`, `chore/*`) — **adopt**
+- [x] **define** commit convention (Conventional Commits) — **adopt**
+- [x] **define** pre-merge quality gate: `format` → `lint` → `typecheck` → **smoke** (+ `build` where relevant) — **not** the full test suite
 
 ### Spec to write
 
-- [ ] Short process note for humans/agents
-- [ ] Link from AGENTS.md / spark common if that is the house style
+- [x] Short process note for humans/agents in `spark/agents/common/conventions.md`
+- [x] Link from `AGENTS.md` / root `README.md`
 
 ### Impl (later)
 
@@ -828,7 +829,7 @@ This topic is the **process** of writing ADRs (naming, structure, when). Candida
 
 - Branches: `feature/*`, `fix/*`, `chore/*`
 - Commits: Conventional Commits
-- Pre-merge: `format` → `lint` → `typecheck` → `test`
+- Pre-merge: `format` → `lint` → `typecheck` → **smoke** (full suite = CI / deeper verification)
 
 ---
 
@@ -859,3 +860,4 @@ CLI/TUI structural intent (separate binaries, XDG config, Commander vs Ink bound
 | 2026-10-04 | Added **#16** Search / knowledge-graph service (new app; access via REST / MCP / facade TBD) |
 | 2026-10-04 | Restructured into **Product** vs **Process** chapters; topic numbers kept for cross-links |
 | 2026-10-04 | Salvaged prior-project snippets into topic *Prior reference* sections; removed root foreign `TECH-STACK.md` |
+| 2026-10-09 | **#14** Git conventions Spec done — process note + smoke gate; tracking closed |
