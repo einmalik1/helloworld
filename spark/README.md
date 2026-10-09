@@ -12,4 +12,4 @@ Repo profile and agent roles. Coolify deploy targets (QA and production) live in
 | `releases/` | Release manifest and notes (later) |
 | `templates/` | Plan templates |
 
-Product specs live under root `spec/` (not here). See also root `agents.md` and `spark/agents/README.md`.
+Product specs live under root `spec/` (not here). See also root `AGENTS.md` and `spark/agents/README.md`.

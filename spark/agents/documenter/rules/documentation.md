@@ -12,7 +12,7 @@
 
 - Root overview: `README.md`
 - Domain glossary: `CONTEXT.md`
-- Agent pointer: `agents.md`
+- Agent pointer: `AGENTS.md`
 - Product specs: `spec/` (`features/`, `decisions/`, `architecture.md`, `tech-stack.md`, `erd/`)
 - Spark / agents / plans: `spark/`
 - Published docs site: `apps/docs` (consumes `spec/`)
