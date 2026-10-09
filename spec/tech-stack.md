@@ -408,10 +408,21 @@ Classic Nest monorepo: every publishable TypeScript workspace **emits JavaScript
 
 ### Module / compiler rules (all TS workspaces)
 
-- `"type": "module"`
-- `moduleResolution`: `nodenext` — relative imports use `.js` suffixes
-- Strict TypeScript; Nest apps/packages that use decorators: `experimentalDecorators` + `emitDecoratorMetadata`
+Normative base for shared `packages/config` (`tsconfig.base.json`, Vitest). Language / runtime pins stay in [Inventory](#inventory) (TypeScript **7.0.2**, Node **26**). Topic **#8** (GH [#15](https://github.com/einmalik1/helloworld/issues/15)).
+
+| Decision | Choice | Notes |
+|---|---|---|
+| Package type | `"type": "module"` | ESM across workspaces |
+| Module resolution | `nodenext` | Relative imports use `.js` suffixes |
+| `compilerOptions.target` | **ES2024** | Preferred with TS 7 + Node 26; if Nest DI / emit spike fails → **ES2023** and document the reason in [`packages/config/README.md`](../packages/config/README.md) |
+| Strictness | Strict TypeScript | Shared base; no per-app loosening without a documented exception |
+| Nest decorators | `experimentalDecorators` + `emitDecoratorMetadata` | Required for Nest DI in apps/packages that use decorators |
+| Nest / package emit | `nest build` / `tsc` | Owns production JS emit — **not** SWC |
+| SWC | **Vitest only** via `unplugin-swc` **2.0.0** | Decorator metadata in tests; do **not** use SWC for Nest build emit unless a later decision overturns this |
+| Nest DI under TS 7 | Verify early (smoke) | One Nest DI smoke under TS 7; if `emitDecoratorMetadata` fails for Nest DI, document metadata owner (Nest compiler / SWC) in [`packages/config/README.md`](../packages/config/README.md) |
+
 - Root quality gate still: `format` → `lint` → `typecheck` → `test`; CI/deploy also runs `build` where images or bins need `dist`
+- Config guarantees and spike / workaround notes: [`packages/config/README.md`](../packages/config/README.md)
 
 ### Docker / Coolify
 
@@ -570,7 +581,7 @@ HTTP error / list / CRUD surface (RFC 9457, status map, pagination): [`apps/api/
 
 | Layer | Tool | Where |
 |---|---|---|
-| Unit | Vitest (+ SWC for Nest decorators via `packages/config`) | Next to code under `apps/` / `packages/` / `tools/`. Pin **`unplugin-swc` 2.0.0** (npm latest as of 2026-10-08) only if tech-stack **#8** (GH [#15](https://github.com/einmalik1/helloworld/issues/15)) selects SWC for Vitest/Nest |
+| Unit | Vitest (+ SWC for Nest decorators via `packages/config`) | Next to code under `apps/` / `packages/` / `tools/`. Pin **`unplugin-swc` 2.0.0** (npm latest as of 2026-10-08) — **Vitest only** (topic **#8**, GH [#15](https://github.com/einmalik1/helloworld/issues/15)); Nest emit stays `nest build` / `tsc` — [Module / compiler rules](#module--compiler-rules-all-ts-workspaces) |
 | Nest module | `@nestjs/testing` | Controllers/services isolated; mock `DatabaseService` / externals |
 | HTTP | **supertest** | Nest app bootstrap or running API — `apps/api` unit-ish + `tests/api` suite; assert [HTTP contract](../apps/api/README.md#http-contract) envelope / status map |
 | E2E / visual | Playwright (+ VRT agent) | `tests/e2e` |
