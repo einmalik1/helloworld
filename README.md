@@ -63,12 +63,12 @@ Product specification — source of truth. Published by `apps/docs`.
 | Path | Role |
 |---|---|
 | `features/` | Feature specs |
-| `decisions/` | ADRs |
+| `decisions/` | ADRs — when/how: [`spec/decisions/README.md`](spec/decisions/README.md) |
 | `architecture.md` | System picture (tech-agnostic) |
-| `tech-stack.md` | Technology stack |
+| `tech-stack.md` | Technology stack (factual inventory; “why” → ADRs) |
 | `erd/schema.sql` | DDL SoT (hand-edit); categories in `spark/repo-profile.yaml`; run `pnpm generate` |
 
-Domain glossary: root `CONTEXT.md`. Details: `spec/README.md`.
+Domain glossary: root `CONTEXT.md`. Details: `spec/README.md`. Agent process pointers (incl. ADRs): `spark/agents/common/conventions.md`.
 
 ### Platform (`spark/`)
 
