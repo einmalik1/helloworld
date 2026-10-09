@@ -129,7 +129,9 @@ const listQuerySchema = z.object({
 
 ## NestJS conventions
 
-Intent for scaffolding `main.ts`, `AppModule`, and feature modules. Align with [`packages/modules`](../../packages/modules/README.md).
+**Normative** scaffolding patterns for Nest **12** in this template (must match when generating or hand-wiring). Shared infra contracts: [`packages/modules`](../../packages/modules/README.md). Product contracts (error map, auth): [HTTP contract](#http-contract) and Better Auth wiring (process **#5**).
+
+Stack anchors: Nest 12 · `nestjs-pino` · `nestjs-zod` · Better Auth (not static `ApiKeyModule`) · neverthrow · Vitest.
 
 ### Layout
 
@@ -155,34 +157,101 @@ src/{feature}/
 └── dto/                      # generated createZodDto wrappers (see above)
 ```
 
-Rule: multiple related files → subfolder; a single service file may sit at the feature root.
+Rule: multiple related files → subfolder; a single service file may sit at the feature root. Optional external sync tree: `src/{feature}/sync/` + `{provider}/`.
 
-### AppModule (intent)
+### Bootstrap (`main.ts`) — normative
 
-Import shared modules from `@helloworld/modules`, then feature modules:
+```typescript
+async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create(AppModule);
+  app.useLogger(app.get(Logger)); // nestjs-pino Logger
+  app.useGlobalPipes(new ZodValidationPipe());
+  app.useGlobalFilters(new HttpExceptionFilter());
+  setupOpenApi(app, { title: "Hello World API", description: "REST API" });
+  const configService = app.get(ConfigService<AppConfig, true>);
+  const port = configService.get("API_PORT", { infer: true });
+  await app.listen(port);
+}
+```
 
-1. `createAppConfigModule({ envSchema })` — root env → validated config  
-2. Auth module (Better Auth session + API-key guard; global)  
-3. `DatabaseModule` — Drizzle + `DatabaseService`  
-4. `HealthModule` — `GET /health` (**`@Public()`**)  
-5. `LoggerModule` (nestjs-pino)  
-6. Feature modules (e.g. greeting, channel, person)
+- Global **`ZodValidationPipe`** only (nestjs-zod) — **do not** add per-route `@UsePipes(new ZodValidationPipe(Dto))` when the global pipe is registered  
+- Global HTTP **exception filter** (map domain / Nest errors → [Problem Details](#error-envelope-rfc-9457-problem-details); log via Pino)  
+- `setupOpenApi` runs from `main.ts` (not as a Nest provider), including **nestjs-zod** `cleanupOpenApiDoc`; optional `openapi:export` for Orval
 
-`setupOpenApi(app, …)` runs from `main.ts` (not as a Nest provider), including **nestjs-zod** `cleanupOpenApiDoc` on the document.
+### LoggerModule defaults — normative
 
-### Bootstrap (`main.ts`)
+Package name: **`nestjs-pino`** (not `pino-nestjs`). Defaults match [`spec/tech-stack.md` — Logging](../../spec/tech-stack.md#logging):
 
-- Global **`ZodValidationPipe`** (nestjs-zod)  
-- Global HTTP **exception filter** (map domain / Nest errors → status + body; log via Pino)  
-- `setupOpenApi` + optional export path for Orval (`openapi:export`)
+```typescript
+LoggerModule.forRoot({
+  pinoHttp: {
+    level: process.env.LOG_LEVEL ?? "info",
+    autoLogging: false,
+    transport:
+      process.env.NODE_ENV !== "production"
+        ? { target: "pino-pretty", options: { singleLine: true } }
+        : undefined,
+  },
+});
+```
 
-### Controller pattern
+| Setting | Template default |
+|---|---|
+| HTTP access logs | **`autoLogging: false`** (prefer off over flooding; filter `/health` only if access logs are turned on later) |
+| Local format | `pino-pretty` with **`singleLine: true`** when `NODE_ENV !== "production"` |
+| Prod / QA | JSON lines on stdout (no pretty transport) |
+
+Optional shared bootstrap helper: [`packages/modules`](../../packages/modules/README.md#logging-optional).
+
+### AppModule import order — normative
+
+```typescript
+@Module({
+  imports: [
+    createAppConfigModule({ envSchema }),
+    // AuthModule — Better Auth session + API-key guard (not static ApiKeyModule)
+    DatabaseModule,
+    HealthModule,
+    LoggerModule.forRoot({ /* pino defaults above */ }),
+    // Feature modules…
+  ],
+})
+export class AppModule {}
+```
+
+Order: config → auth → database → health → logger → features.
+
+### Controller / service Result mapping — normative
+
+```typescript
+// Service — return Result; do not throw for domain/DB failures
+async findAll(): Promise<Result<Entity[], DatabaseError>> {
+  try {
+    /* ... */
+    return ok(entities);
+  } catch (e) {
+    return err(new DatabaseError(e));
+  }
+}
+
+// Controller — only layer that turns Results into HTTP for happy-path control flow
+const result = await this.service.findAll();
+if (result.isErr()) {
+  throw new HttpException(
+    /* Problem Details body from filter / helper */,
+    /* status from status map */,
+  );
+}
+return result.value;
+```
+
+Controller checklist:
 
 1. Thin — delegate to the service  
-2. Inspect `Result` from the service → on `isErr()`, `throw new HttpException(...)` (controllers are the only layer that turns Results into HTTP exceptions for happy-path control flow)  
+2. Inspect `Result` → on `isErr()`, `throw new HttpException(...)`  
 3. `@ApiResponse` / response DTO types for OpenAPI  
 4. `@HttpCode` when not the Nest default  
-5. Body/query validated via Zod DTO classes (`ZodValidationPipe` global or `@UsePipes`)
+5. Body/query via Zod DTO classes validated by the **global** `ZodValidationPipe` only
 
 ### Service pattern
 
@@ -198,20 +267,21 @@ Import shared modules from `@helloworld/modules`, then feature modules:
 - Schemas live in `@helloworld/types/api` — do not redefine Zod in the app  
 - Hand-written query DTOs (pagination, filters) may use `createZodDto` locally when not generated
 
-### Exception filter
+### Exception filter — normative
 
-Global filter under `src/common/filters/`:
+Global filter under `src/common/filters/` (`@Catch()` / Nest HTTP exceptions as needed):
 
 - Map known errors from `@helloworld/types` (e.g. `NotFound`, `ValidationError`, `DatabaseError`) via the [status map](#status-map-error-classes-only) — never string sniffing  
 - Emit [RFC 9457 Problem Details](#error-envelope-rfc-9457-problem-details) (`application/problem+json`); Zod field issues go in optional `errors`  
+- Shape intent: `response.status(status).json(body)` with that envelope  
 - Unknown errors → 500; log with context; never leak secrets  
 - Works together with controller `HttpException` throws for `Result` mapping
 
 ### Auth on routes
 
-- Global guard: session cookie and/or Better Auth API key (`verifyApiKey`)  
+- Global guard: session cookie and/or Better Auth API key (`verifyApiKey`) — **not** a static env `ApiKeyModule` / `ApiKeyGuard`  
 - **`@Public()`** — skip the global guard (health, selected auth routes)  
-- Details: [`packages/modules` auth](../../packages/modules/README.md)
+- Details: [`packages/modules` auth](../../packages/modules/README.md#auth)
 
 ### External API integration (optional)
 
@@ -232,6 +302,21 @@ Validate external payloads with Zod; persist via `DatabaseService`; surface fail
 
 | Layer | Tool | Notes |
 |---|---|---|
-| Unit | Vitest + `@nestjs/testing` | Mock `DatabaseService` / externals |
+| Unit | Vitest + `@nestjs/testing` | Mock `DatabaseService` / externals; override Better Auth guard (below) |
 | HTTP | **supertest** | Against testing-module Nest app or running server |
 | Suite | `tests/api` | Against running `api` + Postgres — see [`tests/api/README.md`](../../tests/api/README.md) |
+
+### Vitest module test — normative
+
+Override the Better Auth guard (not a forever `ApiKeyGuard` name):
+
+```typescript
+const moduleRef = await Test.createTestingModule({
+  imports: [/* test config */],
+  controllers: [ResourceController],
+  providers: [{ provide: ResourceService, useValue: mockService }],
+})
+  .overrideGuard(/* AuthGuard — Better Auth session / API-key */)
+  .useValue({ canActivate: () => true })
+  .compile();
+```
