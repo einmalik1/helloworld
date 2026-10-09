@@ -43,6 +43,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 - **#2 Build / emit contract** (process) — written in [`tech-stack.md`](tech-stack.md#build--emit-contract). Remaining work is mostly implementation (flip `exports` to `dist/`, wire `build` / `turbo.json`).
 - **#10 Security / ops baseline** (product) — [`apps/api/README.md` § Security / ops](../apps/api/README.md#security--ops-baseline) + pointers in [`tech-stack.md`](tech-stack.md#security--ops-baseline).
 - **#14 Git conventions** (process) — branches, Conventional Commits, smoke pre-merge gate in [`spark/agents/common/conventions.md#git-conventions`](../spark/agents/common/conventions.md#git-conventions).
+- **#15 Small ops details** (product) — ky timeouts, Terminus health indicators, Nest env table, CLI/TUI config keys in the component READMEs listed under topic **#15**.
 
 ---
 
@@ -59,7 +60,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 | 10 | Security / ops baseline | Spec | **done** | open | `apps/api/README.md` § Security / ops + pointers in `tech-stack.md` |
 | 11 | Docker / Coolify image shape | Spec partial | partial | open | `tech-stack.md` § Coolify + per-app Deploy |
 | 13 | Open version pins | Spec light | open | open | `tech-stack.md` inventory |
-| 15 | Small ops details | Spec | open | open | api-client / modules / `.env.example` / api README |
+| 15 | Small ops details | Spec | **done** | open | api-client / modules / terminal / `.env.example` / api README |
 | 16 | Search / knowledge graph | Spec | open | open | `architecture.md` + `tech-stack.md` + new app README + ADR; depends on **#4** (MCP) |
 
 ### Process
@@ -370,57 +371,37 @@ CMD ["node", "dist/main.js"]
 |---|---|
 | **Lane** | Product |
 | **Hauptproblem** | Spec |
-| **Spec status** | Spec open |
+| **Spec status** | Spec done — timeouts / health / env table / config keys in component READMEs |
 | **Impl status** | Impl open |
-| **Spec targets** | Timeouts → [`packages/api-client/README.md`](../packages/api-client/README.md); Health → [`packages/modules/README.md`](../packages/modules/README.md); Env Required/Default → [`.env.example`](../.env.example) + [`apps/api/README.md`](../apps/api/README.md) |
+| **Spec targets** | Timeouts → [`packages/api-client/README.md`](../packages/api-client/README.md#timeouts-normative); Health → [`packages/modules/README.md`](../packages/modules/README.md#health-normative); Env → [`.env.example`](../.env.example) + [`apps/api/README.md`](../apps/api/README.md#nest-facing-env-table-normative); Config keys → [`packages/terminal/README.md`](../packages/terminal/README.md#config-keys-normative) |
 
 ### Decide
 
-- [ ] **define** ky timeouts (prior: 30s general, 3s health — adopt?)
-- [ ] **define** `/health` indicators (DB ping + memory/utilization vs “as chosen”)
-- [ ] **define** per-key Required / Default / Description table for Nest-facing env (beyond `.env.example` comments)
-- [ ] **define** CLI/TUI config key names (`apiUrl` / `workerUrl` / credential field) as frozen schema intent
+- [x] **define** ky timeouts — **adopt** 30s general / 3s health
+- [x] **define** `/health` indicators — Terminus **DB ping** + process up; **no** memory metrics in v1
+- [x] **define** per-key Required / Default / Description table for Nest-facing env — mirror `.env.example`; `LOG_LEVEL` default **`info`**; Better Auth secrets required; **no** static `API_KEY`
+- [x] **define** CLI/TUI config key names — freeze `apiUrl`, `workerUrl`, `apiKey` in `@helloworld/terminal/config` Zod schema
 
 ### Spec to write
 
-- [ ] Document timeouts in api-client mutator contract
-- [ ] Health module contract: exact checks + `@Public()`
-- [ ] Env table in `apps/api/README.md` (Required/Default); keep single root `.env` rule
-- [ ] Optional: `envSchema` example snippet in api README (adapted from prior project, with Better Auth keys not `API_KEY`)
+- [x] Document timeouts in api-client mutator contract
+- [x] Health module contract: exact checks + `@Public()`
+- [x] Env table in `apps/api/README.md` (Required/Default/Description); keep single root `.env` rule
+- [x] `envSchema` example snippet in api README (Better Auth keys, not `API_KEY`)
+- [x] Frozen config keys in `packages/terminal/README.md`
 
 ### Impl (later)
 
 - [ ] Mutator timeouts, Terminus indicators, Zod `envSchema` matching the table
+- [ ] Wire `@helloworld/terminal/config` schema to the frozen keys
 
-### Prior reference (adapt)
+### Prior reference (adapt) — decisions landed above
 
-**ky:** general timeout **30s**; health checks **3s** (prior CLI `api.ts`).
+**ky:** general timeout **30s**; health checks **3s**.
 
-**TUI config globals (candidates):** `pollInterval` default 30 (range 5–300); `pageSize` default 15 (range 5–100). Resolve URL/key: active environment → built-in defaults; missing file → defaults; corrupt file → hard error.
+**TUI config globals:** `pollInterval` default 30 (range 5–300); `pageSize` default 15 (range 5–100). Resolve URL/key: active environment → built-in defaults; missing file → defaults; corrupt file → hard error.
 
-**Env table shape (adapt names to helloworld — do not copy static `API_KEY` / `SERVER_HTTP_PORT` / `LOG_LEVEL` default `warn`):**
-
-| Variable (prior) | helloworld intent | Required | Default |
-|---|---|---|---|
-| `SERVER_HTTP_PORT` | `API_PORT` (see `.env.example`) | — | `3000` |
-| `DATABASE_URL` | same | ✓ | — |
-| `API_KEY` | Better Auth keys / `BETTER_AUTH_*` — not a single static key | ✓ (secrets) | — |
-| `LOG_LEVEL` | same | — | **`info`** (template), not `warn` |
-| `NODE_ENV` | same | — | `development` |
-
-**envSchema sketch (adapt keys):**
-
-```typescript
-export const envSchema = z.object({
-  API_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
-  DATABASE_URL: z.string().min(1),
-  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
-  BETTER_AUTH_SECRET: z.string().min(1),
-  BETTER_AUTH_URL: z.string().url(),
-  WEB_ORIGIN: z.string().url(),
-  // … S3_* when this process needs object storage
-});
-```
+**Env:** see normative table in `apps/api/README.md` — no static `API_KEY`; `LOG_LEVEL` default **`info`**.
 
 ---
 
@@ -864,4 +845,5 @@ CLI/TUI structural intent (separate binaries, XDG config, Commander vs Ink bound
 | 2026-10-04 | Restructured into **Product** vs **Process** chapters; topic numbers kept for cross-links |
 | 2026-10-04 | Salvaged prior-project snippets into topic *Prior reference* sections; removed root foreign `TECH-STACK.md` |
 | 2026-10-09 | **#14** Git conventions Spec done — process note + smoke gate; tracking closed |
+| 2026-10-09 | **#15** Small ops details Spec done — ky 30s/3s, Terminus DB+up, Nest env table, terminal `apiUrl`/`workerUrl`/`apiKey` |
 | 2026-10-09 | **#10** Security / ops baseline Spec done — api README checklist + tech-stack pointers (CORS, Helmet, request-id, shutdown, rate-limit out of v1) |
