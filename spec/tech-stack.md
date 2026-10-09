@@ -33,7 +33,10 @@ Versions below are the latest published on npm as of 2026-10-08 (pin in lockfile
 | Client SDK codegen | Orval | 8.39.0 | OpenAPI → `packages/api-client/src/generated/` — see api-client below |
 | TUI text input | `ink-text-input` | 6.0.0 | Editable fields in Ink overlays |
 | ORM | Drizzle | orm 0.45.3, kit 0.31.11 | `drizzle-orm` + `drizzle-kit` — schema/migrations: [Database / Drizzle](#database--drizzle-schema--migrations) |
-| Database | PostgreSQL | 18.6 | Coolify one-click (`coolify database create postgresql`); pin image via `--image` when provisioning — see [Database / Drizzle](#database--drizzle-schema--migrations) |
+| Database | PostgreSQL | 18.6 | **AGE-enabled custom image** (local `infra/postgres` + Coolify pin via `--image`) — stock one-click **cannot** load AGE; see [Database / Drizzle](#database--drizzle-schema--migrations) + [Search / knowledge graph](#search--knowledge-graph) |
+| Graph (on Postgres) | Apache AGE | extension on PG 18 | Cypher projection in SoT DB; not a separate graph service — [Search / knowledge graph](#search--knowledge-graph) |
+| Search index | Typesense | pin when wiring | OSS full-text / typo-tolerant; Compose + Coolify under `infra/typesense` — [Search / knowledge graph](#search--knowledge-graph) |
+| Graph UI (`apps/web`) | Cytoscape.js | pin when wiring | Viz over api `{ nodes, edges }` JSON only — not engine protocols |
 | Object storage | Garage | Coolify service | S3-compatible; Coolify one-click Garage ([docs](https://coolify.io/docs/services/garage)); app client `@aws-sdk/client-s3` **3.1144.0** |
 | Auth | Better Auth | 1.7.7 | `better-auth` + `@better-auth/api-key` **1.7.7** — sessions (web) and managed API keys (CLI/TUI/machines); see Auth below |
 | Lint | Oxlint | 1.86.0 | `oxlint` |
@@ -295,6 +298,7 @@ React SPA (or SPA-style app) with **Vite**. Storybook uses the matching **`react
 | UI | **shadcn/ui** on **Tailwind CSS 4.3.3** | CLI-copied components; template default kit |
 | Tours | driver.js **1.9.0** | Already in inventory |
 | Data / API | Optional Orval `api-client` + cookie session | Better Auth session cookies to `apps/api`; web does **not** use `packages/terminal` |
+| Graph explorer | **Cytoscape.js** | Consumes `GET /graph/*` JSON from api only — [Search / knowledge graph](#search--knowledge-graph) |
 | Storybook | `@storybook/react-vite` **10.6.1** | Same Vite toolchain as `apps/web` |
 | Logging | Web client rules | `console` / UI; no Pino in the browser — see [Logging](#logging) |
 
@@ -454,7 +458,8 @@ QA and production run on **Coolify**. Each long-running app ships its **own mult
 | [Coolify](https://coolify.io/) | remote instance | Hosts apps, Postgres, Garage for QA and production |
 | Coolify CLI | local / agents (`coolify` **1.8.0**) | Create projects, apps, databases, one-click services; deploy via context in `spark/repo-profile.yaml` |
 | App images | **one multi-stage `Dockerfile` per app** | Built by Coolify from the Git repo ([Dockerfile build pack](https://coolify.io/docs/applications/choose-deployment-method)) |
-| PostgreSQL | `coolify database create postgresql` | One-click DB; prefer latest stable image (**18.6** as of 2026-10-01) |
+| PostgreSQL | Coolify DB with **custom AGE image** pin | Same image as local `infra/postgres`; **not** unmodified stock one-click if AGE is required — [Search / knowledge graph](#search--knowledge-graph) |
+| Typesense | Coolify service / custom | Search index; local Compose under `infra/typesense` — network-internal to api/worker |
 | [Garage](https://garagehq.deuxfleurs.fr/) | Coolify one-click service | S3-compatible object store for `infra/s3` / app uploads |
 | Better Auth | app code (`better-auth` + `@better-auth/api-key` **1.7.7**) | Sessions + managed API keys in `apps/api`; not a Coolify service |
 
@@ -500,9 +505,9 @@ Each row’s Deploy intent follows the [stage contract](#docker--coolify-stage-c
 | `apps/storybook` | `apps/storybook/Dockerfile` | Application | UI gallery; same contract (static/Storybook out) — [stage contract](#docker--coolify-stage-contract) |
 | `apps/mcp` | `apps/mcp/Dockerfile` | Application | MCP server; monorepo-root context if shared packages needed — [stage contract](#docker--coolify-stage-contract) |
 | `tools/cli`, `tools/tui` | — | **not** deployed | Installable clients only |
-| Postgres / Garage | Coolify service images | Database / service | No custom Dockerfile in this repo |
+| Postgres / Typesense / Garage | Coolify / Compose service images | Database / search / object store | Postgres = AGE custom image in-repo (`infra/postgres`); Typesense = `infra/typesense`; Garage = Coolify one-click |
 
-**Local data services:** Compose stand-ins under `infra/` (Postgres, MinIO-compatible S3) — not the QA/Prod topology. Intent scripts from root: `pnpm run docker:local:up` / `docker:local:down` (or `docker compose up -d postgres s3` until those aliases exist). Details: [`infra/postgres/README.md`](../infra/postgres/README.md), [`infra/s3/README.md`](../infra/s3/README.md).
+**Local data services:** Compose stand-ins under `infra/` (Postgres+AGE, Typesense, MinIO-compatible S3) — not the QA/Prod topology. Intent scripts from root: `pnpm run docker:local:up` / `docker:local:down` (or `docker compose up -d postgres typesense s3` until those aliases exist). Details: [`infra/postgres/README.md`](../infra/postgres/README.md), [`infra/typesense/README.md`](../infra/typesense/README.md), [`infra/s3/README.md`](../infra/s3/README.md).
 
 App processes for local dev start from the repo root (`pnpm`); Dockerfiles are primarily for Coolify (and optional local image smoke tests).
 
@@ -511,6 +516,32 @@ UUIDs, instance URL, and CLI context stay in `spark/repo-profile.yaml` (and loca
 **Local env:** one repo-root `.env` only — see [Root environment](#root-environment).
 
 **Graceful shutdown (API):** Nest `enableShutdownHooks()` + lifecycle cleanup (Drizzle pool) so Coolify rolling restarts drain cleanly — [`apps/api/README.md` § Security / ops](../apps/api/README.md#security--ops-baseline).
+
+## Search / knowledge graph
+
+Secondary indexes for graph exploration and full-text search. Postgres remains SoT; **no** public `apps/graph`. Boundaries (tech-agnostic): [`architecture.md`](architecture.md#search--knowledge-graph-secondary-indexes). Rationale: [`decisions/0004-search-knowledge-graph.md`](decisions/0004-search-knowledge-graph.md). Issue: [#12](https://github.com/einmalik1/helloworld/issues/12) (topic **#16**).
+
+| Piece | Choice | Notes |
+|---|---|---|
+| Graph engine | **Apache AGE** on Postgres 18 | Extension in/near SoT; Cypher only inside api/worker |
+| Search engine | **Typesense** | `infra/typesense`; GPL-3.0; full-text / typo-tolerant in v1 |
+| Product API | Structured routes on **`apps/api`** | `GET /graph/related`, `GET /graph/subgraph`, `GET /search` — see [`apps/api/README.md`](../apps/api/README.md#retrieve--search-facade) |
+| Graph UI | **Cytoscape.js** in `apps/web` | `{ nodes, edges }` from api only — [`apps/web/README.md`](../apps/web/README.md) |
+| Sync | **`apps/worker`** outbox + schedule | After writes; rebuild job; not sync-on-write — [`apps/worker/README.md`](../apps/worker/README.md) |
+| MCP | HTTP → api only | No AGE/Typesense URLs — [`apps/mcp/README.md`](../apps/mcp/README.md) |
+| Postgres image | Custom AGE-enabled | Local + Coolify pin — [`infra/postgres/README.md`](../infra/postgres/README.md) |
+| Auth | Better Auth on api | Engines network-internal; api/worker S2S |
+| Health | api `/health` | DB ping (= AGE host) + Typesense probe |
+| Env | Root `.env` | `TYPESENSE_*`; AGE via `DATABASE_URL` + extension bootstrap |
+
+```text
+apps/api ── write ──► Postgres + AGE
+                │
+                ▼ (outbox / jobs)
+           apps/worker ──► AGE projection
+                       └─► Typesense
+apps/api ── GET /graph/* , GET /search ──► clients / MCP / web Cytoscape
+```
 
 ## Auth (Better Auth)
 

@@ -46,6 +46,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 - **#6 Workflow “new resource”** (process) — checklist in [`spark/agents/common/conventions.md#new-resource-workflow`](../spark/agents/common/conventions.md#new-resource-workflow); Nest mirror + generators pointers.
 - **#14 Git conventions** (process) — branches, Conventional Commits, smoke pre-merge gate in [`spark/agents/common/conventions.md#git-conventions`](../spark/agents/common/conventions.md#git-conventions).
 - **#15 Small ops details** (product) — ky timeouts, Terminus health indicators, Nest env table, CLI/TUI config keys in the component READMEs listed under topic **#15**.
+- **#16** Search / knowledge graph (product) — AGE + Typesense + api facade + worker sync + Cytoscape; ADR [`0004`](decisions/0004-search-knowledge-graph.md).
 
 ---
 
@@ -63,7 +64,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 | 11 | Docker / Coolify image shape | Spec partial | partial | open | `tech-stack.md` § Coolify + per-app Deploy |
 | 13 | Open version pins | Spec light | open | open | `tech-stack.md` inventory |
 | 15 | Small ops details | Spec | **done** | open | api-client / modules / terminal / `.env.example` / api README |
-| 16 | Search / knowledge graph | Spec | open | open | `architecture.md` + `tech-stack.md` + new app README + ADR; depends on **#4** (MCP) |
+| 16 | Search / knowledge graph | Spec | **done** | open | `architecture.md` + `tech-stack.md` + ADR `0004` + api/web/worker/mcp + `infra/postgres` + `infra/typesense` + `.env.example` |
 
 ### Process
 
@@ -411,61 +412,56 @@ CMD ["node", "dist/main.js"]
 
 ## 16. Search / knowledge-graph service
 
-New long-running **app/service** in the template: a searchable knowledge graph over domain entities (Hello World: greetings, channels, people, reactions, …). No prior-project salvage for this. Complements Postgres (system of record) rather than replacing it.
+Secondary indexes (graph + search) over domain entities — complements Postgres SoT. **No** public `apps/graph`. Issue: [#12](https://github.com/einmalik1/helloworld/issues/12).
 
 | | |
 |---|---|
 | **Lane** | Product |
 | **Hauptproblem** | Spec |
-| **Spec status** | Spec open (component not yet in inventory / architecture) |
+| **Spec status** | Spec done — [`architecture.md`](architecture.md#search--knowledge-graph-secondary-indexes); [`tech-stack.md`](tech-stack.md#search--knowledge-graph); ADR [`0004`](decisions/0004-search-knowledge-graph.md) |
 | **Impl status** | Impl open |
-| **Spec targets** | [`architecture.md`](architecture.md) (component + boundaries); [`tech-stack.md`](tech-stack.md) inventory + Coolify/Docker row; new `apps/<name>/README.md` (name TBD); local stand-in under `infra/` if needed; ADR `decisions/NNNN-search-knowledge-graph.md`; env section in root `.env.example`; optional `tests/<name>/`; cross-link **#4** (MCP access path) |
+| **Spec targets** | architecture + tech-stack + ADR `0004` + api/web/worker/mcp READMEs + `infra/postgres` + `infra/typesense` + `.env.example` |
 
 ### Decide — placement
 
-- [ ] **define** component name and path (candidates: `apps/graph`, `apps/search`, `apps/knowledge`, …) and whether the graph **engine** lives under `infra/` (like Postgres/S3) with a thin Nest (or other) app in front, vs one combined app image
-- [ ] **define** role vs Postgres: graph is secondary index / exploration layer; Postgres remains SoT (or document a different rule if chosen)
-- [ ] **define** domain projection for Hello World: which entities/edges are indexed (greeting ↔ channel ↔ person ↔ reaction, …) and update vocabulary in root `CONTEXT.md` if new terms appear
-- [ ] **define** sync model: how graph stays current with API writes (worker jobs, outbox, CDC, periodic rebuild, sync-on-write from `apps/api`)
+- [x] **define** component path — **no** `apps/graph`; AGE on Postgres; Typesense under `infra/typesense`; facade on `apps/api`
+- [x] **define** role vs Postgres — secondary indexes; Postgres remains SoT; writes API → DB first
+- [x] **define** domain projection — person / channel / greeting / reaction nodes + authored / posted_in / reacted_to / reaction_on edges (ADR `0004`)
+- [x] **define** sync model — worker transactional outbox + schedule drain + rebuild job; **not** sync-on-write
 
 ### Decide — engine / stack
 
-- [ ] **define** graph / search engine (candidates to evaluate: Neo4j, Memgraph, Apache AGE on Postgres, FalkorDB, Weaviate/Qdrant if vector-first, Elasticsearch/OpenSearch if search-first, …) — pick for **template** fitness (local Compose + Coolify), not only product preference
-- [ ] **define** query style exposed to the product: Cypher / Gremlin / GraphQL / custom query DSL / structured “search greetings” API only
-- [ ] **define** whether full-text / vector search is in-scope for v1 of the template or graph traversal only
+- [x] **define** engines — **Apache AGE** (graph) + **Typesense** (search)
+- [x] **define** product query style — structured retrieve/search API only (`/graph/related`, `/graph/subgraph`, `/search`)
+- [x] **define** search scope v1 — full-text / typo-tolerant; vector deferred
 
 ### Decide — access path (how clients reach it)
 
-- [ ] **define** primary access path for humans/apps:
-  - direct HTTP from clients (own REST/GraphQL surface on the new app), and/or
-  - only via `apps/api` (BFF / facade — graph not publicly exposed), and/or
-  - via `apps/mcp` tools for agents, and/or
-  - combination (e.g. REST for web/CLI, MCP for agents)
-- [ ] **define** whether CLI/TUI/web talk to the graph service URL directly or only through `api` / `api-client`
-- [ ] **define** auth: same Better Auth session/API-key model as `apps/api`, service-to-service key, or network-internal only
-- [ ] **define** relationship to **#4** MCP: if MCP is chosen as a path, does MCP call the graph service, call `api`, or embed graph queries?
+- [x] **define** primary access — **only via `apps/api`** facade; MCP tools call api; CLI/TUI/web via api / api-client
+- [x] **define** no direct engine URLs for clients
+- [x] **define** auth — Better Auth on api; AGE/Typesense network-internal (api/worker S2S)
+- [x] **define** MCP path — HTTP → api retrieve/search only (aligns with **#4**)
 
 ### Decide — ops
 
-- [ ] **define** local Compose stand-in (`infra/…`) and Coolify provisioning (one-click vs custom Dockerfile)
-- [ ] **define** `/health` for the graph app and whether CLI `health` aggregates it
-- [ ] **define** root `.env` section keys (endpoints, credentials) — still single root `.env`
+- [x] **define** local Compose — `infra/postgres` (AGE image) + `infra/typesense`; Coolify pin same Postgres image + Typesense service
+- [x] **define** `/health` — api probes Typesense; AGE covered by Postgres DB ping (no separate graph-app health)
+- [x] **define** root `.env` — `TYPESENSE_*`; AGE via `DATABASE_URL` + extension bootstrap
 
 ### Spec to write
 
-- [ ] Add component to [`architecture.md`](architecture.md) (technology-agnostic: “search / knowledge graph service”)
-- [ ] Add inventory row + short subsection in [`tech-stack.md`](tech-stack.md) (engine, client libs, deploy)
-- [ ] Scaffold README under chosen `apps/<name>/` (role, boundaries, access path, local/Coolify)
-- [ ] ADR: engine choice + access path + sync model; rejected alternatives
-- [ ] Feature intent stub under `spec/features/` when search behaviour is product-ready (optional until engine chosen)
-- [ ] Update root [`README.md`](../README.md) Components table + Layout when path is frozen
-- [ ] Docker / Coolify table row (alongside api/worker/…)
-- [ ] If MCP is an access path: update MCP subsection under **#4** and `apps/mcp/README.md` intent
+- [x] Component boundaries in [`architecture.md`](architecture.md)
+- [x] Inventory + subsection in [`tech-stack.md`](tech-stack.md)
+- [x] No new public app README — intents in api/web/worker/mcp + infra READMEs
+- [x] ADR [`0004-search-knowledge-graph.md`](decisions/0004-search-knowledge-graph.md)
+- [ ] Optional feature stub under `spec/features/` when product behaviour needs acceptance criteria
+- [ ] Root [`README.md`](../README.md) Components/Layout touch-up when infra compose aliases land (impl-adjacent)
+- [x] Coolify / local data-service rows updated for AGE Postgres + Typesense
+- [x] MCP README retrieve/search-only intent
 
 ### Impl (later)
 
-- [ ] Provision engine + app scaffold, sync pipeline, auth, health, tests suite folder
-- [ ] Wire consumers (web / CLI / MCP) per chosen access path
+- [ ] AGE custom image, Typesense Compose/Coolify, outbox + projection jobs, api facade routes, Cytoscape explorer, health probe, tests
 
 ---
 
@@ -779,8 +775,8 @@ This topic is the **process** of writing ADRs (naming, structure, when). Candida
 - [ ] ADR: Coolify build-from-Git (Dockerfile pack) vs registry pull-only default
 - [ ] ADR: package emit to `dist/` (rationale for process **#2**)
 - [ ] ADR: Garage (QA/Prod) + local MinIO-compatible stand-in
-- [ ] ADR: search / knowledge-graph service (engine + access path) — see **#16**
-- [ ] Plus ADRs from **#1**, **#3**, **#4**, **#16** as those decisions land
+- [x] ADR: search / knowledge-graph service (engine + access path) — [`0004-search-knowledge-graph.md`](decisions/0004-search-knowledge-graph.md)
+- [ ] Plus ADRs from **#1**, **#3**, **#4** as those decisions land
 
 ### Spec to write
 
@@ -854,3 +850,4 @@ CLI/TUI structural intent (separate binaries, XDG config, Commander vs Ink bound
 | 2026-10-09 | **#10** Security / ops baseline Spec done — api README checklist + tech-stack pointers (CORS, Helmet, request-id, shutdown, rate-limit out of v1) |
 | 2026-10-09 | **#5** Better Auth wiring Spec done — inventory, module/mutator/env/terminal contracts, ADR `0003` |
 | 2026-10-09 | **#6** Workflow “new resource” Spec done — conventions checklist + api README mirror + tech-stack / AGENTS pointers |
+| 2026-10-09 | **#16** Search / knowledge graph Spec done — AGE + Typesense + api facade + worker outbox + Cytoscape; ADR `0004` |
