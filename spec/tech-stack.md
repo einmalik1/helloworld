@@ -251,6 +251,8 @@ Detail and local usage: [`tools/cli/README.md`](../tools/cli/README.md), [`tools
 
 Patterns for controllers, services (**neverthrow**), DTOs, exception filter, `@Public()`, and AppModule composition: **[`apps/api/README.md`](../apps/api/README.md#nestjs-conventions)**. Shared infra module contracts: [`packages/modules/README.md`](../packages/modules/README.md).
 
+**HTTP contract** (error Problem Details, status map, lists, CRUD, fixed routes): **[`apps/api/README.md` § HTTP contract](../apps/api/README.md#http-contract)** — ADR [`0002-api-problem-details`](decisions/0002-api-problem-details.md).
+
 ## Worker (`apps/worker`)
 
 Long-running Nest **standalone** app for background / scheduled work. Shares `packages/modules` (Config / Database / Health / Logging) with `apps/api` — same DI, `/health`, and Pino pipeline.
@@ -530,13 +532,15 @@ Layered SoT (not a single file):
 
 Bridge choice: **nestjs-zod** — `createZodDto` (generated Nest DTOs), global **`ZodValidationPipe`** in `main.ts`, and **`cleanupOpenApiDoc`** when exporting / serving OpenAPI so Zod-shaped schemas stay valid for Swagger/Orval. API Zod stays in `@helloworld/types/api`; Nest files are thin generated wrappers; Orval consumes the exported OpenAPI — no second hand-written client.
 
+HTTP error / list / CRUD surface (RFC 9457, status map, pagination): [`apps/api/README.md` § HTTP contract](../apps/api/README.md#http-contract).
+
 ## Testing (intent)
 
 | Layer | Tool | Where |
 |---|---|---|
 | Unit | Vitest (+ SWC for Nest decorators via `packages/config`) | Next to code under `apps/` / `packages/` / `tools/`. Pin **`unplugin-swc` 2.0.0** (npm latest as of 2026-10-08) only if tech-stack **#8** (GH [#15](https://github.com/einmalik1/helloworld/issues/15)) selects SWC for Vitest/Nest |
 | Nest module | `@nestjs/testing` | Controllers/services isolated; mock `DatabaseService` / externals |
-| HTTP | **supertest** | Nest app bootstrap or running API — `apps/api` unit-ish + `tests/api` suite |
+| HTTP | **supertest** | Nest app bootstrap or running API — `apps/api` unit-ish + `tests/api` suite; assert [HTTP contract](../apps/api/README.md#http-contract) envelope / status map |
 | E2E / visual | Playwright (+ VRT agent) | `tests/e2e` |
 
 Root quality gate (when wired): `format` → `lint` → `typecheck` → `test`. Suite prerequisites: [`tests/README.md`](../tests/README.md).

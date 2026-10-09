@@ -63,6 +63,70 @@ apps/api/src/{resource}/dto/
 
 Schemas come from `@helloworld/types/api`. Do not hand-edit these files.
 
+## HTTP contract
+
+Frozen product contract for REST responses. Exception filter (#7) and Orval client mutator must match this section. Rationale: [`spec/decisions/0002-api-problem-details.md`](../../spec/decisions/0002-api-problem-details.md). Issue: [#5](https://github.com/einmalik1/helloworld/issues/5).
+
+### Error envelope (RFC 9457 Problem Details)
+
+One global filter; **no** per-route error shapes. Failed responses use `Content-Type: application/problem+json` with [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html) fields:
+
+| Field | Required | Role |
+|---|---|---|
+| `type` | yes | Stable, documented problem URI — clients branch on this, not free text |
+| `title` | yes | Short, stable summary |
+| `status` | yes | HTTP status (mirrors the response status; status line remains authoritative) |
+| `detail` | yes | Occurrence-specific explanation — **not** for programmatic parsing |
+| `errors` | no | Extension member for field errors (Zod issues → `pointer` / `detail`), analogous to the RFC example |
+
+Do **not** use a legacy `{ error }` / `{ error, errors[] }` envelope.
+
+### Status map (error classes only)
+
+Map exclusively from `@helloworld/types` error classes (and Nest / nestjs-zod validation failures). **Reject** `message.includes("not found")` and any string sniffing.
+
+| Klasse / Fall | HTTP | Notes |
+|---|---|---|
+| Zod / Validation | **400** | Nest-idiomatic; see ADR — frozen (not 422) |
+| NotFound | **404** | Domain / resource missing |
+| DatabaseError / unknown | **500** | Never leak internals or secrets |
+
+### Lists
+
+| Aspect | Contract |
+|---|---|
+| Query | `page` (1-based), `limit` — coerce to int; **max cap 100** |
+| Response | `{ items, total, page, limit }` — Orval-friendly; TUI can page via terminal config `pageSize` |
+| Sort / filter | Hand-written query DTOs per resource when needed; keep shared pagination fields stable |
+| Cursor | Deferred — revisit only if collections become large/volatile |
+
+Example query schema (hand-written `createZodDto`, not generated):
+
+```typescript
+const listQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+});
+```
+
+### Resource CRUD
+
+| Concern | Contract |
+|---|---|
+| Paths | `/resource`, `/resource/:id` |
+| Create | `POST /resource` → **201** (+ optional `Location`) |
+| Update | `PATCH /resource/:id` = partial (`Update = Create.partial()` via generator) |
+| Delete | `DELETE /resource/:id` → **204** |
+| IDs | **UUID** (`gen_random_uuid` in Postgres) unless a product feature requires shortIds |
+
+### Fixed infrastructure routes
+
+| Method | Path | Notes |
+|---|---|---|
+| `GET` | `/health` | `@Public()` |
+| `GET` | `/api/docs` | Swagger UI |
+| `GET` | `/openapi.json` | Runtime OpenAPI document **and** build-time `openapi:export` for Orval CI |
+
 ## NestJS conventions
 
 Intent for scaffolding `main.ts`, `AppModule`, and feature modules. Align with [`packages/modules`](../../packages/modules/README.md).
@@ -138,7 +202,8 @@ Import shared modules from `@helloworld/modules`, then feature modules:
 
 Global filter under `src/common/filters/`:
 
-- Map known errors from `@helloworld/types` (e.g. `HTTPError`, `ValidationError`, `DatabaseError`) to stable HTTP status + JSON body  
+- Map known errors from `@helloworld/types` (e.g. `NotFound`, `ValidationError`, `DatabaseError`) via the [status map](#status-map-error-classes-only) — never string sniffing  
+- Emit [RFC 9457 Problem Details](#error-envelope-rfc-9457-problem-details) (`application/problem+json`); Zod field issues go in optional `errors`  
 - Unknown errors → 500; log with context; never leak secrets  
 - Works together with controller `HttpException` throws for `Result` mapping
 
