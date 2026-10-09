@@ -32,8 +32,8 @@ Versions below are the latest published on npm as of 2026-10-08 (pin in lockfile
 | HTTP client (cli/tui) | ky | 2.1.0 | Transport inside `@helloworld/api-client` (Orval mutator) |
 | Client SDK codegen | Orval | 8.39.0 | OpenAPI → `packages/api-client/src/generated/` — see api-client below |
 | TUI text input | `ink-text-input` | 6.0.0 | Editable fields in Ink overlays |
-| ORM | Drizzle | orm 0.45.3, kit 0.31.11 | `drizzle-orm` + `drizzle-kit` |
-| Database | PostgreSQL | 18.6 | Coolify one-click (`coolify database create postgresql`); pin image via `--image` when provisioning — see below |
+| ORM | Drizzle | orm 0.45.3, kit 0.31.11 | `drizzle-orm` + `drizzle-kit` — schema/migrations: [Database / Drizzle](#database--drizzle-schema--migrations) |
+| Database | PostgreSQL | 18.6 | Coolify one-click (`coolify database create postgresql`); pin image via `--image` when provisioning — see [Database / Drizzle](#database--drizzle-schema--migrations) |
 | Object storage | Garage | Coolify service | S3-compatible; Coolify one-click Garage ([docs](https://coolify.io/docs/services/garage)); app client `@aws-sdk/client-s3` **3.1144.0** |
 | Auth | Better Auth | 1.7.7 | `better-auth` + `@better-auth/api-key` **1.7.7** — sessions (web) and managed API keys (CLI/TUI/machines); see Auth below |
 | Lint | Oxlint | 1.86.0 | `oxlint` |
@@ -137,7 +137,7 @@ Cross-cutting Nest modules (subpath exports per module when wired):
 | Module | Intent |
 |---|---|
 | Config | `createAppConfigModule({ envSchema })` — load root `.env`, validate at boot via Zod |
-| Database | `DatabaseModule` + `DatabaseService` — Drizzle + PostgreSQL schema/queries |
+| Database | `DatabaseModule` + `DatabaseService` — Drizzle + PostgreSQL; domain schema from generator, migrations via `drizzle-kit migrate` — [Database / Drizzle](#database--drizzle-schema--migrations) |
 | Health | `HealthModule` — `GET /health` (e.g. `@nestjs/terminus`) |
 | Auth | Better Auth + `@better-auth/api-key` — Nest wiring (sessions + API-key verify guard) |
 | OpenAPI | `setupOpenApi(app, options)` — Swagger UI + JSON; **nestjs-zod** `cleanupOpenApiDoc` on the exported document |
@@ -371,6 +371,7 @@ CLI/TUI  →  tslog + ora (stderr) ; results on stdout   (via packages/terminal/
 | Step | Tool | Role |
 |---|---|---|
 | Persistenz SoT | `schema.sql` → Entity Zod (`types` stage) | Table shapes in `packages/types/src/schema/` |
+| Drizzle schema | `schema.sql` → Drizzle TS (`drizzle` stage) | Domain tables under `packages/modules` — [Database / Drizzle](#database--drizzle-schema--migrations) |
 | API SoT | API Zod (`api` stage) | Create/Update/Response in `packages/types/src/api/` |
 | Nest adapters | `nest_dto` stage | `createZodDto` under `apps/api/src/{resource}/dto/` |
 | Typecheck | `tsc --noEmit` | Verifies the whole graph compiles; **does not** emit JS |
@@ -540,6 +541,37 @@ Bridge choice: **nestjs-zod** — `createZodDto` (generated Nest DTOs), global *
 
 Root quality gate (when wired): `format` → `lint` → `typecheck` → `test`. Suite prerequisites: [`tests/README.md`](../tests/README.md).
 
+## Database / Drizzle (schema & migrations)
+
+SQL-first persistence: domain DDL in [`spec/erd/schema.sql`](erd/schema.sql) is the source of truth; Drizzle TypeScript and applied migrations are derived. Rationale and rejected alternatives: [`decisions/0001-schema-migrations.md`](decisions/0001-schema-migrations.md). Package contract: [`packages/modules/README.md`](../packages/modules/README.md#database).
+
+| Decision | Choice | Notes |
+|---|---|---|
+| Domain SoT | **`spec/erd/schema.sql`** | Edit SQL first; ERD / Zod / Nest DTO / Drizzle generators consume it |
+| Drizzle ownership | **Generator stage → Drizzle TS** under `packages/modules` | Aligns with `pnpm generate`. **Not** hand-written domain schema as primary; **not** `drizzle-kit pull` as primary |
+| Auth tables | **Better Auth owned** | `@better-auth/cli generate` → separate Drizzle file (e.g. `auth-schema.ts`) in `packages/modules`; **do not** hand-merge auth DDL into `schema.sql` unless ERD docs for auth are explicitly required later |
+| Migration runner | **`drizzle-kit migrate`** | Same command surface local + QA/Prod |
+| When migrations run | Root/package script; Coolify **pre-deploy** runs that script | App boot assumes schema already applied |
+| Runtime DDL | **Rejected** | No `CREATE TABLE IF NOT EXISTS` / idempotent `ALTER` in Nest `onModuleInit()` (or any lifecycle) |
+
+**Pipeline (intent)**
+
+```text
+schema.sql ──► pnpm generate (… + drizzle stage)
+                 → packages/modules/… domain Drizzle schema
+auth CLI ──────► packages/modules/… auth-schema.ts   (separate SoT)
+drizzle-kit ───► migrations/  →  pnpm db:migrate     (local = Coolify pre-deploy)
+```
+
+| Script (intent) | Role |
+|---|---|
+| `pnpm generate` / `pnpm generate:drizzle` | Domain SQL → Drizzle TS (plus existing stages) |
+| `pnpm db:migrate` (name TBD when wiring) | `drizzle-kit migrate` against `DATABASE_URL` |
+
+Coolify: configure the **same** migrate script as a pre-deploy command for apps that need the DB (at least `apps/api` / `apps/worker`). Local Compose Postgres uses the same script against root `.env` `DATABASE_URL`.
+
+**New resource workflow:** after SQL + generate, run migrate before hand-written `DatabaseService` methods — checklist lives with process topic **#6** ([GH #13](https://github.com/einmalik1/helloworld/issues/13)).
+
 ## Schema generators (`spark/generators/`)
 
 Python + Jinja2 codegen driven by [`spark/repo-profile.yaml`](../spark/repo-profile.yaml) `generators:`. Python deps live in `spark/generators/.venv` — **outside** npm; rule: [Root dependencies](#root-dependencies).
@@ -552,10 +584,13 @@ Python + Jinja2 codegen driven by [`spark/repo-profile.yaml`](../spark/repo-prof
 | types | JSON → Entity Zod → `packages/types/src/schema/` (+ artifact under `spec/erd/generated/types/`) |
 | api | Entity Zod → Create/Update/Response → `packages/types/src/api/` |
 | nest_dto | API Zod → `createZodDto` classes → `apps/api/src/{resource}/dto/` |
+| drizzle | JSON → domain Drizzle TS → `packages/modules` (intent; wire with migrations strategy) |
 
 **API Create omit:** PK-with-default + `generators.api.create_omit_columns` (default `created_at`, `updated_at`). Update = Create.partial(). Response = entity schema.
 
-Run: `pnpm generate` (full) or `pnpm generate:<stage>`. Detail: [`spark/generators/README.md`](../spark/generators/README.md).
+Auth Drizzle schema is **not** a Python generator stage — Better Auth CLI owns it (see [Database / Drizzle](#database--drizzle-schema--migrations)).
+
+Run: `pnpm generate` (full) or `pnpm generate:<stage>`. Detail: [`spark/generators/README.md`](../spark/generators/README.md). Migrations: [Database / Drizzle](#database--drizzle-schema--migrations).
 
 ## Out of scope here
 
