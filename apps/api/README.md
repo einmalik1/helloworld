@@ -33,21 +33,51 @@ All process env comes from the **single repo-root** `.env` (template: [`.env.exa
 | Scope | Schema lists only keys **this process** needs; values still live in the shared root file (sectioned by service) |
 | Forbidden | `apps/api/.env`, dotenv path overrides that point away from the repo root |
 
-### Keys this app reads (intent)
+### Nest-facing env table (normative)
 
-Names align with root `.env.example` sections. Add keys there first, then to `envSchema`.
+Names align with root [`.env.example`](../../.env.example) sections. Add keys there first, then to `envSchema`. **No** static `API_KEY` — auth secrets are Better Auth only.
 
-| Key | Section in `.env.example` | Role |
-|---|---|---|
-| `NODE_ENV` | Shared | `development` / `production` / … |
-| `LOG_LEVEL` | Shared | Pino level (`debug` \| `info` \| `warn` \| `error`, default `info`) |
-| `DATABASE_URL` | Postgres | PostgreSQL connection string |
-| `API_HOST` / `API_PORT` | api | HTTP listen bind |
-| `BETTER_AUTH_SECRET` / `BETTER_AUTH_URL` | api | Better Auth server config |
-| `WEB_ORIGIN` | api | CORS / trusted web origin |
-| `S3_*` | Object storage | Only when this process touches object storage |
+| Key | Section | Required | Default | Description |
+|---|---|---|---|---|
+| `NODE_ENV` | Shared | no | `development` | Runtime mode (`development` / `production` / …) |
+| `LOG_LEVEL` | Shared | no | **`info`** | Pino level: `debug` \| `info` \| `warn` \| `error` |
+| `DATABASE_URL` | Postgres | **yes** | — | PostgreSQL connection string (postgres.js / Drizzle / health DB ping) |
+| `API_HOST` | api | no | `0.0.0.0` | HTTP listen host |
+| `API_PORT` | api | no | `3000` | HTTP listen port |
+| `BETTER_AUTH_SECRET` | api | **yes** | — | Better Auth signing secret (local template value in `.env.example` only) |
+| `BETTER_AUTH_URL` | api | **yes** | — | Better Auth base URL (e.g. `http://localhost:3000`) |
+| `WEB_ORIGIN` | api | **yes** | — | Trusted web origin for CORS / Better Auth `trustedOrigins` |
+| `S3_ENDPOINT` | Object storage | when using S3 | — | S3-compatible endpoint |
+| `S3_REGION` | Object storage | when using S3 | `us-east-1` | Region |
+| `S3_ACCESS_KEY_ID` | Object storage | when using S3 | — | Access key |
+| `S3_SECRET_ACCESS_KEY` | Object storage | when using S3 | — | Secret key |
+| `S3_BUCKET` | Object storage | when using S3 | — | Bucket name |
+| `S3_FORCE_PATH_STYLE` | Object storage | when using S3 | `true` (local) | Path-style addressing for MinIO-compatible local S3 |
 
 Worker, web, mcp, … keep their keys in **other sections of the same file** — not in this Nest schema.
+
+### `envSchema` (sketch)
+
+```typescript
+// apps/api/src/configuration.ts
+import { z } from "zod";
+
+export const envSchema = z.object({
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
+  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  DATABASE_URL: z.string().min(1),
+  API_HOST: z.string().default("0.0.0.0"),
+  API_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
+  BETTER_AUTH_SECRET: z.string().min(1),
+  BETTER_AUTH_URL: z.string().url(),
+  WEB_ORIGIN: z.string().url(),
+  // S3_* — include when this process touches object storage
+});
+
+export type AppConfig = z.infer<typeof envSchema>;
+```
 
 ## Generated Nest DTOs
 
