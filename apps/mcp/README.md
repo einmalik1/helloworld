@@ -1,6 +1,18 @@
 # mcp
 
-MCP server as a long-running service for agent integration with `api`, `worker`, and other components.
+Remote MCP server for agent integration. Thin HTTP process in front of `apps/api` (and related backends).
+
+## Stack
+
+| Piece | Choice |
+|---|---|
+| SDK | **`@modelcontextprotocol/sdk` 1.32.1** |
+| Transport | **HTTP** (remote / Coolify); not stdio as the v1 deploy path |
+| Domain access | HTTP → `apps/api` with a Better Auth **service API key** — **no** Nest-in-MCP, **no** `packages/api-client` |
+| Logging | **Service** — Pino (long-running Node HTTP server) |
+| Build | `tsc` → `dist/` when scaffolded |
+
+Global inventory: [`spec/tech-stack.md`](../../spec/tech-stack.md#mcp-appsmcp).
 
 ## Deploy
 
@@ -8,10 +20,10 @@ QA/Prod: Coolify Application. Multi-stage `apps/mcp/Dockerfile` (monorepo-root b
 
 ## Local
 
-**Prerequisites:** backends this server proxies. Root [Local development](../../README.md#local-development). Config from the **root** `.env` only (section `# --- mcp ---`); do not add `apps/mcp/.env`.
+**Prerequisites:** a reachable `api` (and any backends tools call). Root [Local development](../../README.md#local-development). Config from the **root** `.env` only (section `# --- mcp ---`, e.g. `MCP_HOST` / `MCP_PORT`); do not add `apps/mcp/.env`.
 
 ```bash
 pnpm run --filter mcp dev
 ```
 
-Stack: `@modelcontextprotocol/sdk` over **HTTP**; domain via `apps/api` + service API key; Pino — [`spec/tech-stack.md`](../../spec/tech-stack.md#mcp-appsmcp).
+Scaffolding (SDK HTTP server + tool wiring) comes when the package is implemented.

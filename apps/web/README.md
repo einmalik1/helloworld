@@ -1,6 +1,21 @@
 # web
 
-React-based web frontend as its own HTTP service.
+React web frontend as its own HTTP service (Vite).
+
+## Stack
+
+| Piece | Choice |
+|---|---|
+| UI library | React **19.3** |
+| Bundler | **Vite 8.3.4** (+ `@vitejs/plugin-react`) — dev port **`5173`** (`WEB_PORT` / `WEB_ORIGIN`) |
+| UI kit | **shadcn/ui** on **Tailwind CSS 4.3.3** |
+| Tours | driver.js **1.9.0** |
+| API usage | Cookie session to Better Auth on `apps/api`; optional Orval `packages/api-client` — **not** `packages/terminal` |
+| Storybook | Sibling app uses `@storybook/react-vite` (same Vite line) |
+| Logging | Web client rules (`console` / UI) — no Pino in the browser |
+| Build | `vite build` → bundler out |
+
+Global inventory: [`spec/tech-stack.md`](../../spec/tech-stack.md#web-appsweb).
 
 ## Deploy
 
@@ -18,4 +33,4 @@ pnpm run dev
 pnpm run --filter web dev
 ```
 
-Stack: React 19 + **Vite** (port `5173`), shadcn/ui + Tailwind, driver.js tours; API via session cookies (+ optional Orval client) — [`spec/tech-stack.md`](../../spec/tech-stack.md#web-appsweb).
+Scaffolding (Vite + shadcn + auth client) comes when the package is implemented.
