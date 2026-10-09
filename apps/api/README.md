@@ -78,8 +78,9 @@ One global filter; **no** per-route error shapes. Failed responses use `Content-
 | `status` | yes | HTTP status (mirrors the response status; status line remains authoritative) |
 | `detail` | yes | Occurrence-specific explanation — **not** for programmatic parsing |
 | `errors` | no | Extension member for field errors (Zod issues → `pointer` / `detail`), analogous to the RFC example |
+| `requestId` | yes | Extension member — same value as `x-request-id` / Pino bindings ([Security / ops](#security--ops-baseline)) |
 
-Do **not** use a legacy `{ error }` / `{ error, errors[] }` envelope.
+Do **not** use a legacy `{ error }` / `{ error, errors[] }` envelope. Never put secrets or tokens in any Problem Details field.
 
 ### Status map (error classes only)
 
@@ -129,9 +130,9 @@ const listQuerySchema = z.object({
 
 ## NestJS conventions
 
-**Normative** scaffolding patterns for Nest **12** in this template (must match when generating or hand-wiring). Shared infra contracts: [`packages/modules`](../../packages/modules/README.md). Product contracts (error map, auth): [HTTP contract](#http-contract) and Better Auth wiring (process **#5**).
+**Normative** scaffolding patterns for Nest **12** in this template (must match when generating or hand-wiring). Shared infra contracts: [`packages/modules`](../../packages/modules/README.md). Product contracts: [HTTP contract](#http-contract), Better Auth (process **#5**), [Security / ops](#security--ops-baseline).
 
-Stack anchors: Nest 12 · `nestjs-pino` · `nestjs-zod` · Better Auth (not static `ApiKeyModule`) · neverthrow · Vitest.
+Stack anchors: Nest 12 · Express · `helmet` · `nestjs-pino` · `nestjs-zod` · Better Auth (not static `ApiKeyModule`) · neverthrow · Vitest.
 
 ### Layout
 
@@ -165,18 +166,24 @@ Rule: multiple related files → subfolder; a single service file may sit at the
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   app.useLogger(app.get(Logger)); // nestjs-pino Logger
+  app.enableShutdownHooks(); // Coolify restarts + Drizzle pool cleanup
+  app.use(helmet());
+  const configService = app.get(ConfigService<AppConfig, true>);
+  const webOrigin = configService.get("WEB_ORIGIN", { infer: true });
+  app.enableCors({ origin: webOrigin, credentials: true });
+  // request-id middleware: accept or generate `x-request-id`; bind on Pino + echo response header
   app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalFilters(new HttpExceptionFilter());
   setupOpenApi(app, { title: "Hello World API", description: "REST API" });
-  const configService = app.get(ConfigService<AppConfig, true>);
   const port = configService.get("API_PORT", { infer: true });
   await app.listen(port);
 }
 ```
 
 - Global **`ZodValidationPipe`** only (nestjs-zod) — **do not** add per-route `@UsePipes(new ZodValidationPipe(Dto))` when the global pipe is registered  
-- Global HTTP **exception filter** (map domain / Nest errors → [Problem Details](#error-envelope-rfc-9457-problem-details); log via Pino)  
-- `setupOpenApi` runs from `main.ts` (not as a Nest provider), including **nestjs-zod** `cleanupOpenApiDoc`; optional `openapi:export` for Orval
+- Global HTTP **exception filter** (map domain / Nest errors → [Problem Details](#error-envelope-rfc-9457-problem-details) including `requestId`; log via Pino)  
+- `setupOpenApi` runs from `main.ts` (not as a Nest provider), including **nestjs-zod** `cleanupOpenApiDoc`; optional `openapi:export` for Orval  
+- Ops defaults (CORS, Helmet, request-id, shutdown): [Security / ops baseline](#security--ops-baseline)
 
 ### LoggerModule defaults — normative
 
@@ -187,6 +194,9 @@ LoggerModule.forRoot({
   pinoHttp: {
     level: process.env.LOG_LEVEL ?? "info",
     autoLogging: false,
+    genReqId: (req) =>
+      (req.headers["x-request-id"] as string | undefined) ?? crypto.randomUUID(),
+    customProps: (req) => ({ requestId: req.id }),
     transport:
       process.env.NODE_ENV !== "production"
         ? { target: "pino-pretty", options: { singleLine: true } }
@@ -200,6 +210,7 @@ LoggerModule.forRoot({
 | HTTP access logs | **`autoLogging: false`** (prefer off over flooding; filter `/health` only if access logs are turned on later) |
 | Local format | `pino-pretty` with **`singleLine: true`** when `NODE_ENV !== "production"` |
 | Prod / QA | JSON lines on stdout (no pretty transport) |
+| Correlation | Bind `requestId` from `x-request-id` (accept or generate) — see [Security / ops](#security--ops-baseline) |
 
 Optional shared bootstrap helper: [`packages/modules`](../../packages/modules/README.md#logging-optional).
 
@@ -272,16 +283,38 @@ Controller checklist:
 Global filter under `src/common/filters/` (`@Catch()` / Nest HTTP exceptions as needed):
 
 - Map known errors from `@helloworld/types` (e.g. `NotFound`, `ValidationError`, `DatabaseError`) via the [status map](#status-map-error-classes-only) — never string sniffing  
-- Emit [RFC 9457 Problem Details](#error-envelope-rfc-9457-problem-details) (`application/problem+json`); Zod field issues go in optional `errors`  
+- Emit [RFC 9457 Problem Details](#error-envelope-rfc-9457-problem-details) (`application/problem+json`); Zod field issues go in optional `errors`; always include `requestId`  
 - Shape intent: `response.status(status).json(body)` with that envelope  
-- Unknown errors → 500; log with context; never leak secrets  
+- Unknown errors → 500; log with context + `requestId`; never leak secrets  
 - Works together with controller `HttpException` throws for `Result` mapping
 
 ### Auth on routes
 
 - Global guard: session cookie and/or Better Auth API key (`verifyApiKey`) — **not** a static env `ApiKeyModule` / `ApiKeyGuard`  
 - **`@Public()`** — skip the global guard (health, selected auth routes)  
-- Details: [`packages/modules` auth](../../packages/modules/README.md#auth)
+- Details: [`packages/modules` auth](../../packages/modules/README.md#auth); session / CORS origin: [Security / ops](#security--ops-baseline) + Auth topic ([GH #7](https://github.com/einmalik1/helloworld/issues/7))
+
+## Security / ops baseline
+
+Normative bootstrap/ops defaults for the Nest Express API on Coolify. Defaults are uncontested — no ADR. Inventory pointers: [`spec/tech-stack.md`](../../spec/tech-stack.md#security--ops-baseline). Cross-links: Auth ([GH #7](https://github.com/einmalik1/helloworld/issues/7), [`tech-stack` § Auth](../../spec/tech-stack.md#auth-better-auth)); Coolify deploy / restarts ([GH #9](https://github.com/einmalik1/helloworld/issues/9), [`tech-stack` § Coolify](../../spec/tech-stack.md#coolify-build-deploy-data-services)).
+
+| Concern | Template default (v1) | Notes |
+|---|---|---|
+| **CORS** | Reflect **single** `WEB_ORIGIN` via `app.enableCors({ origin: webOrigin, credentials: true })` | Align Better Auth `trustedOrigins` with the same value. Multi-origin (comma-separated env or list) is **later** — do not overbuild in v1 |
+| **Helmet** | **Yes** — `helmet()` on Express in bootstrap | Cheap default for a public API template (`helmet` **8.3.0**) |
+| **Request correlation** | Accept or generate **`x-request-id`**; echo on the response; bind on Pino as `requestId`; include on Problem Details as `requestId` | Clients may send the header; otherwise generate a UUID |
+| **Graceful shutdown** | `app.enableShutdownHooks()` + Nest lifecycle hooks | Required for Coolify rolling restarts; close Drizzle / postgres.js pool in `onModuleDestroy` (or equivalent) |
+| **Rate limiting** | **Out of template v1** | Prefer Better Auth plugin limits on the API-key path later; optional light `@nestjs/throttler` on API-key routes only if needed — not a v1 requirement |
+| **Secrets** | Never log or put in error bodies | Tokens, API keys, cookies, raw auth headers — keep existing Logging rule |
+
+### Ops checklist (wiring)
+
+- [ ] `WEB_ORIGIN` → CORS + Better Auth `trustedOrigins` (single origin)
+- [ ] `helmet()` in `main.ts`
+- [ ] `x-request-id` middleware + Pino `genReqId` / `customProps` + Problem Details `requestId`
+- [ ] `enableShutdownHooks()` + DB pool cleanup on shutdown
+- [ ] No Nest throttle / Better Auth rate-limit plugin required for v1
+- [ ] Exception filter + logger never leak secrets
 
 ### External API integration (optional)
 
