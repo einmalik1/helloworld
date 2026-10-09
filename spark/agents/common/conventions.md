@@ -43,6 +43,34 @@ Default bar before merge (from repo root, via Turbo when wired):
 
 The full test suite stays available for CI and deeper verification; it is **not** the default pre-merge gate. Optional lefthook/CI wiring can enforce this later.
 
+## New resource workflow
+
+Canonical checklist when adding a domain resource (table → API → client). Process home for agents; Nest-focused mirror: [`apps/api/README.md` § Feature / new resource](../../../apps/api/README.md#feature--new-resource-workflow). Stack inventory pointers: [`spec/tech-stack.md` § Schema generators](../../../spec/tech-stack.md#schema-generators-sparkgenerators). Issue: [#13](https://github.com/einmalik1/helloworld/issues/13).
+
+### Generated vs hand-written
+
+| Kind | Artefacts |
+|---|---|
+| **Generated** | Entity / API Zod (`packages/types`), Nest `createZodDto` wrappers (`apps/api/.../dto/`), OpenAPI client (`packages/api-client` via Orval) |
+| **Hand-written** | Drizzle query methods on `DatabaseService`, Nest feature controller/service/module, unit + `tests/api`, optional CLI/TUI surfaces |
+
+Domain Drizzle **schema** TS comes from the `drizzle` generator stage (`schema.sql` → `packages/modules`); auth tables stay Better Auth owned — see [`tech-stack.md` § Database / Drizzle](../../../spec/tech-stack.md#database--drizzle-schema--migrations).
+
+### Checklist (order + ownership)
+
+| # | Step | Owner | Notes |
+|---|---|---|---|
+| 1 | Edit [`spec/erd/schema.sql`](../../../spec/erd/schema.sql) (+ `spark/repo-profile.yaml` generator categories if needed) | Human / agent | SQL is the domain SoT |
+| 2 | `pnpm generate` | Anyone | core → types → api → nest_dto (+ drizzle stage) |
+| 3 | Apply migrations (`pnpm db:migrate` intent — `drizzle-kit migrate`) | Anyone | Same script local + Coolify pre-deploy; **before** hand queries |
+| 4 | `DatabaseService` domain methods | Hand | Queries only — no generic CRUD; schema already generated |
+| 5 | Feature module (`controller` / `service` / `module`) + `AppModule` import | Hand | Use generated DTOs; neverthrow in the service |
+| 6 | `openapi:export` → `pnpm generate:client` | Anyone | Nest OpenAPI → Orval client |
+| 7 | Unit tests + `tests/api` | Hand | Match HTTP contract in the api README |
+| 8 | Optional CLI command / TUI surface | Hand | Thin clients via `packages/api-client` |
+
+Do **not** hand-edit generated Zod, Nest DTO, or Orval output. Do **not** put runtime DDL in Nest lifecycle.
+
 ## Env and process starts
 
 - **One** env file: repo-root `.env` (from `.env.example`), sections sorted by service

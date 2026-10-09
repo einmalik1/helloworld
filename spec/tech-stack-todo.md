@@ -43,6 +43,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 - **#2 Build / emit contract** (process) — written in [`tech-stack.md`](tech-stack.md#build--emit-contract). Remaining work is mostly implementation (flip `exports` to `dist/`, wire `build` / `turbo.json`).
 - **#5 Better Auth wiring** (product) — [`tech-stack.md` § Auth](tech-stack.md#auth-better-auth) + modules / api-client / api / terminal contracts + ADR [`0003`](decisions/0003-better-auth.md).
 - **#10 Security / ops baseline** (product) — [`apps/api/README.md` § Security / ops](../apps/api/README.md#security--ops-baseline) + pointers in [`tech-stack.md`](tech-stack.md#security--ops-baseline).
+- **#6 Workflow “new resource”** (process) — checklist in [`spark/agents/common/conventions.md#new-resource-workflow`](../spark/agents/common/conventions.md#new-resource-workflow); Nest mirror + generators pointers.
 - **#14 Git conventions** (process) — branches, Conventional Commits, smoke pre-merge gate in [`spark/agents/common/conventions.md#git-conventions`](../spark/agents/common/conventions.md#git-conventions).
 - **#15 Small ops details** (product) — ky timeouts, Terminus health indicators, Nest env table, CLI/TUI config keys in the component READMEs listed under topic **#15**.
 - **#16** Search / knowledge graph (product) — AGE + Typesense + api facade + worker sync + Cytoscape; ADR [`0004`](decisions/0004-search-knowledge-graph.md).
@@ -70,7 +71,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 | # | Topic | Hauptproblem | Spec | Impl | Spec targets |
 |---|---|---|---|---|---|
 | 2 | Build / emit | Impl | **done** | open | (scaffold note until wired) |
-| 6 | Workflow “new resource” | Spec | open | partial | `apps/api/README.md` and/or `spark/agents/common/` |
+| 6 | Workflow “new resource” | Spec | **done** | partial | `spark/agents/common/conventions.md` + `apps/api/README.md` + pointers |
 | 7 | Nest reference snippets | Spec | open | open | `apps/api/README.md` (+ optional `packages/modules`) |
 | 8 | TypeScript / module contract | Spec partial | partial | open | `tech-stack.md` § Module/compiler + `packages/config` |
 | 9 | Root dependency rule | Spec | open | open | `tech-stack.md` § Monorepo + root `README.md` |
@@ -521,29 +522,30 @@ App scripts (prior): `"build": "nest build"`, `"dev": "nest start --watch"`, `"t
 |---|---|
 | **Lane** | Process |
 | **Hauptproblem** | Spec |
-| **Spec status** | Spec open |
+| **Spec status** | Spec done — [`spark/agents/common/conventions.md` § New resource](../spark/agents/common/conventions.md#new-resource-workflow); Nest mirror [`apps/api/README.md`](../apps/api/README.md#feature--new-resource-workflow); pointers in [`tech-stack.md`](tech-stack.md#schema-generators-sparkgenerators) + [`AGENTS.md`](../AGENTS.md) |
 | **Impl status** | Partial (generators exist; Nest/DB/client wiring incomplete) |
-| **Spec targets** | [`apps/api/README.md`](../apps/api/README.md) Feature workflow; and/or `spark/agents/common/`; pointer from [`tech-stack.md`](tech-stack.md) § Schema generators |
+| **Spec targets** | [`spark/agents/common/conventions.md`](../spark/agents/common/conventions.md#new-resource-workflow) (primary); [`apps/api/README.md`](../apps/api/README.md#feature--new-resource-workflow); pointer from [`tech-stack.md`](tech-stack.md) § Schema generators; [`AGENTS.md`](../AGENTS.md) |
 
-Depends on product **#1** (migrations) for the migrate step.
+Depends on product **#1** (migrations) for the migrate step — **#1** closed; migrate via `drizzle-kit migrate` / `pnpm db:migrate` intent.
 
 ### Decide
 
-- [ ] **define** canonical step order and ownership (who edits SQL vs who runs generate vs who writes queries)
-- [ ] **define** what is generated vs hand-written (DTO wrappers generated; services/controllers hand; Drizzle queries per **#1**)
+- [x] **define** canonical step order and ownership (who edits SQL vs who runs generate vs who writes queries)
+- [x] **define** what is generated vs hand-written (DTO wrappers generated; services/controllers hand; Drizzle queries per **#1**)
 
 ### Spec to write
 
-- [ ] Checklist (agent-ready), roughly:
+- [x] Checklist (agent-ready) in `spark/agents/common/conventions.md`:
   1. Edit `spec/erd/schema.sql` (+ profile categories if needed)
-  2. `pnpm generate` (core → types → api → nest_dto)
+  2. `pnpm generate` (core → types → api → nest_dto + drizzle)
   3. Migration / Drizzle schema update (**#1**)
   4. `DatabaseService` domain methods
   5. Feature module (controller/service) + `AppModule` import
   6. `openapi:export` → `pnpm generate:client`
   7. Unit + `tests/api`
   8. Optional: CLI command / TUI surface
-- [ ] Link checklist from generators section and agent common rules
+- [x] Nest-focused mirror in `apps/api/README.md`
+- [x] Link checklist from generators section, `AGENTS.md`, and Database / Drizzle note
 
 ### Impl (later)
 
@@ -847,4 +849,5 @@ CLI/TUI structural intent (separate binaries, XDG config, Commander vs Ink bound
 | 2026-10-09 | **#15** Small ops details Spec done — ky 30s/3s, Terminus DB+up, Nest env table, terminal `apiUrl`/`workerUrl`/`apiKey` |
 | 2026-10-09 | **#10** Security / ops baseline Spec done — api README checklist + tech-stack pointers (CORS, Helmet, request-id, shutdown, rate-limit out of v1) |
 | 2026-10-09 | **#5** Better Auth wiring Spec done — inventory, module/mutator/env/terminal contracts, ADR `0003` |
+| 2026-10-09 | **#6** Workflow “new resource” Spec done — conventions checklist + api README mirror + tech-stack / AGENTS pointers |
 | 2026-10-09 | **#16** Search / knowledge graph Spec done — AGE + Typesense + api facade + worker outbox + Cytoscape; ADR `0004` |
