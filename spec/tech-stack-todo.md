@@ -41,6 +41,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 **Already closed in spec**
 
 - **#2 Build / emit contract** (process) — written in [`tech-stack.md`](tech-stack.md#build--emit-contract). Remaining work is mostly implementation (flip `exports` to `dist/`, wire `build` / `turbo.json`).
+- **#10 Security / ops baseline** (product) — [`apps/api/README.md` § Security / ops](../apps/api/README.md#security--ops-baseline) + pointers in [`tech-stack.md`](tech-stack.md#security--ops-baseline).
 - **#14 Git conventions** (process) — branches, Conventional Commits, smoke pre-merge gate in [`spark/agents/common/conventions.md#git-conventions`](../spark/agents/common/conventions.md#git-conventions).
 - **#15 Small ops details** (product) — ky timeouts, Terminus health indicators, Nest env table, CLI/TUI config keys in the component READMEs listed under topic **#15**.
 
@@ -56,7 +57,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 | 3 | API contract conventions | Spec | open | open | `apps/api/README.md` (+ short pointer in `tech-stack.md`) |
 | 4 | Worker / MCP / Web bundler | Spec | open | open | `tech-stack.md` inventory + app READMEs + ADRs |
 | 5 | Better Auth wiring | Spec | open | open | `tech-stack.md` § Auth + `packages/modules` + `api-client` |
-| 10 | Security / ops baseline | Spec | open | open | `apps/api/README.md` + pointers in `tech-stack.md` |
+| 10 | Security / ops baseline | Spec | **done** | open | `apps/api/README.md` § Security / ops + pointers in `tech-stack.md` |
 | 11 | Docker / Coolify image shape | Spec partial | partial | open | `tech-stack.md` § Coolify + per-app Deploy |
 | 13 | Open version pins | Spec light | open | open | `tech-stack.md` inventory |
 | 15 | Small ops details | Spec | **done** | open | api-client / modules / terminal / `.env.example` / api README |
@@ -266,27 +267,29 @@ Static env `API_KEY` + global `ApiKeyModule` checking header `x-api-key`, opt-ou
 |---|---|
 | **Lane** | Product |
 | **Hauptproblem** | Spec |
-| **Spec status** | Spec open |
+| **Spec status** | Spec done — [`apps/api/README.md` § Security / ops](../apps/api/README.md#security--ops-baseline); pointers in [`tech-stack.md`](tech-stack.md#security--ops-baseline) |
 | **Impl status** | Impl open |
-| **Spec targets** | [`apps/api/README.md`](../apps/api/README.md) Bootstrap/Ops; pointers in [`tech-stack.md`](tech-stack.md) § Coolify / Auth; ADR for security defaults if contested |
+| **Spec targets** | [`apps/api/README.md`](../apps/api/README.md) § Security / ops + Bootstrap; pointers in [`tech-stack.md`](tech-stack.md) § Security / ops, Coolify, Auth, Logging |
 
 ### Decide
 
-- [ ] **define** CORS policy from `WEB_ORIGIN` (and multi-origin later?)
-- [ ] **define** whether `helmet` (or equivalent) is template-default
-- [ ] **define** request correlation: header name / generation / log + error body field (Logging already wants correlation)
-- [ ] **define** graceful shutdown (`enableShutdownHooks` / signal handling) for Coolify restarts
-- [ ] **define** rate limiting for API keys (Better Auth optional limits vs Nest throttle) — in or out of template v1
+- [x] **define** CORS policy — single `WEB_ORIGIN` in v1; multi-origin later (comma-separated / list) — do not overbuild
+- [x] **define** Helmet — **yes** as Express template default (`helmet()` in bootstrap; **8.3.0**)
+- [x] **define** request correlation — accept/generate **`x-request-id`**; Pino `requestId` + Problem Details `requestId`
+- [x] **define** graceful shutdown — `app.enableShutdownHooks()` + Nest lifecycle (Coolify restarts; Drizzle pool cleanup)
+- [x] **define** rate limiting — **out of template v1**; prefer Better Auth plugin limits later (optional `@nestjs/throttler` on API-key routes only if needed)
 
 ### Spec to write
 
-- [ ] Ops/security checklist in `apps/api/README.md`
-- [ ] Cross-link Auth + Coolify sections
-- [ ] Secrets logging rules already present — keep; ensure filter never leaks tokens
+- [x] Ops/security checklist in `apps/api/README.md`
+- [x] Cross-link Auth + Coolify sections
+- [x] Secrets logging rules already present — keep; ensure filter never leaks tokens
+- [x] Short pointers in `tech-stack.md` (Security / ops + Coolify / Auth / Logging)
+- [x] Bootstrap sketch updated (Helmet, CORS, shutdown, request-id bindings)
 
 ### Impl (later)
 
-- [ ] Wire CORS, helmet (if chosen), request-id middleware, shutdown hooks, optional throttle
+- [ ] Wire CORS, helmet, request-id middleware, shutdown hooks (no Nest throttle required for v1)
 
 ---
 
@@ -843,3 +846,4 @@ CLI/TUI structural intent (separate binaries, XDG config, Commander vs Ink bound
 | 2026-10-04 | Salvaged prior-project snippets into topic *Prior reference* sections; removed root foreign `TECH-STACK.md` |
 | 2026-10-09 | **#14** Git conventions Spec done — process note + smoke gate; tracking closed |
 | 2026-10-09 | **#15** Small ops details Spec done — ky 30s/3s, Terminus DB+up, Nest env table, terminal `apiUrl`/`workerUrl`/`apiKey` |
+| 2026-10-09 | **#10** Security / ops baseline Spec done — api README checklist + tech-stack pointers (CORS, Helmet, request-id, shutdown, rate-limit out of v1) |
