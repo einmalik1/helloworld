@@ -48,10 +48,21 @@ Exact file names under `database/` settle when wiring; keep **domain** and **aut
 
 ### Auth
 
-- Better Auth + `@better-auth/api-key`  
-- Global guard: session and/or `verifyApiKey`  
-- **`@Public()`** decorator — opt out per handler/controller  
-- Not a single static env API key for all traffic
+Hand-written Better Auth wiring (no community Nest Better Auth package). Spec inventory: [`tech-stack.md` § Auth](../../spec/tech-stack.md#auth-better-auth). Rationale vs static `API_KEY`: [`decisions/0003-better-auth.md`](../../spec/decisions/0003-better-auth.md).
+
+| Concern | Contract |
+|---|---|
+| Packages | `better-auth` **1.7.7** + `@better-auth/api-key` **1.7.7** |
+| Instance | Create and export a Better Auth instance from this package’s `auth/` module; mount Better Auth HTTP handlers so Better Auth stays SoT for auth routes |
+| Adapter | Official **Drizzle** adapter; schema file from `@better-auth/cli` (e.g. `database/auth-schema.ts`) — see [Database](#database) |
+| Global guard | Nest **global** guard: accept **session cookie** (web) **or** API key via `auth.api.verifyApiKey` (machines) |
+| API key header | **`x-api-key`** only (frozen; matches [`packages/api-client`](../api-client/README.md#auth-header--configureclient)) |
+| `@Public()` | Decorator exported here — skip the global guard per handler/controller |
+| Public by default | `GET /health` (Health module), Better Auth HTTP routes, OpenAPI (`/api/docs`, `/openapi.json`) |
+| Origins | `trustedOrigins` / CORS driven by Nest config `WEB_ORIGIN` (see [`apps/api` env](../../apps/api/README.md#configuration-root-env)) |
+| Rejected | Static env `API_KEY` + forever `ApiKeyModule` / `ApiKeyGuard` as the product auth model |
+
+Key issue/revoke UX lives in web (settings) or an authenticated CLI subcommand — not in this package. CLI/TUI store issued keys in `@helloworld/terminal/config` ([terminal README](../terminal/README.md#api-key-storage)).
 
 ### OpenAPI
 

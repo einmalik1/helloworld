@@ -35,19 +35,21 @@ All process env comes from the **single repo-root** `.env` (template: [`.env.exa
 
 ### Keys this app reads (intent)
 
-Names align with root `.env.example` sections. Add keys there first, then to `envSchema`.
+Names align with root [`.env.example`](../../.env.example) sections. Add keys there first, then to `envSchema`. **No** static `API_KEY` in this schema — machine credentials are Better Auth managed keys (see Auth below and [`packages/terminal`](../../packages/terminal/README.md#api-key-storage)).
 
-| Key | Section in `.env.example` | Role |
-|---|---|---|
-| `NODE_ENV` | Shared | `development` / `production` / … |
-| `LOG_LEVEL` | Shared | Pino level (`debug` \| `info` \| `warn` \| `error`, default `info`) |
-| `DATABASE_URL` | Postgres | PostgreSQL connection string |
-| `API_HOST` / `API_PORT` | api | HTTP listen bind |
-| `BETTER_AUTH_SECRET` / `BETTER_AUTH_URL` | api | Better Auth server config |
-| `WEB_ORIGIN` | api | CORS / trusted web origin |
-| `S3_*` | Object storage | Only when this process touches object storage |
+| Key | Section | Required | Default | Role |
+|---|---|---|---|---|
+| `NODE_ENV` | Shared | no | `development` | Runtime mode |
+| `LOG_LEVEL` | Shared | no | **`info`** | Pino level (`debug` \| `info` \| `warn` \| `error`) |
+| `DATABASE_URL` | Postgres | **yes** | — | PostgreSQL connection string |
+| `API_HOST` | api | no | `0.0.0.0` | HTTP listen host |
+| `API_PORT` | api | no | `3000` | HTTP listen port |
+| `BETTER_AUTH_SECRET` | api | **yes** | — | Better Auth signing secret (template local value only in `.env.example`) |
+| `BETTER_AUTH_URL` | api | **yes** | — | Better Auth base URL (e.g. `http://localhost:3000`) |
+| `WEB_ORIGIN` | api | **yes** | — | CORS allow-origin + Better Auth `trustedOrigins` (e.g. `http://localhost:5173`) |
+| `S3_*` | Object storage | when using S3 | — | Only when this process touches object storage |
 
-Worker, web, mcp, … keep their keys in **other sections of the same file** — not in this Nest schema.
+Worker, web, mcp, … keep their keys in **other sections of the same file** — not in this Nest schema. Full Required/Default polish for non-auth keys may also land under tech-stack **#15**; auth keys above are frozen for **#5**.
 
 ## Generated Nest DTOs
 
@@ -279,9 +281,10 @@ Global filter under `src/common/filters/` (`@Catch()` / Nest HTTP exceptions as 
 
 ### Auth on routes
 
-- Global guard: session cookie and/or Better Auth API key (`verifyApiKey`) — **not** a static env `ApiKeyModule` / `ApiKeyGuard`  
-- **`@Public()`** — skip the global guard (health, selected auth routes)  
-- Details: [`packages/modules` auth](../../packages/modules/README.md#auth)
+- Global guard: session cookie and/or Better Auth API key (`verifyApiKey` on header **`x-api-key`**) — **not** a static env `ApiKeyModule` / `ApiKeyGuard`  
+- **`@Public()`** — skip the global guard for `GET /health`, Better Auth HTTP routes, OpenAPI (`/api/docs`, `/openapi.json`)  
+- CORS / `trustedOrigins` from `WEB_ORIGIN` (required env above)  
+- Details: [`packages/modules` auth](../../packages/modules/README.md#auth); inventory [`tech-stack.md` § Auth](../../spec/tech-stack.md#auth-better-auth); ADR [`0003`](../../spec/decisions/0003-better-auth.md)
 
 ### External API integration (optional)
 

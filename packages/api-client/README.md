@@ -98,6 +98,21 @@ export const customFetch = async <T>(url: string, options?: Options): Promise<T>
 };
 ```
 
+## Auth header / `configureClient`
+
+Frozen mutator contract for machine clients (CLI/TUI/MCP-style callers). Nest verifies with Better Auth `verifyApiKey`. Spec: [`tech-stack.md` § Auth](../../spec/tech-stack.md#auth-better-auth).
+
+| Rule | Contract |
+|---|---|
+| Header name | **`x-api-key`** — frozen; do not invent `Authorization: Bearer` for API keys in v1 |
+| Options | `configureClient({ apiUrl, apiKey? })` — see sketch above |
+| When `apiKey` set | Mutator sets `req.headers.set("x-api-key", opts.apiKey)` on every request |
+| When omitted | No API-key header (unauthenticated or cookie-session path elsewhere) |
+| Key source (tools) | Resolved from `@helloworld/terminal/config` per environment — **not** root `.env` `API_KEY` |
+| Rejected | Static env-only global `API_KEY` as the product credential model ([ADR 0003](../../spec/decisions/0003-better-auth.md)) |
+
+OpenAPI / Swagger should document the same `x-api-key` scheme so Orval and humans stay aligned.
+
 ## Customization (do not edit generated/)
 
 | Hebel | Datei | Wofür |

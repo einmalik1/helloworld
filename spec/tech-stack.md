@@ -508,15 +508,28 @@ UUIDs, instance URL, and CLI context stay in `spark/repo-profile.yaml` (and loca
 
 ## Auth (Better Auth)
 
+Inventory and wiring contracts for sessions (web) and managed API keys (CLI/TUI/machines). Contested “why” vs static env `API_KEY`: [`decisions/0003-better-auth.md`](decisions/0003-better-auth.md). Module contract: [`packages/modules/README.md`](../packages/modules/README.md#auth). Mutator header: [`packages/api-client/README.md`](../packages/api-client/README.md#auth-header--configureclient). Env: [`apps/api/README.md`](../apps/api/README.md#configuration-root-env). Key store: [`packages/terminal/README.md`](../packages/terminal/README.md#api-key-storage). Auth table ownership: [Database / Drizzle](#database--drizzle-schema--migrations) + ADR [`0001`](decisions/0001-schema-migrations.md).
+
 | Piece | Package / place | Role |
 |---|---|---|
-| Core | `better-auth` **1.7.7** | Framework-agnostic auth; wire in `apps/api` (+ web client for sessions) |
+| Core | `better-auth` **1.7.7** | Framework-agnostic auth; hand-written instance in `packages/modules` Auth module; Better Auth owns its HTTP auth routes |
 | API keys | `@better-auth/api-key` **1.7.7** | Create/manage/verify keys for CLI, TUI, automation — [plugin docs](https://www.better-auth.com/docs/plugins/api-key) |
-| Nest adapter | `packages/modules` `auth/` | Guard(s): session cookie and/or API key header → `verifyApiKey` |
-| Clients | `packages/api-client` + tools | Key from `@helloworld/terminal/config` (header name TBD when wiring, often `x-api-key`) |
-| Public routes | `@Public()` | Opt out of global auth guard (e.g. `GET /health`, auth bootstrap routes as needed) |
+| Nest integration | Hand-written + global guard | **No** community Nest Better Auth wrapper; Nest global guard accepts session cookie **or** API key |
+| Drizzle adapter | Official Better Auth Drizzle adapter | Schema from `@better-auth/cli` → `auth-schema.ts` (auth-owned; not merged into `schema.sql`) |
+| API key header | **`x-api-key`** | Frozen for Nest verify + api-client mutator |
+| Clients (machines) | `packages/api-client` + tools | Key from `@helloworld/terminal/config` per environment → `configureClient({ apiKey })` |
+| Clients (web) | `apps/web` (+ optional api-client) | Cookie sessions; **not** `packages/terminal` |
+| Public routes | `@Public()` | Opt out: `GET /health`, Better Auth HTTP routes, OpenAPI (`/api/docs`, `/openapi.json`) |
 
-Not a static env-only global key like a lone `ApiKeyModule` — keys are managed entities (user/org, permissions, optional rate limits). Session auth (web) and API-key auth (machines) run in parallel.
+| Decision | Choice | Notes |
+|---|---|---|
+| Integration style | Hand-written Better Auth instance in `packages/modules` + Nest **global** guard | Fewer moving parts than an unproven community Nest module; Better Auth remains SoT for auth HTTP routes |
+| Adapter / schema | Official Drizzle adapter; `@better-auth/cli` generate | Depends on **#1** (closed): auth tables stay Better Auth owned |
+| Header | **`x-api-key`** | Matches api-client sketch; reject static env `API_KEY` as the long-term operator credential |
+| Web sessions | Cookies; `trustedOrigins` / CORS from `WEB_ORIGIN` | Parallel to API-key path; `@Public()` for health, auth routes, OpenAPI |
+| Key lifecycle | Issue/revoke via web settings UI (or CLI subcommand calling authenticated API) | Persist per-env in `@helloworld/terminal/config` — **never** root `.env` as the long-term key store |
+
+Session auth (web) and API-key auth (machines) run in parallel. Keys are managed entities (user/org, permissions, optional rate limits) — not a lone static env secret.
 
 ## Zod ↔ OpenAPI
 

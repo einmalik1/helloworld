@@ -41,6 +41,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 **Already closed in spec**
 
 - **#2 Build / emit contract** (process) — written in [`tech-stack.md`](tech-stack.md#build--emit-contract). Remaining work is mostly implementation (flip `exports` to `dist/`, wire `build` / `turbo.json`).
+- **#5 Better Auth wiring** (product) — [`tech-stack.md` § Auth](tech-stack.md#auth-better-auth) + modules / api-client / api / terminal contracts + ADR [`0003`](decisions/0003-better-auth.md).
 - **#14 Git conventions** (process) — branches, Conventional Commits, smoke pre-merge gate in [`spark/agents/common/conventions.md#git-conventions`](../spark/agents/common/conventions.md#git-conventions).
 
 ---
@@ -54,7 +55,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 | 1 | Schema / migrations | Spec | open | open | `tech-stack.md` + ADR + `packages/modules/README.md` |
 | 3 | API contract conventions | Spec | open | open | `apps/api/README.md` (+ short pointer in `tech-stack.md`) |
 | 4 | Worker / MCP / Web bundler | Spec | open | open | `tech-stack.md` inventory + app READMEs + ADRs |
-| 5 | Better Auth wiring | Spec | open | open | `tech-stack.md` § Auth + `packages/modules` + `api-client` |
+| 5 | Better Auth wiring | Spec | **done** | open | `tech-stack.md` § Auth + modules + api-client + terminal + api README + ADR `0003` |
 | 10 | Security / ops baseline | Spec | open | open | `apps/api/README.md` + pointers in `tech-stack.md` |
 | 11 | Docker / Coolify image shape | Spec partial | partial | open | `tech-stack.md` § Coolify + per-app Deploy |
 | 13 | Open version pins | Spec light | open | open | `tech-stack.md` inventory |
@@ -230,24 +231,26 @@ export class ListQueryDto extends createZodDto(querySchema) {}
 |---|---|
 | **Lane** | Product |
 | **Hauptproblem** | Spec |
-| **Spec status** | Spec open |
+| **Spec status** | Spec done — [`tech-stack.md` § Auth](tech-stack.md#auth-better-auth); ADR [`0003-better-auth`](decisions/0003-better-auth.md) |
 | **Impl status** | Impl open |
-| **Spec targets** | [`tech-stack.md`](tech-stack.md) § Auth; [`packages/modules/README.md`](../packages/modules/README.md) § Auth; header in [`packages/api-client/README.md`](../packages/api-client/README.md); ADR if adapter/schema path contested |
+| **Spec targets** | [`tech-stack.md`](tech-stack.md) § Auth; [`packages/modules/README.md`](../packages/modules/README.md) § Auth; [`packages/api-client/README.md`](../packages/api-client/README.md); [`apps/api/README.md`](../apps/api/README.md); [`packages/terminal/README.md`](../packages/terminal/README.md); ADR [`0003`](decisions/0003-better-auth.md) |
 
 ### Decide
 
-- [ ] **define** Nest integration style (hand-written Better Auth instance + global guard vs community Nest module)
-- [ ] **define** Drizzle adapter + schema generation path (depends on **#1**)
-- [ ] **define** API key header name (today “TBD”; api-client sketch uses `x-api-key` — confirm and freeze)
-- [ ] **define** web session flow: cookies, `WEB_ORIGIN` / CORS / `trustedOrigins`, which routes are `@Public()`
-- [ ] **define** key lifecycle for CLI/TUI (create/revoke UX; where keys are issued)
+- [x] **define** Nest integration style — hand-written Better Auth instance + global guard (**reject** community Nest module)
+- [x] **define** Drizzle adapter + schema generation path — official Drizzle adapter; `@better-auth/cli` (depends on **#1**, closed)
+- [x] **define** API key header name — freeze **`x-api-key`**
+- [x] **define** web session flow — cookies; `WEB_ORIGIN` → CORS / `trustedOrigins`; `@Public()` for `/health`, auth routes, OpenAPI
+- [x] **define** key lifecycle — issue/revoke via web settings (or authenticated CLI); store per-env in `@helloworld/terminal/config`
 
 ### Spec to write
 
-- [ ] Expand Auth section: adapter, header, session vs API-key parallel paths
-- [ ] Module contract in `packages/modules` (guard behaviour, `@Public()`)
-- [ ] Mutator auth contract in `packages/api-client` (header name, `configureClient`)
-- [ ] Env keys already in `.env.example` — document Required/Default in `apps/api/README.md` (see also **#15**)
+- [x] Expand Auth section: adapter, header, session vs API-key parallel paths
+- [x] Module contract in `packages/modules` (guard behaviour, `@Public()`)
+- [x] Mutator auth contract in `packages/api-client` (header name, `configureClient`)
+- [x] Env keys — Required/Default for `BETTER_AUTH_*` / `WEB_ORIGIN` in `apps/api/README.md` (broader env polish also **#15**)
+- [x] ADR contrasting Better Auth vs static `API_KEY`
+- [x] Terminal config: `apiKey` storage (not root `.env`)
 
 ### Impl (later)
 
@@ -255,7 +258,7 @@ export class ListQueryDto extends createZodDto(querySchema) {}
 
 ### Prior reference (rejected — for ADR contrast)
 
-Static env `API_KEY` + global `ApiKeyModule` checking header `x-api-key`, opt-out `@Public()`. **Rejected** in favour of Better Auth managed keys + sessions; keep header name `x-api-key` as a strong candidate for the API-key plugin path.
+Static env `API_KEY` + global `ApiKeyModule` checking header `x-api-key`, opt-out `@Public()`. **Rejected** in favour of Better Auth managed keys + sessions; header name **`x-api-key`** kept and frozen — see [`0003-better-auth.md`](decisions/0003-better-auth.md).
 
 ---
 
@@ -784,7 +787,7 @@ This topic is the **process** of writing ADRs (naming, structure, when). Candida
 ### Product ADR candidates (content — land with product topics)
 
 - [ ] ADR: two binaries (`helloworld` / `helloworld-tui`) vs dual-mode single binary
-- [ ] ADR: Better Auth (sessions + managed API keys) vs static env `API_KEY` module
+- [x] ADR: Better Auth (sessions + managed API keys) vs static env `API_KEY` module — [`0003-better-auth.md`](decisions/0003-better-auth.md)
 - [ ] ADR: CLI/TUI logging via tslog+ora (`packages/terminal`) vs Pino in tools
 - [ ] ADR: Orval + ky mutator vs hand-written HTTP client
 - [ ] ADR: Coolify build-from-Git (Dockerfile pack) vs registry pull-only default
@@ -861,3 +864,4 @@ CLI/TUI structural intent (separate binaries, XDG config, Commander vs Ink bound
 | 2026-10-04 | Restructured into **Product** vs **Process** chapters; topic numbers kept for cross-links |
 | 2026-10-04 | Salvaged prior-project snippets into topic *Prior reference* sections; removed root foreign `TECH-STACK.md` |
 | 2026-10-09 | **#14** Git conventions Spec done — process note + smoke gate; tracking closed |
+| 2026-10-09 | **#5** Better Auth wiring Spec done — inventory, module/mutator/env/terminal contracts, ADR `0003` |

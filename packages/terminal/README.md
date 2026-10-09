@@ -15,6 +15,21 @@ Build: `tsc` → `dist/` — [`Build / emit contract`](../../spec/tech-stack.md#
 | `@helloworld/terminal/log` | **tslog** diagnostics on stderr + **ora** spinners; stdout result helpers |
 | `@helloworld/terminal/tty` | TTY helpers (scaffold) |
 
+## API key storage
+
+Long-term operator credentials for CLI/TUI live in **`@helloworld/terminal/config`**, not in the repo-root `.env`. Spec: [`tech-stack.md` § Auth](../../spec/tech-stack.md#auth-better-auth); mutator: [`packages/api-client`](../api-client/README.md#auth-header--configureclient).
+
+| Concern | Contract |
+|---|---|
+| Where | XDG user config via `env-paths('helloworld').config` (typical `~/.config/helloworld/config.json`) |
+| Per environment | Named envs (`local` / `dev` / `prod`, …) each hold their own credential |
+| Field name | **`apiKey`** (Zod / JSON) — optional until authenticated calls are needed |
+| Pass-through | Resolve → `configureClient({ apiUrl, apiKey })` → header **`x-api-key`** |
+| Issue / revoke | Web settings UI, or CLI subcommand against an authenticated API — Better Auth managed keys |
+| Forbidden | Root `.env` / static `API_KEY` as the long-term CLI/TUI key store; do not commit keys |
+
+`apiUrl` / `workerUrl` (and other config fields) may be documented further under tech-stack **#15**; for Auth **#5** the frozen credential field is **`apiKey`** per environment.
+
 ## Logging (`@helloworld/terminal/log`)
 
 | Export | Role |
