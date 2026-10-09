@@ -244,6 +244,7 @@ Detail and local usage: [`tools/cli/README.md`](../tools/cli/README.md), [`tools
 | `nestjs-pino` | 5.3.0 | Nest logger integration — `LoggerModule` + `@InjectPinoLogger` |
 | `pino` | 10.3.1 | Underlying logger (via nestjs-pino) |
 | `pino-pretty` | **13.2.0** (dev) | Human-readable logs outside production |
+| `helmet` | **8.3.0** | Express security headers — template default in API bootstrap |
 | `postgres` | **3.4.9** | postgres.js driver for Drizzle |
 | `supertest` | (dev) | HTTP integration tests against Nest |
 
@@ -252,6 +253,8 @@ Detail and local usage: [`tools/cli/README.md`](../tools/cli/README.md), [`tools
 Patterns for controllers, services (**neverthrow**), DTOs, exception filter, `@Public()`, and AppModule composition: **[`apps/api/README.md`](../apps/api/README.md#nestjs-conventions)**. Shared infra module contracts: [`packages/modules/README.md`](../packages/modules/README.md).
 
 **HTTP contract** (error Problem Details, status map, lists, CRUD, fixed routes): **[`apps/api/README.md` § HTTP contract](../apps/api/README.md#http-contract)** — ADR [`0002-api-problem-details`](decisions/0002-api-problem-details.md).
+
+**Security / ops baseline** (CORS from `WEB_ORIGIN`, Helmet, `x-request-id`, graceful shutdown, rate-limit stance): **[`apps/api/README.md` § Security / ops](../apps/api/README.md#security--ops-baseline)** — see [Security / ops baseline](#security--ops-baseline).
 
 ## Worker (`apps/worker`)
 
@@ -323,6 +326,7 @@ Operational, structured, machine-consumable. Wire `nestjs-pino`: `LoggerModule.f
 | HTTP access logs | Prefer **off** or filter `/health` — avoid flood |
 | Secrets | Never log tokens, API keys, cookies, raw auth headers |
 | Errors | Log with context + correlate to HTTP response via exception filter; services still prefer `neverthrow` Results over throw-for-control-flow |
+| Correlation | Accept/generate **`x-request-id`**; bind as Pino `requestId`; echo on response; include on Problem Details `requestId` — [`apps/api/README.md` § Security / ops](../apps/api/README.md#security--ops-baseline) |
 
 Bootstrap helper may live in `packages/modules` or each app’s `AppModule` — same pattern.
 
@@ -506,6 +510,8 @@ UUIDs, instance URL, and CLI context stay in `spark/repo-profile.yaml` (and loca
 
 **Local env:** one repo-root `.env` only — see [Root environment](#root-environment).
 
+**Graceful shutdown (API):** Nest `enableShutdownHooks()` + lifecycle cleanup (Drizzle pool) so Coolify rolling restarts drain cleanly — [`apps/api/README.md` § Security / ops](../apps/api/README.md#security--ops-baseline).
+
 ## Auth (Better Auth)
 
 Inventory and wiring contracts for sessions (web) and managed API keys (CLI/TUI/machines). Contested “why” vs static env `API_KEY`: [`decisions/0003-better-auth.md`](decisions/0003-better-auth.md). Module contract: [`packages/modules/README.md`](../packages/modules/README.md#auth). Mutator header: [`packages/api-client/README.md`](../packages/api-client/README.md#auth-header--configureclient). Env: [`apps/api/README.md`](../apps/api/README.md#configuration-root-env). Key store: [`packages/terminal/README.md`](../packages/terminal/README.md#config-keys-normative). Auth table ownership: [Database / Drizzle](#database--drizzle-schema--migrations) + ADR [`0001`](decisions/0001-schema-migrations.md).
@@ -520,6 +526,7 @@ Inventory and wiring contracts for sessions (web) and managed API keys (CLI/TUI/
 | Clients (machines) | `packages/api-client` + tools | Key from `@helloworld/terminal/config` per environment → `configureClient({ apiKey })` |
 | Clients (web) | `apps/web` (+ optional api-client) | Cookie sessions; **not** `packages/terminal` |
 | Public routes | `@Public()` | Opt out: `GET /health`, Better Auth HTTP routes, OpenAPI (`/api/docs`, `/openapi.json`) |
+| CORS / origins | Root `.env` `WEB_ORIGIN` | Single trusted web origin in v1 — Nest CORS + Better Auth `trustedOrigins`; multi-origin later — [Security / ops](#security--ops-baseline) |
 
 | Decision | Choice | Notes |
 |---|---|---|
@@ -529,7 +536,19 @@ Inventory and wiring contracts for sessions (web) and managed API keys (CLI/TUI/
 | Web sessions | Cookies; `trustedOrigins` / CORS from `WEB_ORIGIN` | Parallel to API-key path; `@Public()` for health, auth routes, OpenAPI |
 | Key lifecycle | Issue/revoke via web settings UI (or CLI subcommand calling authenticated API) | Persist per-env in `@helloworld/terminal/config` — **never** root `.env` as the long-term key store |
 
-Session auth (web) and API-key auth (machines) run in parallel. Keys are managed entities (user/org, permissions, optional rate limits) — not a lone static env secret.
+Session auth (web) and API-key auth (machines) run in parallel. Keys are managed entities (user/org, permissions) — not a lone static env secret. **Rate limiting** is out of template v1 (prefer Better Auth plugin limits on the key path later) — [Security / ops](#security--ops-baseline).
+
+## Security / ops baseline
+
+HTTP security and process-lifecycle defaults for `apps/api` on Coolify. Normative checklist and bootstrap wiring: **[`apps/api/README.md` § Security / ops baseline](../apps/api/README.md#security--ops-baseline)**. No ADR while defaults stay uncontested.
+
+| Concern | Choice | Notes |
+|---|---|---|
+| CORS | Single `WEB_ORIGIN` | Reflect in Nest CORS + Better Auth `trustedOrigins`; multi-origin later |
+| Helmet | **Yes** (`helmet` **8.3.0**) | Express default in API bootstrap |
+| Correlation | `x-request-id` → Pino + Problem Details `requestId` | Accept or generate |
+| Shutdown | `enableShutdownHooks()` + Nest lifecycle | Coolify restarts; close Drizzle pool |
+| Rate limit | **Out of v1** | Better Auth plugin limits later; optional `@nestjs/throttler` only if needed |
 
 ## Zod ↔ OpenAPI
 
