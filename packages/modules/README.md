@@ -41,10 +41,22 @@ Exact file names under `database/` settle when wiring; keep **domain** and **aut
 - Spec + ADR: [`tech-stack.md` § Database / Drizzle](../../spec/tech-stack.md#database--drizzle-schema--migrations), [`decisions/0001-schema-migrations.md`](../../spec/decisions/0001-schema-migrations.md)  
 - New-resource checklist (SQL → generate → migrate → queries): process **#6** / [GH #13](https://github.com/einmalik1/helloworld/issues/13)
 
-### Health
+### Health (normative)
 
-- `GET /health` via `@nestjs/terminus` (e.g. Node utilization / DB ping as chosen)  
-- Controller (or routes) use **`@Public()`** so the global auth guard does not require a session/key
+`GET /health` via `@nestjs/terminus` (**12.1.0**). Controller (or routes) use **`@Public()`** so the global auth guard does not require a session/key.
+
+| Indicator | v1 | Notes |
+|---|---|---|
+| Process up | **yes** | Terminus liveness — process is serving |
+| DB ping | **yes** | Postgres reachability via `DATABASE_URL` (postgres.js / `DatabaseService`) |
+| Memory / heap metrics | **no** | Skip fancy utilization indicators in v1 unless Coolify later requires them |
+
+Contract:
+
+- Path: **`GET /health`** (same fixed route as [`apps/api` HTTP contract](../../apps/api/README.md#fixed-infrastructure-routes))
+- Auth: **`@Public()`** only — no session or API key
+- Response: Terminus status payload (`status` + indicator results); Coolify HTTP health hits this path
+- Clients: CLI/TUI probe with the api-client **3s** health timeout — see [`packages/api-client` Timeouts](../api-client/README.md#timeouts-normative)
 
 ### Auth
 

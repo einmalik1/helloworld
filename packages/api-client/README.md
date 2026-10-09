@@ -65,6 +65,17 @@ export default defineConfig({
 });
 ```
 
+## Timeouts (normative)
+
+ky timeouts for the hand-written mutator in `src/http.ts`:
+
+| Call class | Timeout | Notes |
+|---|---|---|
+| General (default client) | **30s** (`30_000` ms) | All Orval-generated calls and normal SDK usage |
+| Health probes | **3s** (`3_000` ms) | `GET /health` (and CLI/TUI aggregation of api + worker). Per-request override — do not lower the default client timeout |
+
+Stack: ky **2.1**. Consumers that need a different budget pass `timeout` on that request only.
+
 ## ky mutator (sketch)
 
 ```ts
@@ -76,12 +87,15 @@ export type ClientOptions = {
   apiKey?: string;
 };
 
-let http = ky.create({ timeout: 30_000 });
+const GENERAL_TIMEOUT_MS = 30_000;
+const HEALTH_TIMEOUT_MS = 3_000;
+
+let http = ky.create({ timeout: GENERAL_TIMEOUT_MS });
 
 export function configureClient(opts: ClientOptions): void {
   http = ky.create({
     prefixUrl: opts.apiUrl.replace(/\/$/, ""),
-    timeout: 30_000,
+    timeout: GENERAL_TIMEOUT_MS,
     hooks: {
       beforeRequest: [
         (req) => {
@@ -96,6 +110,11 @@ export function configureClient(opts: ClientOptions): void {
 export const customFetch = async <T>(url: string, options?: Options): Promise<T> => {
   return http(url, options).json<T>();
 };
+
+/** Health probe — 3s timeout; used by CLI/TUI aggregation */
+export async function fetchHealth<T = unknown>(path = "health"): Promise<T> {
+  return http.get(path, { timeout: HEALTH_TIMEOUT_MS }).json<T>();
+}
 ```
 
 ## Auth header / `configureClient`
