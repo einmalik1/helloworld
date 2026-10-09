@@ -58,3 +58,14 @@ Exact file names under `database/` settle when wiring; keep **domain** and **aut
 - `setupOpenApi(app, options)` — Swagger UI (e.g. `/api/docs`), JSON export (e.g. `/openapi.json` or build-time `openapi:export`)  
 - Run **nestjs-zod** `cleanupOpenApiDoc` on the document so Orval/Swagger see clean schemas  
 - Document API-key / auth schemes consistent with Better Auth clients
+
+### Logging (optional)
+
+If a shared bootstrap helper is extracted here (instead of inlining in each app’s `AppModule`), it must match the **normative** `LoggerModule.forRoot` defaults in [`apps/api/README.md`](../../apps/api/README.md#loggermodule-defaults--normative):
+
+- Package: **`nestjs-pino`**
+- `autoLogging: false`
+- `pino-pretty` + `singleLine: true` when `NODE_ENV !== "production"`
+- Level from `LOG_LEVEL` (default `info`)
+
+Apps that stay Nest without HTTP (worker) reuse the same helper / defaults.
