@@ -44,6 +44,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 - **#5 Better Auth wiring** (product) — [`tech-stack.md` § Auth](tech-stack.md#auth-better-auth) + modules / api-client / api / terminal contracts + ADR [`0003`](decisions/0003-better-auth.md).
 - **#10 Security / ops baseline** (product) — [`apps/api/README.md` § Security / ops](../apps/api/README.md#security--ops-baseline) + pointers in [`tech-stack.md`](tech-stack.md#security--ops-baseline).
 - **#6 Workflow “new resource”** (process) — checklist in [`spark/agents/common/conventions.md#new-resource-workflow`](../spark/agents/common/conventions.md#new-resource-workflow); Nest mirror + generators pointers.
+- **#8 TypeScript / module contract** (process) — [`tech-stack.md` § Module / compiler](tech-stack.md#module--compiler-rules-all-ts-workspaces) + [`packages/config/README.md`](../packages/config/README.md) (ES2024 target, SWC Vitest-only, Nest DI spike).
 - **#14 Git conventions** (process) — branches, Conventional Commits, smoke pre-merge gate in [`spark/agents/common/conventions.md#git-conventions`](../spark/agents/common/conventions.md#git-conventions).
 - **#15 Small ops details** (product) — ky timeouts, Terminus health indicators, Nest env table, CLI/TUI config keys in the component READMEs listed under topic **#15**.
 - **#16** Search / knowledge graph (product) — AGE + Typesense + api facade + worker sync + Cytoscape; ADR [`0004`](decisions/0004-search-knowledge-graph.md).
@@ -73,7 +74,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 | 2 | Build / emit | Impl | **done** | open | (scaffold note until wired) |
 | 6 | Workflow “new resource” | Spec | **done** | partial | `spark/agents/common/conventions.md` + `apps/api/README.md` + pointers |
 | 7 | Nest reference snippets | Spec | open | open | `apps/api/README.md` (+ optional `packages/modules`) |
-| 8 | TypeScript / module contract | Spec partial | partial | open | `tech-stack.md` § Module/compiler + `packages/config` |
+| 8 | TypeScript / module contract | Spec | **done** | open | `tech-stack.md` § Module/compiler + `packages/config` |
 | 9 | Root dependency rule | Spec | open | open | `tech-stack.md` § Monorepo + root `README.md` |
 | 12 | ADRs / decisions (process) | Spec | open | n/a | `spec/decisions/NNNN-*.md` |
 | 14 | Git conventions | Spec | **done** | optional | `spark/agents/common/conventions.md` (+ pointers in `AGENTS.md` / `README.md`) |
@@ -81,7 +82,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 **Suggested order (spec work only)**
 
 1. **Product:** 1 → 4 → **16** (with MCP access path) → 3+5 → 10, 11, 13, 15  
-2. **Process:** 6+7 → 9, 8-rest → **12** in parallel as product decisions land → **14** done → **2** implement  
+2. **Process:** 6+7 → 9 → **12** in parallel as product decisions land → **14** / **8** done → **2** implement  
 
 ---
 
@@ -687,31 +688,33 @@ const moduleRef = await Test.createTestingModule({
 | | |
 |---|---|
 | **Lane** | Process |
-| **Hauptproblem** | Spec partial |
-| **Spec status** | Partial — rules already in Build / emit (`type: module`, `nodenext`, `.js` suffixes, decorators) |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec done — [`tech-stack.md` § Module / compiler](tech-stack.md#module--compiler-rules-all-ts-workspaces); [`packages/config/README.md`](../packages/config/README.md) |
 | **Impl status** | Impl open |
 | **Spec targets** | [`tech-stack.md`](tech-stack.md) § Module / compiler rules; [`packages/config/README.md`](../packages/config/README.md) |
 
 ### Decide
 
-- [ ] **define** `compilerOptions.target` (prior project used ES2023 — confirm)
-- [ ] **define** SWC role: Vitest decorator support only vs also Nest build emit
-- [ ] **define** / verify TypeScript 7 + `emitDecoratorMetadata` works for Nest DI; if not, document that SWC (or Nest compiler) owns decorator metadata emit
+- [x] **define** `compilerOptions.target` — **ES2024** (TS 7 + Node 26); fallback **ES2023** if Nest DI / emit spike fails (document in `packages/config`)
+- [x] **define** SWC role — **Vitest only** via `unplugin-swc` **2.0.0**; Nest emit stays `nest build` / `tsc`
+- [x] **define** Nest DI / metadata — early spike under TS 7; if `emitDecoratorMetadata` fails, document metadata owner (Nest compiler / SWC) in `packages/config/README.md`
 
 ### Spec to write
 
-- [ ] Fill gaps in Module / compiler rules (target, SWC)
-- [ ] `packages/config` README: what `tsconfig.base.json` / vitest base guarantee
+- [x] Fill gaps in Module / compiler rules (target, SWC, DI spike)
+- [x] `packages/config` README: what `tsconfig.base.json` / vitest base guarantee + spike / workaround note
+- [x] Testing row: pin `unplugin-swc` as Vitest-only (not Nest emit)
 
 ### Impl (later)
 
-- [ ] Land `tsconfig.base.json`, vitest SWC, verify Nest DI under TS 7
+- [ ] Land `tsconfig.base.json`, vitest SWC (`unplugin-swc`)
+- [ ] Nest DI smoke under TS 7; if red, apply fallback target / metadata-owner note in `packages/config/README.md`
 
-### Prior reference (adapt)
+### Prior reference (adapt — decisions landed above)
 
-- Target **ES2023**; `moduleResolution` `nodenext`; relative imports with `.js` suffix; `"type": "module"`
-- Nest: `experimentalDecorators` + `emitDecoratorMetadata`
-- Vitest: `unplugin-swc` for decorator support in tests
+- Target **ES2024** (was ES2023 in prior); `moduleResolution` `nodenext`; relative imports with `.js` suffix; `"type": "module"`
+- Nest: `experimentalDecorators` + `emitDecoratorMetadata`; emit via Nest/`tsc`
+- Vitest: `unplugin-swc` for decorator support in tests only
 - Shared bases in `packages/config`: `tsconfig.base.json`, `vitest.config.ts`, `oxlintrc.json`
 
 ---
@@ -850,4 +853,5 @@ CLI/TUI structural intent (separate binaries, XDG config, Commander vs Ink bound
 | 2026-10-09 | **#10** Security / ops baseline Spec done — api README checklist + tech-stack pointers (CORS, Helmet, request-id, shutdown, rate-limit out of v1) |
 | 2026-10-09 | **#5** Better Auth wiring Spec done — inventory, module/mutator/env/terminal contracts, ADR `0003` |
 | 2026-10-09 | **#6** Workflow “new resource” Spec done — conventions checklist + api README mirror + tech-stack / AGENTS pointers |
+| 2026-10-09 | **#8** TypeScript / module contract Spec done — ES2024 target, SWC Vitest-only, Nest DI spike / workaround in config README |
 | 2026-10-09 | **#16** Search / knowledge graph Spec done — AGE + Typesense + api facade + worker outbox + Cytoscape; ADR `0004` |
