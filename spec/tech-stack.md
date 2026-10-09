@@ -606,7 +606,7 @@ drizzle-kit ───► migrations/  →  pnpm db:migrate     (local = Coolify 
 
 Coolify: configure the **same** migrate script as a pre-deploy command for apps that need the DB (at least `apps/api` / `apps/worker`). Local Compose Postgres uses the same script against root `.env` `DATABASE_URL`.
 
-**New resource workflow:** after SQL + generate, run migrate before hand-written `DatabaseService` methods — checklist lives with process topic **#6** ([GH #13](https://github.com/einmalik1/helloworld/issues/13)).
+**New resource workflow:** after SQL + generate, run migrate before hand-written `DatabaseService` methods — agent checklist: [`spark/agents/common/conventions.md` § New resource workflow](../spark/agents/common/conventions.md#new-resource-workflow) (process **#6**, [GH #13](https://github.com/einmalik1/helloworld/issues/13)); Nest mirror: [`apps/api/README.md` § Feature / new resource](../apps/api/README.md#feature--new-resource-workflow).
 
 ## Schema generators (`spark/generators/`)
 
@@ -627,6 +627,8 @@ Python + Jinja2 codegen driven by [`spark/repo-profile.yaml`](../spark/repo-prof
 Auth Drizzle schema is **not** a Python generator stage — Better Auth CLI owns it (see [Database / Drizzle](#database--drizzle-schema--migrations)).
 
 Run: `pnpm generate` (full) or `pnpm generate:<stage>`. Detail: [`spark/generators/README.md`](../spark/generators/README.md). Migrations: [Database / Drizzle](#database--drizzle-schema--migrations).
+
+**New resource (process):** full step order + ownership lives in [`spark/agents/common/conventions.md`](../spark/agents/common/conventions.md#new-resource-workflow) — do not duplicate the checklist in this inventory. API-focused mirror: [`apps/api/README.md`](../apps/api/README.md#feature--new-resource-workflow).
 
 ## Out of scope here
 

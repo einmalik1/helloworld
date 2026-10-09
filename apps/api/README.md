@@ -79,6 +79,23 @@ export const envSchema = z.object({
 export type AppConfig = z.infer<typeof envSchema>;
 ```
 
+## Feature / new resource workflow
+
+API-focused steps when adding a Nest feature for a new domain table. **Normative global checklist** (ownership + generated vs hand): [`spark/agents/common/conventions.md` § New resource workflow](../../spark/agents/common/conventions.md#new-resource-workflow). Generators inventory: [`spec/tech-stack.md` § Schema generators](../../spec/tech-stack.md#schema-generators-sparkgenerators). Migrations: [`spec/tech-stack.md` § Database / Drizzle](../../spec/tech-stack.md#database--drizzle-schema--migrations).
+
+| # | Nest / API step | Detail |
+|---|---|---|
+| 1 | SQL SoT | Edit `spec/erd/schema.sql` (+ profile categories) |
+| 2 | Generate | `pnpm generate` → Zod types, Nest DTOs under `src/{resource}/dto/`, domain Drizzle TS |
+| 3 | Migrate | `pnpm db:migrate` (intent) before hand queries |
+| 4 | Persistence | Hand-write `DatabaseService` domain methods (injected into the feature service) |
+| 5 | Feature module | Hand-write `{feature}.module.ts` / `.controller.ts` / `.service.ts`; import in `AppModule` — see [NestJS conventions](#nestjs-conventions) |
+| 6 | Client SDK | `openapi:export` → `pnpm generate:client` (Orval) |
+| 7 | Tests | Vitest (+ `@nestjs/testing`) next to code; HTTP suite under `tests/api` |
+| 8 | Optional | CLI / TUI surface via `packages/api-client` — not required for API completeness |
+
+**Generated here:** `dto/` wrappers only. **Hand here:** controller, service, module, tests, AppModule wiring. Patterns: [Controller / service Result mapping](#controller--service-result-mapping--normative), [HTTP contract](#http-contract).
+
 ## Generated Nest DTOs
 
 `pnpm generate` / `pnpm generate:nest-dto` writes thin `createZodDto` wrappers:
