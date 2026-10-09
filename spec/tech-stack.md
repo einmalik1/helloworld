@@ -508,7 +508,7 @@ UUIDs, instance URL, and CLI context stay in `spark/repo-profile.yaml` (and loca
 
 ## Auth (Better Auth)
 
-Inventory and wiring contracts for sessions (web) and managed API keys (CLI/TUI/machines). Contested “why” vs static env `API_KEY`: [`decisions/0003-better-auth.md`](decisions/0003-better-auth.md). Module contract: [`packages/modules/README.md`](../packages/modules/README.md#auth). Mutator header: [`packages/api-client/README.md`](../packages/api-client/README.md#auth-header--configureclient). Env: [`apps/api/README.md`](../apps/api/README.md#configuration-root-env). Key store: [`packages/terminal/README.md`](../packages/terminal/README.md#api-key-storage). Auth table ownership: [Database / Drizzle](#database--drizzle-schema--migrations) + ADR [`0001`](decisions/0001-schema-migrations.md).
+Inventory and wiring contracts for sessions (web) and managed API keys (CLI/TUI/machines). Contested “why” vs static env `API_KEY`: [`decisions/0003-better-auth.md`](decisions/0003-better-auth.md). Module contract: [`packages/modules/README.md`](../packages/modules/README.md#auth). Mutator header: [`packages/api-client/README.md`](../packages/api-client/README.md#auth-header--configureclient). Env: [`apps/api/README.md`](../apps/api/README.md#configuration-root-env). Key store: [`packages/terminal/README.md`](../packages/terminal/README.md#config-keys-normative). Auth table ownership: [Database / Drizzle](#database--drizzle-schema--migrations) + ADR [`0001`](decisions/0001-schema-migrations.md).
 
 | Piece | Package / place | Role |
 |---|---|---|

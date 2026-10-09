@@ -74,7 +74,7 @@ Hand-written Better Auth wiring (no community Nest Better Auth package). Spec in
 | Origins | `trustedOrigins` / CORS driven by Nest config `WEB_ORIGIN` (see [`apps/api` env](../../apps/api/README.md#configuration-root-env)) |
 | Rejected | Static env `API_KEY` + forever `ApiKeyModule` / `ApiKeyGuard` as the product auth model |
 
-Key issue/revoke UX lives in web (settings) or an authenticated CLI subcommand — not in this package. CLI/TUI store issued keys in `@helloworld/terminal/config` ([terminal README](../terminal/README.md#api-key-storage)).
+Key issue/revoke UX lives in web (settings) or an authenticated CLI subcommand — not in this package. CLI/TUI store issued keys in `@helloworld/terminal/config` ([terminal README](../terminal/README.md#config-keys-normative)).
 
 ### OpenAPI
 
