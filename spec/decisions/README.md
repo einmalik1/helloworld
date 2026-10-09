@@ -72,3 +72,4 @@ What becomes easier, harder, or mandatory for implementers and agents.
 |---|---|
 | [0001-schema-migrations.md](0001-schema-migrations.md) | Schema ownership and migration runner |
 | [0002-api-problem-details.md](0002-api-problem-details.md) | API error envelope and validation status |
+| [0003-better-auth.md](0003-better-auth.md) | Better Auth (sessions + managed keys) vs static `API_KEY` |

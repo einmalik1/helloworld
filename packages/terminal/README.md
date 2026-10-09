@@ -17,7 +17,7 @@ Build: `tsc` → `dist/` — [`Build / emit contract`](../../spec/tech-stack.md#
 
 ## Config keys (normative)
 
-Owned by `@helloworld/terminal/config`. Persisted under XDG (typical: `$XDG_CONFIG_HOME/helloworld/config.json`). Same file for CLI and TUI — see [`tools/cli/README.md`](../../tools/cli/README.md) / [`tools/tui/README.md`](../../tools/tui/README.md).
+Owned by `@helloworld/terminal/config`. Persisted under XDG (typical: `$XDG_CONFIG_HOME/helloworld/config.json`). Same file for CLI and TUI — see [`tools/cli/README.md`](../../tools/cli/README.md) / [`tools/tui/README.md`](../../tools/tui/README.md). Auth inventory: [`tech-stack.md` § Auth](../../spec/tech-stack.md#auth-better-auth); mutator: [`packages/api-client`](../api-client/README.md#auth-header--configureclient).
 
 ### Frozen environment fields (Zod schema intent)
 
@@ -27,11 +27,13 @@ Per named environment (`local` / `dev` / `prod`, …), freeze these key names:
 |---|---|---|
 | `apiUrl` | yes (for API calls) | Base URL → api-client `configureClient({ apiUrl })` / ky `prefixUrl` |
 | `workerUrl` | yes (for worker probes) | Base URL for worker `GET /health` (and later job-control) |
-| `apiKey` | no (optional until authenticated calls) | Better Auth managed API key → api-client `configureClient({ apiKey })` |
+| `apiKey` | no (optional until authenticated calls) | Better Auth managed API key → api-client `configureClient({ apiKey })` → header **`x-api-key`** |
 
 - **Do not** invent alternate spellings (`baseUrl`, `api_url`, static env `API_KEY`).  
 - Semantic alias “credential” in operator docs means the **`apiKey`** field — the Zod / JSON key is **`apiKey`**.  
 - Pass resolved values into `@helloworld/api-client` (`apiUrl` / `apiKey`); health probes use the **3s** timeout — [`packages/api-client` Timeouts](../api-client/README.md#timeouts-normative).
+- **Issue / revoke** keys via web settings UI (or an authenticated CLI subcommand) — Better Auth managed entities.  
+- **Forbidden:** root `.env` / static `API_KEY` as the long-term CLI/TUI key store; do not commit keys.
 
 ### Global fields (also in schema)
 

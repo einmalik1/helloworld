@@ -35,7 +35,7 @@ All process env comes from the **single repo-root** `.env` (template: [`.env.exa
 
 ### Nest-facing env table (normative)
 
-Names align with root [`.env.example`](../../.env.example) sections. Add keys there first, then to `envSchema`. **No** static `API_KEY` — auth secrets are Better Auth only.
+Names align with root [`.env.example`](../../.env.example) sections. Add keys there first, then to `envSchema`. **No** static `API_KEY` — auth secrets are Better Auth only; CLI/TUI keys live in [`packages/terminal`](../../packages/terminal/README.md#config-keys-normative).
 
 | Key | Section | Required | Default | Description |
 |---|---|---|---|---|
@@ -320,9 +320,10 @@ Global filter under `src/common/filters/` (`@Catch()` / Nest HTTP exceptions as 
 
 ### Auth on routes
 
-- Global guard: session cookie and/or Better Auth API key (`verifyApiKey`) — **not** a static env `ApiKeyModule` / `ApiKeyGuard`  
-- **`@Public()`** — skip the global guard (health, selected auth routes)  
-- Details: [`packages/modules` auth](../../packages/modules/README.md#auth); session / CORS origin: [Security / ops](#security--ops-baseline) + Auth topic ([GH #7](https://github.com/einmalik1/helloworld/issues/7))
+- Global guard: session cookie and/or Better Auth API key (`verifyApiKey` on header **`x-api-key`**) — **not** a static env `ApiKeyModule` / `ApiKeyGuard`  
+- **`@Public()`** — skip the global guard for `GET /health`, Better Auth HTTP routes, OpenAPI (`/api/docs`, `/openapi.json`)  
+- CORS / `trustedOrigins` from `WEB_ORIGIN` (required env above) — see [Security / ops](#security--ops-baseline)  
+- Details: [`packages/modules` auth](../../packages/modules/README.md#auth); inventory [`tech-stack.md` § Auth](../../spec/tech-stack.md#auth-better-auth); ADR [`0003`](../../spec/decisions/0003-better-auth.md)
 
 ## Security / ops baseline
 
