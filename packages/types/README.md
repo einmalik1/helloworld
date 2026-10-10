@@ -12,8 +12,8 @@ Build: `tsc` → `dist/`; consumers import built exports — [`Build / emit cont
 src/
 ├── schema/        # Entity Zod — generated (`pnpm generate:types`)
 ├── api/           # API Zod (Create/Update/Response) — generated (`pnpm generate:api`)
-├── errors.ts      # base + domain error classes (hand-authored when wired)
-└── index.ts       # re-exports schema + api
+├── errors.ts      # AppError, NotFound, ValidationError, DatabaseError (hand-authored)
+└── index.ts       # re-exports schema + api + errors
 ```
 
 | Subpath   | Import                     | Role                                        |
