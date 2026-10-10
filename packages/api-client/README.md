@@ -79,43 +79,10 @@ Stack: ky **2.1**. Consumers that need a different budget pass `timeout` on that
 ## ky mutator (sketch)
 
 ```ts
-// packages/api-client/src/http.ts
-import ky, { type Options } from "ky";
-
-export type ClientOptions = {
-  apiUrl: string;
-  apiKey?: string;
-};
-
-const GENERAL_TIMEOUT_MS = 30_000;
-const HEALTH_TIMEOUT_MS = 3_000;
-
-let http = ky.create({ timeout: GENERAL_TIMEOUT_MS });
-
-export function configureClient(opts: ClientOptions): void {
-  http = ky.create({
-    prefixUrl: opts.apiUrl.replace(/\/$/, ""),
-    timeout: GENERAL_TIMEOUT_MS,
-    hooks: {
-      beforeRequest: [
-        (req) => {
-          if (opts.apiKey) req.headers.set("x-api-key", opts.apiKey);
-        },
-      ],
-    },
-  });
-}
-
-/** Orval mutator — (url, options) → Promise<T> */
-export const customFetch = async <T>(url: string, options?: Options): Promise<T> => {
-  return http(url, options).json<T>();
-};
-
-/** Health probe — 3s timeout; used by CLI/TUI aggregation */
-export async function fetchHealth<T = unknown>(path = "health"): Promise<T> {
-  return http.get(path, { timeout: HEALTH_TIMEOUT_MS }).json<T>();
-}
+// packages/api-client/src/http.ts — see source; ky 2.1 uses baseUrl + beforeRequest({ request })
 ```
+
+Hand-written mutator is wired in `src/http.ts` (`configureClient`, `customFetch`, `fetchHealth`). Orval output lands under `src/generated/` when `apps/api/openapi.json` exists.
 
 ## Auth header / `configureClient`
 
@@ -146,4 +113,4 @@ OpenAPI / Swagger should document the same `x-api-key` scheme so Orval and human
 `tools/cli`, `tools/tui`: resolve URL/key via `@helloworld/terminal/config`, then `configureClient` + generated calls.  
 `apps/web`: same package; session/cookies in mutator variant — **not** `packages/terminal`.
 
-Wiring (`openapi:export`, Orval dep, `orval.config.ts`, `http.ts`) lands when Nest is scaffolded. Until `openapi.json` exists, `generate:client` exits 0 and skips.
+Wiring (`orval.config.ts`, `http.ts`, Orval dep) is in place. Run `pnpm --filter api openapi:export` then `pnpm generate:client`. Until `openapi.json` exists, `generate:client` exits 0 and skips.

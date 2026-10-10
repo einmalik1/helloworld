@@ -2,7 +2,33 @@
   "name": "@helloworld/web",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "npx --yes serve -l 5173 ."
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "smoke": "pnpm run typecheck && pnpm run build"
+  },
+  "dependencies": {
+    "@helloworld/api-client": "workspace:*",
+    "better-auth": "1.7.7",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "driver.js": "1.9.0",
+    "lucide-react": "0.544.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "tailwind-merge": "3.3.1"
+  },
+  "devDependencies": {
+    "@helloworld/config": "workspace:*",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/react": "19.1.13",
+    "@types/react-dom": "19.1.9",
+    "@vitejs/plugin-react": "6.1.2",
+    "tailwindcss": "4.3.3",
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
   }
 }

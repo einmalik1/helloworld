@@ -33,11 +33,11 @@ ADR: [`openspec/decisions/0006-search-knowledge-graph.md`](../../openspec/decisi
 
 ## Chat (minimal client)
 
-Temporary static client: [`chat.html`](./chat.html) → `PUBLIC_CHAT_URL` / `http://localhost:3200` with `x-api-key`. The browser must **not** call LLM vendor URLs — [ADR 0008](../../openspec/decisions/0008-chat-service-app.md).
+Temporary static client: [`public/chat.html`](./public/chat.html) → `PUBLIC_CHAT_URL` / `http://localhost:3200` with `x-api-key`. The browser must **not** call LLM vendor URLs — [ADR 0008](../../openspec/decisions/0008-chat-service-app.md).
 
 ```bash
 pnpm --filter @helloworld/chat dev
-# open apps/web/chat.html (or any static server on :5173)
+# with web: pnpm --filter @helloworld/web dev → http://localhost:5173/chat.html
 ```
 
 ## Deploy
@@ -56,4 +56,4 @@ pnpm run dev
 pnpm run --filter web dev
 ```
 
-Scaffolding (Vite + shadcn + auth client) comes when the package is implemented.
+Scripts: `pnpm --filter @helloworld/web dev|build|typecheck|smoke`. Vite reads root `.env` (`PUBLIC_API_URL`, `PUBLIC_CHAT_URL`, `WEB_PORT`). Interim chat: [`public/chat.html`](./public/chat.html).

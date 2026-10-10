@@ -1,2 +1,8 @@
-// @helloworld/api-client — typed REST SDK (scaffold)
-export {};
+export {
+  configureClient,
+  customFetch,
+  fetchHealth,
+  type ClientOptions,
+} from "./http.js";
+
+export * from "./generated/index.js";

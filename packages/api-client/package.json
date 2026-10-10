@@ -12,10 +12,15 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "generate": "node ./scripts/generate.mjs"
+    "generate": "node ./scripts/generate.mjs",
+    "smoke": "pnpm run typecheck && pnpm run build"
+  },
+  "dependencies": {
+    "ky": "2.1.0"
   },
   "devDependencies": {
     "@helloworld/config": "workspace:*",
+    "orval": "8.39.0",
     "typescript": "7.0.2"
   }
 }
