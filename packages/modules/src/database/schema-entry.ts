@@ -1,6 +1,6 @@
 /**
- * Combined Drizzle schema entry for drizzle-kit (domain + Better Auth).
- * Nest DatabaseModule wiring lands in a later change.
+ * Combined Drizzle schema entry for drizzle-kit and Nest DatabaseService
+ * (domain + Better Auth).
  */
 export * from "./schema/index.js";
 export * from "./auth-schema.js";

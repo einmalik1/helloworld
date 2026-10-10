@@ -5,3 +5,5 @@ packages:
   - "tests/*"
 allowBuilds:
   esbuild: true
+  "@swc/core": true
+  "@scarf/scarf": true
