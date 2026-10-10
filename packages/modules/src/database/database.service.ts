@@ -1,12 +1,23 @@
 import { Injectable } from "@nestjs/common";
 import type { OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import type { CreateChannel, UpdateChannel } from "@helloworld/types/api";
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres, { type Sql } from "postgres";
 
+import {
+  deleteChannel,
+  findChannelById,
+  insertChannel,
+  listChannels,
+  updateChannel,
+  type ChannelRow,
+} from "./channel-queries.js";
 import * as schema from "./schema-entry.js";
 
 export type AppDatabase = PostgresJsDatabase<typeof schema>;
+export type { ChannelRow };
+export { UniqueConstraintError } from "./channel-queries.js";
 
 @Injectable()
 export class DatabaseService implements OnModuleDestroy {
@@ -22,6 +33,29 @@ export class DatabaseService implements OnModuleDestroy {
   /** Postgres reachability probe for Terminus / ops. */
   async ping(): Promise<void> {
     await this.client`select 1`;
+  }
+
+  insertChannel(input: CreateChannel): Promise<ChannelRow> {
+    return insertChannel(this.db, input);
+  }
+
+  findChannelById(id: string): Promise<ChannelRow | null> {
+    return findChannelById(this.db, id);
+  }
+
+  listChannels(
+    page: number,
+    limit: number,
+  ): Promise<{ items: ChannelRow[]; total: number }> {
+    return listChannels(this.db, page, limit);
+  }
+
+  updateChannel(id: string, input: UpdateChannel): Promise<ChannelRow | null> {
+    return updateChannel(this.db, id, input);
+  }
+
+  deleteChannel(id: string): Promise<boolean> {
+    return deleteChannel(this.db, id);
   }
 
   async onModuleDestroy(): Promise<void> {

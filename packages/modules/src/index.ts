@@ -8,8 +8,8 @@ export { createAppConfigModule } from "./config/create-app-config-module.js";
 export type { CreateAppConfigModuleOptions } from "./config/create-app-config-module.js";
 
 export { DatabaseModule } from "./database/database.module.js";
-export { DatabaseService } from "./database/database.service.js";
-export type { AppDatabase } from "./database/database.service.js";
+export { DatabaseService, UniqueConstraintError } from "./database/database.service.js";
+export type { AppDatabase, ChannelRow } from "./database/database.service.js";
 
 export { HealthModule } from "./health/health.module.js";
 

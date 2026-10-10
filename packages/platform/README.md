@@ -19,23 +19,32 @@ API and MCP call platform **in-process** (same use-cases). They do not duplicate
 | In scope                                      | Out of scope                                      |
 | --------------------------------------------- | ------------------------------------------------- |
 | Domain use-cases                              | Orval / ky / OpenAPI HTTP SDK (`api-client`)      |
-| Adapters to Postgres, Garage/S3, search, graph | Nest HTTP controllers and routes                  |
+| Repository ports + adapters to engines        | Nest HTTP controllers and routes                  |
 | Shared application services                   | CLI/TUI/web UI (`terminal`, bundlers)             |
 
-No dependency on `@helloworld/api-client` or `@nestjs/*` in this package — Nest may wrap platform later from `apps/api` / `packages/modules`.
+No dependency on `@helloworld/api-client` or `@nestjs/*` in this package — Nest adapts `DatabaseService` to repository ports from `apps/api`.
 
-## Layout (intent)
+Postgres, S3/Garage, search, and graph adapters belong **behind** this facade (ports today; more adapters later) — not in CLI/web and not duplicated in both API and MCP.
+
+## Layout
 
 ```text
 src/
 ├── index.ts           # public facade exports
-├── <use-cases>/       # later: createGreeting, search…, impex…
-└── adapters/          # later: db, s3, search, graph
+├── channel/           # Channel CRUD use-cases + ChannelRepository port
+└── (later) adapters/  # shared engine helpers if needed
 ```
+
+### Channel
+
+Exports: `createChannel`, `getChannel`, `listChannels`, `updateChannel`, `deleteChannel`, `UniqueSlugError`, and the `ChannelRepository` port.
+
+Callers supply a `ChannelRepository` implementation (Nest wires Drizzle via `DatabaseService`). Use-cases return `neverthrow` `Result` with typed `@helloworld/types` errors.
 
 ## Scripts
 
 ```bash
 pnpm run --filter @helloworld/platform build
 pnpm run --filter @helloworld/platform typecheck
+pnpm run --filter @helloworld/platform smoke
 ```

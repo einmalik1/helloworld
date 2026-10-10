@@ -7,6 +7,7 @@ import {
   createLoggerModule,
 } from "@helloworld/modules";
 
+import { ChannelModule } from "./channel/channel.module.js";
 import { envSchema } from "./configuration.js";
 
 @Module({
@@ -16,6 +17,7 @@ import { envSchema } from "./configuration.js";
     DatabaseModule,
     HealthModule,
     createLoggerModule(),
+    ChannelModule,
   ],
 })
 export class AppModule {}
