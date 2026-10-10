@@ -4,7 +4,7 @@ Deployed UI component gallery (centrally reachable).
 
 ## Deploy
 
-QA/Prod: Coolify Application. Multi-stage `apps/storybook/Dockerfile`; Coolify builds from Git — see [`spec/tech-stack.md`](../../spec/tech-stack.md#coolify-build-deploy-data-services).
+QA/Prod: Coolify Application. Multi-stage `apps/storybook/Dockerfile`; Coolify builds from Git — see [`openspec/tech-stack.md`](../../openspec/tech-stack.md#coolify-build-deploy-data-services).
 
 ## Local
 

@@ -22,15 +22,15 @@ class Category:
 @dataclass
 class ErdConfig:
     enabled: bool = True
-    out_dir: str = "spec/erd/generated"
-    nicht_crud_katalog: str | None = "spec/erd/nicht-crud-katalog.md"
+    out_dir: str = "openspec/data-model/generated"
+    nicht_crud_katalog: str | None = "openspec/data-model/nicht-crud-katalog.md"
     audit_fk_columns: list[str] = field(default_factory=list)
 
 
 @dataclass
 class DocsConfig:
     enabled: bool = True
-    out_dir: str = "spec/erd/generated/docs"
+    out_dir: str = "openspec/data-model/generated/docs"
 
 
 @dataclass
@@ -74,7 +74,9 @@ class GeneratorsConfig:
 def find_repo_root(start: Path | None = None) -> Path:
     here = (start or Path.cwd()).resolve()
     for candidate in [here, *here.parents]:
-        if (candidate / PROFILE_REL).is_file() and (candidate / "spec" / "erd").is_dir():
+        if (candidate / PROFILE_REL).is_file() and (
+            candidate / "openspec" / "data-model"
+        ).is_dir():
             return candidate
     raise FileNotFoundError(
         f"Could not find repo root containing {PROFILE_REL} (started at {here})"
@@ -117,21 +119,21 @@ def load_generators_config(repo_root: Path | None = None) -> GeneratorsConfig:
     api_raw = block.get("api") or {}
     nest_raw = block.get("nest_dto") or {}
 
-    schema_sql = block.get("schema_sql") or "spec/erd/schema.sql"
-    schema_model = block.get("schema_model") or "spec/erd/generated/schema-model.json"
+    schema_sql = block.get("schema_sql") or "openspec/data-model/schema.sql"
+    schema_model = block.get("schema_model") or "openspec/data-model/generated/schema-model.json"
 
     erd = ErdConfig(
         enabled=bool(erd_raw.get("enabled", True)),
-        out_dir=str(erd_raw.get("out_dir") or "spec/erd/generated"),
+        out_dir=str(erd_raw.get("out_dir") or "openspec/data-model/generated"),
         nicht_crud_katalog=erd_raw.get("nicht_crud_katalog"),
         audit_fk_columns=[str(c) for c in (erd_raw.get("audit_fk_columns") or [])],
     )
     docs = DocsConfig(
         enabled=bool(docs_raw.get("enabled", True)),
-        out_dir=str(docs_raw.get("out_dir") or "spec/erd/generated/docs"),
+        out_dir=str(docs_raw.get("out_dir") or "openspec/data-model/generated/docs"),
     )
     out_dirs = types_raw.get("out_dirs") or [
-        "spec/erd/generated/types",
+        "openspec/data-model/generated/types",
         "packages/types/src/schema",
     ]
     types = TypesConfig(

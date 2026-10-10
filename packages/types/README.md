@@ -3,8 +3,8 @@
 Domain Zod schemas, inferred TypeScript types, and shared error classes.
 
 No NestJS, no DB, no services — schemas/types/errors only.  
-Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagestypes).  
-Build: `tsc` → `dist/`; consumers import built exports (scaffold may still point at `src/` until wired) — [`Build / emit contract`](../../spec/tech-stack.md#build--emit-contract).
+Stack: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#packagestypes).  
+Build: `tsc` → `dist/`; consumers import built exports — [`Build / emit contract`](../../openspec/tech-stack.md#build--emit-contract).
 
 ## Layout
 
@@ -16,12 +16,12 @@ src/
 └── index.ts       # re-exports schema + api
 ```
 
-| Subpath | Import | Role |
-|---|---|---|
-| `schema/` | `@helloworld/types/schema` | Persistenz / Entity |
-| `api/` | `@helloworld/types/api` | HTTP contracts for Nest DTOs + `api-client` |
+| Subpath   | Import                     | Role                                        |
+| --------- | -------------------------- | ------------------------------------------- |
+| `schema/` | `@helloworld/types/schema` | Persistenz / Entity                         |
+| `api/`    | `@helloworld/types/api`    | HTTP contracts for Nest DTOs + `api-client` |
 
-**Regenerate:** edit `spec/erd/schema.sql` and/or `spark/repo-profile.yaml` `generators:`, then `pnpm generate` (or `pnpm generate:types` / `generate:api`).
+**Regenerate:** edit `openspec/data-model/schema.sql` and/or `spark/repo-profile.yaml` `generators:`, then `pnpm generate` (or `pnpm generate:types` / `generate:api`).
 
 **API Create convention:** omit PK-with-default + `generators.api.create_omit_columns` (`created_at`, `updated_at`). Update = Create.partial(). Response = entity schema.
 

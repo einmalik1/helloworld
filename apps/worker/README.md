@@ -13,7 +13,7 @@ Background jobs and scheduled automation. Nest standalone process alongside `app
 | Logging | **Service** — Pino via `nestjs-pino` (same rules as `apps/api`) |
 | Build | `nest build` → `dist/`; Coolify runs built JS |
 
-Global inventory: [`spec/tech-stack.md`](../../spec/tech-stack.md#worker-appsworker). Graph/search sync: [`spec/tech-stack.md` § Search / knowledge graph](../../spec/tech-stack.md#search--knowledge-graph).
+Global inventory: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#worker-appsworker). Graph/search sync: [`openspec/tech-stack.md` § Search / knowledge graph](../../openspec/tech-stack.md#search--knowledge-graph).
 
 ## Projection / sync jobs (intent)
 
@@ -28,7 +28,7 @@ Keep secondary indexes current after Postgres writes. Api remains SoT; this proc
 |---|---|
 | Write path | Api → Postgres (+ outbox row) first; worker catches up asynchronously |
 | Engines | Same `DATABASE_URL` (AGE) + root `TYPESENSE_*` — network-internal |
-| Domain mapping | person / channel / greeting / reaction nodes + edges — ADR [`0004`](../../spec/decisions/0004-search-knowledge-graph.md) |
+| Domain mapping | person / channel / greeting / reaction nodes + edges — ADR [`0004`](../../openspec/decisions/0006-search-knowledge-graph.md) |
 | Forbidden | Sync-on-write inside api request handlers; exposing engine ports publicly |
 
 ## Nest conventions (worker)
@@ -50,7 +50,7 @@ Shared module contracts: [`packages/modules`](../../packages/modules/README.md).
 
 ## Deploy
 
-QA/Prod: Coolify Application. Multi-stage `apps/worker/Dockerfile` (monorepo-root build context); Coolify builds from Git — see [`spec/tech-stack.md`](../../spec/tech-stack.md#coolify-build-deploy-data-services).
+QA/Prod: Coolify Application. Multi-stage `apps/worker/Dockerfile` (monorepo-root build context); Coolify builds from Git — see [`openspec/tech-stack.md`](../../openspec/tech-stack.md#coolify-build-deploy-data-services).
 
 ## Local
 

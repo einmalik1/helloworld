@@ -2,9 +2,9 @@
 
 Shared tooling configuration only — no application code, no `tsc` emit.
 
-Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagesconfig).  
-Exception to the dist contract: exports stay as config files — [`Build / emit`](../../spec/tech-stack.md#build--emit-contract).  
-Module / compiler decisions: [`tech-stack.md` § Module / compiler rules](../../spec/tech-stack.md#module--compiler-rules-all-ts-workspaces) (topic **#8**, GH [#15](https://github.com/einmalik1/helloworld/issues/15)).
+Stack: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#packagesconfig).  
+Exception to the dist contract: exports stay as config files — [`Build / emit`](../../openspec/tech-stack.md#build--emit-contract).  
+Module / compiler decisions: [`tech-stack.md` § Module / compiler rules](../../openspec/tech-stack.md#module--compiler-rules-all-ts-workspaces) (topic **#8**, GH [#15](https://github.com/einmalik1/helloworld/issues/15)).
 
 ## Layout (intent)
 

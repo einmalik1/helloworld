@@ -2,10 +2,10 @@
 
 Reusable NestJS infrastructure for `apps/api` (and other Nest apps).
 
-Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagesmodules).  
+Stack: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#packagesmodules).  
 App conventions: [`apps/api/README.md`](../../apps/api/README.md#nestjs-conventions).  
 Depends on `@helloworld/types` when wired.  
-Build: `tsc` → `dist/` + subpath exports — [`Build / emit contract`](../../spec/tech-stack.md#build--emit-contract).
+Build: `tsc` → `dist/` + subpath exports — [`Build / emit contract`](../../openspec/tech-stack.md#build--emit-contract).
 
 ## Layout
 
@@ -35,10 +35,10 @@ Exact file names under `database/` settle when wiring; keep **domain** and **aut
 
 - Drizzle ORM + **postgres.js** (`postgres` package) + `DATABASE_URL` from config  
 - `DatabaseService` — injectable; domain query methods (no generic CRUD dump)  
-- **Domain schema:** generated from [`spec/erd/schema.sql`](../../spec/erd/schema.sql) via the `drizzle` generator stage into this package — do not hand-maintain domain tables as the primary SoT  
+- **Domain schema:** generated from [`openspec/data-model/schema.sql`](../../openspec/data-model/schema.sql) via the `drizzle` generator stage into this package — do not hand-maintain domain tables as the primary SoT  
 - **Auth schema:** `@better-auth/cli generate` → e.g. `auth-schema.ts` here; auth tables = Better Auth owned (not merged into `schema.sql`)  
 - **Migrations:** `drizzle-kit migrate` via a shared root/package script (intent name `pnpm db:migrate`); Coolify pre-deploy runs the same script — **no** runtime DDL in Nest lifecycle  
-- Spec + ADR: [`tech-stack.md` § Database / Drizzle](../../spec/tech-stack.md#database--drizzle-schema--migrations), [`decisions/0001-schema-migrations.md`](../../spec/decisions/0001-schema-migrations.md)  
+- Spec + ADR: [`tech-stack.md` § Database / Drizzle](../../openspec/tech-stack.md#database--drizzle-schema--migrations), [`decisions/0001-schema-migrations.md`](../../openspec/decisions/0001-schema-migrations.md)  
 - New-resource checklist (SQL → generate → migrate → queries): process **#6** / [GH #13](https://github.com/einmalik1/helloworld/issues/13)
 
 ### Health (normative)
@@ -60,7 +60,7 @@ Contract:
 
 ### Auth
 
-Hand-written Better Auth wiring (no community Nest Better Auth package). Spec inventory: [`tech-stack.md` § Auth](../../spec/tech-stack.md#auth-better-auth). Rationale vs static `API_KEY`: [`decisions/0003-better-auth.md`](../../spec/decisions/0003-better-auth.md).
+Hand-written Better Auth wiring (no community Nest Better Auth package). Spec inventory: [`tech-stack.md` § Auth](../../openspec/tech-stack.md#auth-better-auth). Rationale vs static `API_KEY`: [`decisions/0003-better-auth.md`](../../openspec/decisions/0003-better-auth.md).
 
 | Concern | Contract |
 |---|---|

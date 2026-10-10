@@ -2,7 +2,7 @@
 
 Template monorepo for React/TypeScript projects. Keep this root README short; details live in each component README.
 
-Stack inventory: [`spec/tech-stack.md`](spec/tech-stack.md). Per-app setup: READMEs under `apps/`, `tools/`, `infra/`.
+Stack inventory: [`openspec/tech-stack.md`](openspec/tech-stack.md). Per-app setup: READMEs under `apps/`, `tools/`, `infra/`.
 
 ## Layout
 
@@ -12,7 +12,7 @@ tools/       # installable clients (CLI, TUI)
 packages/    # shared libraries
 infra/       # Postgres, S3, …
 tests/       # system-wide tests
-spec/        # product specs (features, decisions, ERD)
+openspec/    # product SoTs (specs, data-model, decisions, …)
 spark/       # repo profile, agent roles, Coolify QA/Prod
 ```
 
@@ -25,7 +25,7 @@ spark/       # repo profile, agent roles, Coolify QA/Prod
 | **web** | `apps/web` | React web frontend |
 | **api** | `apps/api` | REST backend for persistence and domain API |
 | **worker** | `apps/worker` | Background jobs and automation |
-| **docs** | `apps/docs` | Docs site: Fumadocs on Next.js; publishes `spec/` |
+| **docs** | `apps/docs` | Docs site: Fumadocs on Next.js; publishes `openspec/` |
 | **storybook** | `apps/storybook` | Deployed UI component gallery |
 | **mcp** | `apps/mcp` | MCP server for agent integration |
 
@@ -56,14 +56,14 @@ System-wide tests (unit tests live next to code under `apps/` / `packages/` / `t
 | **cli** | `tests/cli` | CLI against running services |
 | **tui** | `tests/tui` | Terminal interaction |
 
-### Spec (`spec/`)
+### Product specs (`openspec/`)
 
 Product specification — source of truth. Published by `apps/docs`.
 
 | Path | Role |
 |---|---|
 | `features/` | Feature specs |
-| `decisions/` | ADRs — when/how: [`spec/decisions/README.md`](spec/decisions/README.md) |
+| `decisions/` | ADRs — when/how: [`openspec/decisions/README.md`](openspec/decisions/README.md) |
 | `architecture.md` | System picture (tech-agnostic) |
 | `tech-stack.md` | Technology stack (factual inventory; “why” → ADRs) |
 | `erd/schema.sql` | DDL SoT (hand-edit); categories in `spark/repo-profile.yaml`; run `pnpm generate` |
@@ -75,7 +75,7 @@ Domain glossary: root `CONTEXT.md`. Details: `spec/README.md`. Agent process poi
 | Component | Path | Role |
 |---|---|---|
 | **spark** | `spark` | Repo profile, agent rules, automation |
-| **coolify** | `spark/repo-profile.yaml` | QA/Prod targets; one multi-stage Dockerfile per app, Coolify builds from Git — see [`spec/tech-stack.md`](spec/tech-stack.md#coolify-build-deploy-data-services) |
+| **coolify** | `spark/repo-profile.yaml` | QA/Prod targets; one multi-stage Dockerfile per app, Coolify builds from Git — see [`openspec/tech-stack.md`](openspec/tech-stack.md#coolify-build-deploy-data-services) |
 | **generators** | `spark/generators` | SQL → ERD / docs / Zod / Nest DTOs; then Orval client — `pnpm generate` |
 
 Key Spark paths: `spark/repo-profile.yaml`, `spark/agents/` (roles + `common/`), `spark/plans/`. Short pointer: root [`AGENTS.md`](AGENTS.md). Worktrees via Orca.
@@ -113,11 +113,11 @@ pnpm run typecheck
 
 ### Turbo tasks (intent)
 
-When `turbo.json` is wired — detail: [`spec/tech-stack.md`](spec/tech-stack.md#monorepo-tasks-turbo).
+When `turbo.json` is wired — detail: [`openspec/tech-stack.md`](openspec/tech-stack.md#monorepo-tasks-turbo).
 
 | Task | Behaviour |
 |---|---|
-| `build` | `dependsOn: ["^build"]`, `outputs: ["dist/**"]` (plus app outs) — see [`Build / emit`](spec/tech-stack.md#build--emit-contract) |
+| `build` | `dependsOn: ["^build"]`, `outputs: ["dist/**"]` (plus app outs) — see [`Build / emit`](openspec/tech-stack.md#build--emit-contract) |
 | `dev` | Persistent, no cache; waits on `^build` for libs |
 | `test` | After `build` where needed; cached |
 | `lint` / `typecheck` / `format` | Per workspace, parallel |

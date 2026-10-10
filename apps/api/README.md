@@ -1,14 +1,14 @@
 # api
 
-REST backend for persistence and domain API. Data via Postgres; files via S3. Auth via Better Auth (see [`spec/tech-stack.md`](../../spec/tech-stack.md)).
+REST backend for persistence and domain API. Data via Postgres; files via S3. Auth via Better Auth (see [`openspec/tech-stack.md`](../../openspec/tech-stack.md)).
 
-Stack inventory and Nest package versions: [`spec/tech-stack.md`](../../spec/tech-stack.md). Shared Nest infra: [`packages/modules`](../../packages/modules/README.md).
+Stack inventory and Nest package versions: [`openspec/tech-stack.md`](../../openspec/tech-stack.md). Shared Nest infra: [`packages/modules`](../../packages/modules/README.md).
 
-**Build:** `nest build` → `dist/`; Dev: `nest start --watch` (`@nestjs/cli`). Workspace libs build first (`tsc` → `dist/`). Contract: [`spec/tech-stack.md` — Build / emit](../../spec/tech-stack.md#build--emit-contract).
+**Build:** `nest build` → `dist/`; Dev: `nest start --watch` (`@nestjs/cli`). Workspace libs build first (`tsc` → `dist/`). Contract: [`openspec/tech-stack.md` — Build / emit](../../openspec/tech-stack.md#build--emit-contract).
 
 ## Deploy
 
-QA/Prod: Coolify Application. Image from multi-stage `apps/api/Dockerfile` (build context = monorepo root). Coolify builds from Git on deploy — see [`spec/tech-stack.md`](../../spec/tech-stack.md#coolify-build-deploy-data-services). Runtime runs built JS (`node dist/main.js`). Dockerfile not scaffolded yet.
+QA/Prod: Coolify Application. Image from multi-stage `apps/api/Dockerfile` (build context = monorepo root). Coolify builds from Git on deploy — see [`openspec/tech-stack.md`](../../openspec/tech-stack.md#coolify-build-deploy-data-services). Runtime runs built JS (`node dist/main.js`). Dockerfile not scaffolded yet.
 
 ## Local
 
@@ -86,11 +86,11 @@ export type AppConfig = z.infer<typeof envSchema>;
 
 ## Feature / new resource workflow
 
-API-focused steps when adding a Nest feature for a new domain table. **Normative global checklist** (ownership + generated vs hand): [`spark/agents/common/conventions.md` § New resource workflow](../../spark/agents/common/conventions.md#new-resource-workflow). Generators inventory: [`spec/tech-stack.md` § Schema generators](../../spec/tech-stack.md#schema-generators-sparkgenerators). Migrations: [`spec/tech-stack.md` § Database / Drizzle](../../spec/tech-stack.md#database--drizzle-schema--migrations).
+API-focused steps when adding a Nest feature for a new domain table. **Normative global checklist** (ownership + generated vs hand): [`spark/agents/common/conventions.md` § New resource workflow](../../spark/agents/common/conventions.md#new-resource-workflow). Generators inventory: [`openspec/tech-stack.md` § Schema generators](../../openspec/tech-stack.md#schema-generators-sparkgenerators). Migrations: [`openspec/tech-stack.md` § Database / Drizzle](../../openspec/tech-stack.md#database--drizzle-schema--migrations).
 
 | # | Nest / API step | Detail |
 |---|---|---|
-| 1 | SQL SoT | Edit `spec/erd/schema.sql` (+ profile categories) |
+| 1 | SQL SoT | Edit `openspec/data-model/schema.sql` (+ profile categories) |
 | 2 | Generate | `pnpm generate` → Zod types, Nest DTOs under `src/{resource}/dto/`, domain Drizzle TS |
 | 3 | Migrate | `pnpm db:migrate` (intent) before hand queries |
 | 4 | Persistence | Hand-write `DatabaseService` domain methods (injected into the feature service) |
@@ -117,7 +117,7 @@ Schemas come from `@helloworld/types/api`. Do not hand-edit these files.
 
 ## HTTP contract
 
-Frozen product contract for REST responses. Exception filter (#7) and Orval client mutator must match this section. Rationale: [`spec/decisions/0002-api-problem-details.md`](../../spec/decisions/0002-api-problem-details.md). Issue: [#5](https://github.com/einmalik1/helloworld/issues/5).
+Frozen product contract for REST responses. Exception filter (#7) and Orval client mutator must match this section. Rationale: [`openspec/decisions/0002-api-http-contract.md`](../../openspec/decisions/0002-api-http-contract.md). Issue: [#5](https://github.com/einmalik1/helloworld/issues/5).
 
 ### Error envelope (RFC 9457 Problem Details)
 
@@ -182,7 +182,7 @@ const listQuerySchema = z.object({
 
 ### Retrieve / search facade
 
-Structured graph + search over secondary indexes. Engines (Apache AGE on Postgres, Typesense) are **network-internal** — clients never see Cypher or Typesense protocol. Rationale: [`spec/decisions/0004-search-knowledge-graph.md`](../../spec/decisions/0004-search-knowledge-graph.md). Inventory: [`spec/tech-stack.md` § Search / knowledge graph](../../spec/tech-stack.md#search--knowledge-graph).
+Structured graph + search over secondary indexes. Engines (Apache AGE on Postgres, Typesense) are **network-internal** — clients never see Cypher or Typesense protocol. Rationale: [`openspec/decisions/0006-search-knowledge-graph.md`](../../openspec/decisions/0006-search-knowledge-graph.md). Inventory: [`openspec/tech-stack.md` § Search / knowledge graph](../../openspec/tech-stack.md#search--knowledge-graph).
 
 | Method | Path | Auth | Response |
 |---|---|---|---|
@@ -258,7 +258,7 @@ async function bootstrap(): Promise<void> {
 
 ### LoggerModule defaults — normative
 
-Package name: **`nestjs-pino`** (not `pino-nestjs`). Defaults match [`spec/tech-stack.md` — Logging](../../spec/tech-stack.md#logging):
+Package name: **`nestjs-pino`** (not `pino-nestjs`). Defaults match [`openspec/tech-stack.md` — Logging](../../openspec/tech-stack.md#logging):
 
 ```typescript
 LoggerModule.forRoot({
@@ -364,11 +364,11 @@ Global filter under `src/common/filters/` (`@Catch()` / Nest HTTP exceptions as 
 - Global guard: session cookie and/or Better Auth API key (`verifyApiKey` on header **`x-api-key`**) — **not** a static env `ApiKeyModule` / `ApiKeyGuard`  
 - **`@Public()`** — skip the global guard for `GET /health`, Better Auth HTTP routes, OpenAPI (`/api/docs`, `/openapi.json`)  
 - CORS / `trustedOrigins` from `WEB_ORIGIN` (required env above) — see [Security / ops](#security--ops-baseline)  
-- Details: [`packages/modules` auth](../../packages/modules/README.md#auth); inventory [`tech-stack.md` § Auth](../../spec/tech-stack.md#auth-better-auth); ADR [`0003`](../../spec/decisions/0003-better-auth.md)
+- Details: [`packages/modules` auth](../../packages/modules/README.md#auth); inventory [`tech-stack.md` § Auth](../../openspec/tech-stack.md#auth-better-auth); ADR [`0003`](../../openspec/decisions/0003-better-auth.md)
 
 ## Security / ops baseline
 
-Normative bootstrap/ops defaults for the Nest Express API on Coolify. Defaults are uncontested — no ADR. Inventory pointers: [`spec/tech-stack.md`](../../spec/tech-stack.md#security--ops-baseline). Cross-links: Auth ([GH #7](https://github.com/einmalik1/helloworld/issues/7), [`tech-stack` § Auth](../../spec/tech-stack.md#auth-better-auth)); Coolify deploy / restarts ([GH #9](https://github.com/einmalik1/helloworld/issues/9), [`tech-stack` § Coolify](../../spec/tech-stack.md#coolify-build-deploy-data-services)).
+Normative bootstrap/ops defaults for the Nest Express API on Coolify. Defaults are uncontested — no ADR. Inventory pointers: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#security--ops-baseline). Cross-links: Auth ([GH #7](https://github.com/einmalik1/helloworld/issues/7), [`tech-stack` § Auth](../../openspec/tech-stack.md#auth-better-auth)); Coolify deploy / restarts ([GH #9](https://github.com/einmalik1/helloworld/issues/9), [`tech-stack` § Coolify](../../openspec/tech-stack.md#coolify-build-deploy-data-services)).
 
 | Concern | Template default (v1) | Notes |
 |---|---|---|

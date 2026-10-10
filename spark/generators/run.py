@@ -3,12 +3,31 @@
 
 from __future__ import annotations
 
+# Scrub sys.path before any stdlib imports that pull in `types`.
+# This file lives next to a local `types/` package that otherwise shadows stdlib.
 import os
-import subprocess
 import sys
+
+_GENERATORS_DIR = os.path.dirname(os.path.abspath(__file__))
+_scrubbed = []
+for _p in sys.path:
+    if not _p:
+        if os.path.abspath(os.getcwd()) == _GENERATORS_DIR:
+            continue
+        _scrubbed.append(_p)
+        continue
+    try:
+        if os.path.abspath(_p) == _GENERATORS_DIR:
+            continue
+    except OSError:
+        pass
+    _scrubbed.append(_p)
+sys.path[:] = _scrubbed
+
+import subprocess
 from pathlib import Path
 
-GENERATORS_DIR = Path(__file__).resolve().parent
+GENERATORS_DIR = Path(_GENERATORS_DIR)
 SPARK_DIR = GENERATORS_DIR.parent
 REPO_ROOT = SPARK_DIR.parent
 VENV_DIR = GENERATORS_DIR / ".venv"

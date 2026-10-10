@@ -2,8 +2,8 @@
 
 Typed REST SDK for `apps/api` (and later `apps/worker`). **Orval** generates the client from OpenAPI; **ky** is the transport via a hand-written mutator.
 
-Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagesapi-client).  
-Build: Orval into `src/generated/` → then `tsc` → `dist/` — [`Build / emit contract`](../../spec/tech-stack.md#build--emit-contract).
+Stack: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#packagesapi-client).  
+Build: Orval into `src/generated/` → then `tsc` → `dist/` — [`Build / emit contract`](../../openspec/tech-stack.md#build--emit-contract).
 
 **Not** for MCP — share domain types only; MCP stays its own protocol.
 
@@ -134,12 +134,12 @@ OpenAPI / Swagger should document the same `x-api-key` scheme so Orval and human
 
 ## Customization (do not edit generated/)
 
-| Hebel | Datei | Wofür |
-|---|---|---|
-| Transport / auth | `src/http.ts` | ky, headers, timeouts, error mapping |
-| Facade | `src/index.ts` | `createApiClient(opts)`, re-exports, helpers |
-| Per-route | `orval.config.ts` → `override` | einzelne Operationen anders |
-| Templates | Orval custom templates | nur wenn Struktur grundsätzlich nicht passt |
+| Hebel            | Datei                          | Wofür                                        |
+| ---------------- | ------------------------------ | -------------------------------------------- |
+| Transport / auth | `src/http.ts`                  | ky, headers, timeouts, error mapping         |
+| Facade           | `src/index.ts`                 | `createApiClient(opts)`, re-exports, helpers |
+| Per-route        | `orval.config.ts` → `override` | einzelne Operationen anders                  |
+| Templates        | Orval custom templates         | nur wenn Struktur grundsätzlich nicht passt  |
 
 ## Consumers
 

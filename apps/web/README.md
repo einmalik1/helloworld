@@ -16,7 +16,7 @@ React web frontend as its own HTTP service (Vite).
 | Logging | Web client rules (`console` / UI) — no Pino in the browser |
 | Build | `vite build` → bundler out |
 
-Global inventory: [`spec/tech-stack.md`](../../spec/tech-stack.md#web-appsweb). Search/graph boundaries: [`spec/tech-stack.md` § Search / knowledge graph](../../spec/tech-stack.md#search--knowledge-graph).
+Global inventory: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#web-appsweb). Search/graph boundaries: [`openspec/tech-stack.md` § Search / knowledge graph](../../openspec/tech-stack.md#search--knowledge-graph).
 
 ## Graph explorer (intent)
 
@@ -29,11 +29,11 @@ Interactive knowledge-graph view in the SPA. **Cytoscape.js** renders `{ nodes, 
 | Search UI | Optional: call `GET /search` for typeahead / hit lists, then open a subgraph |
 | Forbidden | Embedding Typesense/AGE clients or engine URLs in the browser |
 
-ADR: [`spec/decisions/0004-search-knowledge-graph.md`](../../spec/decisions/0004-search-knowledge-graph.md).
+ADR: [`openspec/decisions/0006-search-knowledge-graph.md`](../../openspec/decisions/0006-search-knowledge-graph.md).
 
 ## Deploy
 
-QA/Prod: Coolify Application. Multi-stage `apps/web/Dockerfile`; Coolify builds from Git — see [`spec/tech-stack.md`](../../spec/tech-stack.md#coolify-build-deploy-data-services).
+QA/Prod: Coolify Application. Multi-stage `apps/web/Dockerfile`; Coolify builds from Git — see [`openspec/tech-stack.md`](../../openspec/tech-stack.md#coolify-build-deploy-data-services).
 
 ## Local
 

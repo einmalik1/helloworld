@@ -13,11 +13,11 @@ Remote MCP server for agent integration. Thin HTTP process in front of `apps/api
 | Logging | **Service** — Pino (long-running Node HTTP server) |
 | Build | `tsc` → `dist/` when scaffolded |
 
-Global inventory: [`spec/tech-stack.md`](../../spec/tech-stack.md#mcp-appsmcp). Facade contract: [`apps/api/README.md` § Retrieve / search](../api/README.md#retrieve--search-facade). ADR: [`0004`](../../spec/decisions/0004-search-knowledge-graph.md).
+Global inventory: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#mcp-appsmcp). Facade contract: [`apps/api/README.md` § Retrieve / search](../api/README.md#retrieve--search-facade). ADR: [`0004`](../../openspec/decisions/0006-search-knowledge-graph.md).
 
 ## Deploy
 
-QA/Prod: Coolify Application. Multi-stage `apps/mcp/Dockerfile` (monorepo-root build context if shared packages are needed); Coolify builds from Git — see [`spec/tech-stack.md`](../../spec/tech-stack.md#coolify-build-deploy-data-services).
+QA/Prod: Coolify Application. Multi-stage `apps/mcp/Dockerfile` (monorepo-root build context if shared packages are needed); Coolify builds from Git — see [`openspec/tech-stack.md`](../../openspec/tech-stack.md#coolify-build-deploy-data-services).
 
 ## Local
 

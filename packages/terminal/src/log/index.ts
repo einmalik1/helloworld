@@ -6,14 +6,13 @@
  * - **stdout** helpers for command results only
  */
 import ora, { type Ora, type Options as OraOptions } from "ora";
-import { Logger } from "tslog";
+import { Logger, type ILogObj } from "tslog";
 
 export type { Ora, OraOptions };
 
-const toStderr =
-  (...args: unknown[]) => {
-    console.error(...args);
-  };
+const toStderr = (...args: unknown[]) => {
+  console.error(...args);
+};
 
 export type CreateLoggerOptions = {
   /** Logger name / prefix (default `helloworld`) */
@@ -23,8 +22,8 @@ export type CreateLoggerOptions = {
 };
 
 /** Pretty tslog instance writing diagnostics to stderr. */
-export function createLogger(options: CreateLoggerOptions = {}): Logger {
-  return new Logger({
+export function createLogger(options: CreateLoggerOptions = {}): Logger<ILogObj> {
+  return new Logger<ILogObj>({
     name: options.name ?? "helloworld",
     minLevel: options.verbose ? "DEBUG" : "INFO",
     type: "pretty",
@@ -93,8 +92,10 @@ export function exitError(err?: unknown, message?: string): never {
     log.error(message, err);
   } else if (message) {
     log.error(message);
+  } else if (err instanceof Error) {
+    log.error(err.message, err);
   } else if (err !== undefined) {
-    log.error(err);
+    log.error(String(err));
   }
   process.exit(1);
 }

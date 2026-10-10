@@ -1,0 +1,14 @@
+{
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/.turbo/**",
+    "**/coverage/**",
+    "openspec/data-model/generated/**",
+    "packages/api-client/src/generated/**"
+  ]
+}

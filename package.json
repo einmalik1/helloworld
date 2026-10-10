@@ -1,8 +1,15 @@
 {
   "name": "helloworld",
   "private": true,
-  "packageManager": "pnpm@12.8.1",
   "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "oxlint -c packages/config/oxlintrc.json .",
+    "format": "oxfmt --write .",
+    "typecheck": "turbo run typecheck",
+    "docker:local:up": "docker compose -f infra/docker-compose.yml up -d",
+    "docker:local:down": "docker compose -f infra/docker-compose.yml down",
     "generate": "pnpm generate:code && pnpm generate:client",
     "generate:code": "python3 spark/generators/run.py",
     "generate:core": "python3 spark/generators/run.py --only core",
@@ -11,7 +18,14 @@
     "generate:types": "python3 spark/generators/run.py --only types",
     "generate:api": "python3 spark/generators/run.py --only api",
     "generate:nest-dto": "python3 spark/generators/run.py --only nest_dto",
-    "generate:client": "pnpm --filter @helloworld/api-client generate",
-    "typecheck": "pnpm -r --if-present run typecheck"
-  }
+    "generate:client": "pnpm --filter @helloworld/api-client generate"
+  },
+  "devDependencies": {
+    "oxfmt": "0.71.0",
+    "oxlint": "1.86.0",
+    "turbo": "2.11.6",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
+  },
+  "packageManager": "pnpm@12.8.1"
 }

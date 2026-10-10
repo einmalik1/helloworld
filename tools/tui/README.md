@@ -2,25 +2,25 @@
 
 Installable **interactive** terminal UI for Hello World. Talks to `apps/api` and `apps/worker` over HTTP.
 
-Separate from [`tools/cli`](../cli/README.md) (Commander). Stack inventory: [`spec/tech-stack.md`](../../spec/tech-stack.md#terminal-clients-toolscli-toolstui).
+Separate from [`tools/cli`](../cli/README.md) (Commander). Stack inventory: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#terminal-clients-toolscli-toolstui).
 
 ## Role
 
 Operator UI: browse status, confirm actions, edit local/remote settings in an alternate-screen Ink app.  
 **Not** NestJS, no database, no Pino. Requires an interactive TTY (non-TTY → exit with hint to use the CLI).
 
-| Concern | Choice |
-|---|---|
-| UI | Ink **7.1.1** + React **19.3.0** |
-| Text fields | `ink-text-input` **6.0.0** |
-| HTTP | ky **2.1.0** via `packages/api-client` (when wired) |
-| Terminal toolkit | `packages/terminal` (`config` / `log` / `tty`) |
-| User config | `@helloworld/terminal/config` |
-| Logging | `@helloworld/terminal/log` — **tslog** (+ **ora** if needed); fatals on stderr; UI toasts for UX |
-| Shared types | `packages/types` (when wired) |
-| Binary | `helloworld-tui` → `bin/run.js` → `dist/…` |
-| Build | `tsc` → `dist/` — [`Build / emit contract`](../../spec/tech-stack.md#build--emit-contract) |
-| Tests | Vitest under `tools/tui` (and `tests/tui` for interaction/snapshots) |
+| Concern          | Choice                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------------------ |
+| UI               | Ink **7.1.1** + React **19.3.0**                                                                 |
+| Text fields      | `ink-text-input` **6.0.0**                                                                       |
+| HTTP             | ky **2.1.0** via `packages/api-client` (when wired)                                              |
+| Terminal toolkit | `packages/terminal` (`config` / `log` / `tty`)                                                   |
+| User config      | `@helloworld/terminal/config`                                                                    |
+| Logging          | `@helloworld/terminal/log` — **tslog** (+ **ora** if needed); fatals on stderr; UI toasts for UX |
+| Shared types     | `packages/types` (when wired)                                                                    |
+| Binary           | `helloworld-tui` → `bin/run.js` → `dist/…`                                                       |
+| Build            | `tsc` → `dist/` — [`Build / emit contract`](../../openspec/tech-stack.md#build--emit-contract)       |
+| Tests            | Vitest under `tools/tui` (and `tests/tui` for interaction/snapshots)                             |
 
 ## Layout (intent)
 
@@ -51,11 +51,11 @@ Path (typical): `$XDG_CONFIG_HOME/helloworld/config.json` / `~/.config/helloworl
 
 TUI-oriented keys (in addition to URLs / credentials):
 
-| Key | Scope | Meaning |
-|---|---|---|
-| `environment` | global | Active env (switch in UI; persists) |
-| `pollInterval` | global | Background refresh (e.g. 5–300 s) |
-| `pageSize` | global | List page size |
+| Key            | Scope  | Meaning                             |
+| -------------- | ------ | ----------------------------------- |
+| `environment`  | global | Active env (switch in UI; persists) |
+| `pollInterval` | global | Background refresh (e.g. 5–300 s)   |
+| `pageSize`     | global | List page size                      |
 
 TUI **persists** environment changes. CLI `--env` does not rewrite this file.
 
@@ -84,9 +84,9 @@ helloworld-tui
 
 ## Boundaries
 
-| | `apps/api` / `apps/worker` | `tools/tui` |
-|---|---|---|
-| Role | Source of truth, DB, jobs | Thin interactive client |
-| Persist | PostgreSQL / object store | XDG config JSON only |
-| Errors | neverthrow / HTTP mapping | Toast / fatal exit |
-| Auth | Better Auth (server) | Sends API key from local config (`@better-auth/api-key`) |
+|         | `apps/api` / `apps/worker` | `tools/tui`                                              |
+| ------- | -------------------------- | -------------------------------------------------------- |
+| Role    | Source of truth, DB, jobs  | Thin interactive client                                  |
+| Persist | PostgreSQL / object store  | XDG config JSON only                                     |
+| Errors  | neverthrow / HTTP mapping  | Toast / fatal exit                                       |
+| Auth    | Better Auth (server)       | Sends API key from local config (`@better-auth/api-key`) |
