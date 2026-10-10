@@ -8,6 +8,7 @@ import {
 } from "@helloworld/modules";
 
 import { envSchema } from "./configuration.js";
+import { GreetingModule } from "./greeting/greeting.module.js";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { envSchema } from "./configuration.js";
     DatabaseModule,
     HealthModule,
     createLoggerModule(),
+    GreetingModule,
   ],
 })
 export class AppModule {}

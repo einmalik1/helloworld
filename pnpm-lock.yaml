@@ -190,6 +190,9 @@ importers:
       '@helloworld/modules':
         specifier: workspace:*
         version: link:../../packages/modules
+      '@helloworld/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
       '@helloworld/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -217,6 +220,9 @@ importers:
       nestjs-zod:
         specifier: 5.5.0
         version: 5.5.0(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/swagger@12.0.2(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.1.2)(reflect-metadata@0.2.2)(typescript@7.0.2))(rxjs@7.8.2)(zod@4.6.5)
+      neverthrow:
+        specifier: 8.2.0
+        version: 8.2.0
       reflect-metadata:
         specifier: 0.2.2
         version: 0.2.2
@@ -389,9 +395,18 @@ importers:
 
   packages/platform:
     dependencies:
+      '@helloworld/modules':
+        specifier: workspace:*
+        version: link:../modules
       '@helloworld/types':
         specifier: workspace:*
         version: link:../types
+      drizzle-orm:
+        specifier: 0.45.3
+        version: 0.45.3(kysely@0.29.6)(postgres@3.4.9)
+      neverthrow:
+        specifier: 8.2.0
+        version: 8.2.0
     devDependencies:
       '@helloworld/config':
         specifier: workspace:*
@@ -399,6 +414,9 @@ importers:
       typescript:
         specifier: 7.0.2
         version: 7.0.2
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(vite@8.3.4(@types/node@24.19.1)(esbuild@0.28.2)(tsx@4.23.15))
 
   packages/terminal:
     dependencies:
@@ -1559,6 +1577,12 @@ packages:
       rollup:
         optional: true
 
+  '@rollup/rollup-linux-x64-gnu@4.64.3':
+    resolution: {integrity: sha512-vMh+mt0cw1BHldd8cqaU6A5s1W4EUKl6+8MRsv86mj954L4xyruKD7qPXMUI2icImadAZARK10h0onaGTLmCVg==}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
   '@scarf/scarf@1.4.0':
     resolution: {integrity: sha512-xxeapPiUXdZAE3che6f3xogoJPeZgig6omHEy1rIY5WVsB3H2BHNnZH+gHG6x91SCWyQCzWGsuL2Hh3ClO5/qQ==}
 
@@ -2579,6 +2603,10 @@ packages:
     peerDependenciesMeta:
       '@nestjs/swagger':
         optional: true
+
+  neverthrow@8.2.0:
+    resolution: {integrity: sha512-kOCT/1MCPAxY5iUV3wytNFUMUolzuwd/VF/1KCx7kf6CutrOsTie+84zTGTpgQycjvfLdBBdvBvFLqFD2c0wkQ==}
+    engines: {node: '>=18'}
 
   object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
@@ -3694,6 +3722,9 @@ snapshots:
       estree-walker: 2.0.2
       picomatch: 4.0.7
 
+  '@rollup/rollup-linux-x64-gnu@4.64.3':
+    optional: true
+
   '@scarf/scarf@1.4.0': {}
 
   '@standard-schema/spec@1.1.0': {}
@@ -4516,6 +4547,10 @@ snapshots:
       zod: 4.6.5
     optionalDependencies:
       '@nestjs/swagger': 12.0.2(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.1.2)(reflect-metadata@0.2.2)(typescript@7.0.2)
+
+  neverthrow@8.2.0:
+    optionalDependencies:
+      '@rollup/rollup-linux-x64-gnu': 4.64.3
 
   object-assign@4.1.1: {}
 

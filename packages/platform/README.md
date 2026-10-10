@@ -16,11 +16,11 @@ API and MCP call platform **in-process** (same use-cases). They do not duplicate
 
 ## Boundary
 
-| In scope                                      | Out of scope                                      |
-| --------------------------------------------- | ------------------------------------------------- |
-| Domain use-cases                              | Orval / ky / OpenAPI HTTP SDK (`api-client`)      |
-| Adapters to Postgres, Garage/S3, search, graph | Nest HTTP controllers and routes                  |
-| Shared application services                   | CLI/TUI/web UI (`terminal`, bundlers)             |
+| In scope                                       | Out of scope                                 |
+| ---------------------------------------------- | -------------------------------------------- |
+| Domain use-cases                               | Orval / ky / OpenAPI HTTP SDK (`api-client`) |
+| Adapters to Postgres, Garage/S3, search, graph | Nest HTTP controllers and routes             |
+| Shared application services                    | CLI/TUI/web UI (`terminal`, bundlers)        |
 
 No dependency on `@helloworld/api-client` or `@nestjs/*` in this package — Nest may wrap platform later from `apps/api` / `packages/modules`.
 
@@ -29,8 +29,8 @@ No dependency on `@helloworld/api-client` or `@nestjs/*` in this package — Nes
 ```text
 src/
 ├── index.ts           # public facade exports
-├── <use-cases>/       # later: createGreeting, search…, impex…
-└── adapters/          # later: db, s3, search, graph
+├── greeting/          # createGreeting, get/list/update/delete
+└── adapters/          # later: s3, search, graph (db handle passed from Nest)
 ```
 
 ## Scripts

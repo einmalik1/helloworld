@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@helloworld/modules": "workspace:*",
+    "@helloworld/platform": "workspace:*",
     "@helloworld/types": "workspace:*",
     "@nestjs/common": "12.1.2",
     "@nestjs/config": "12.0.1",
@@ -23,6 +24,7 @@
     "helmet": "8.3.0",
     "nestjs-pino": "5.3.0",
     "nestjs-zod": "5.5.0",
+    "neverthrow": "8.2.0",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
     "zod": "4.6.5"

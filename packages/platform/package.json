@@ -11,13 +11,19 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "smoke": "vitest run src/greeting/greeting.use-cases.spec.ts"
   },
   "dependencies": {
-    "@helloworld/types": "workspace:*"
+    "@helloworld/modules": "workspace:*",
+    "@helloworld/types": "workspace:*",
+    "drizzle-orm": "0.45.3",
+    "neverthrow": "8.2.0"
   },
   "devDependencies": {
     "@helloworld/config": "workspace:*",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
   }
 }
