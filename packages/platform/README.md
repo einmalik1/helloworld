@@ -29,8 +29,9 @@ No dependency on `@helloworld/api-client` or `@nestjs/*` in this package — Nes
 ```text
 src/
 ├── index.ts           # public facade exports
-├── <use-cases>/       # later: createGreeting, search…, impex…
-└── adapters/          # later: db, s3, search, graph
+├── person/            # Person CRUD use-cases + PersonStore port
+├── <use-cases>/       # later: channel, greeting, search…, impex…
+└── adapters/          # later: s3, search, graph (DB queries via PersonStore + DatabaseService)
 ```
 
 ## Scripts

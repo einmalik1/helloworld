@@ -9,7 +9,12 @@ export type { CreateAppConfigModuleOptions } from "./config/create-app-config-mo
 
 export { DatabaseModule } from "./database/database.module.js";
 export { DatabaseService } from "./database/database.service.js";
-export type { AppDatabase } from "./database/database.service.js";
+export type {
+  AppDatabase,
+  CreatePersonRow,
+  PersonRow,
+  UpdatePersonRow,
+} from "./database/database.service.js";
 
 export { HealthModule } from "./health/health.module.js";
 
