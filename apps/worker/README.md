@@ -60,4 +60,24 @@ QA/Prod: Coolify Application. Multi-stage `apps/worker/Dockerfile` (monorepo-roo
 pnpm run --filter worker dev
 ```
 
-Scaffolding (Nest app + schedule modules) comes when the package is implemented.
+Listen: `WORKER_HOST` / `WORKER_PORT` (defaults `0.0.0.0` / `3001`). Concurrency: `WORKER_CONCURRENCY`.
+
+## Scripts
+
+| Script | Role |
+|---|---|
+| `pnpm --filter worker dev` | `tsx watch` Nest bootstrap |
+| `pnpm --filter worker build` | `tsc` → `dist/` |
+| `pnpm --filter worker typecheck` | `tsc --noEmit` |
+| `pnpm --filter worker smoke` | Nest boot + `/health` + schedule wiring (Vitest) |
+
+## Operator HTTP (v1)
+
+| Method | Path | Auth |
+|---|---|---|
+| `GET` | `/health` | Public |
+| `GET` | `/jobs` | Session or `x-api-key` |
+| `GET` | `/jobs/:id` | Session or `x-api-key` |
+| `POST` | `/jobs/:id/retry` | Session or `x-api-key` |
+
+No OpenAPI on the worker. Job/outbox DDL: `@helloworld/modules/database/job-schema` (ADR 0007).

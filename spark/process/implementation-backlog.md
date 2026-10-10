@@ -29,7 +29,7 @@ Target test plane: Coolify **test** in `spark/repo-profile.yaml` (not host `dock
 | Change name | Focus |
 |---|---|
 | `implement-object-storage-adapter` | platform S3 adapter; Coolify test Garage wiring |
-| `implement-worker-jobs` | Nest worker + pg-boss |
+| `implement-worker-jobs` | Nest worker + `@nestjs/schedule` (ADR 0007) |
 | `implement-impex` | API runs + worker jobs + one resource E2E |
 | `implement-mcp-tools` | MCP tools → platform |
 | `implement-web-vite-shell` | Vite React shell + api-client |
