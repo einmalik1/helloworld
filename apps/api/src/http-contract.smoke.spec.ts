@@ -19,6 +19,12 @@ describe("API HTTP contract smoke", () => {
     process.env.NODE_ENV ??= "test";
     process.env.API_PORT ??= "3000";
     process.env.API_HOST ??= "127.0.0.1";
+    process.env.S3_ENDPOINT ??= "http://127.0.0.1:9000";
+    process.env.S3_REGION ??= "us-east-1";
+    process.env.S3_ACCESS_KEY_ID ??= "minioadmin";
+    process.env.S3_SECRET_ACCESS_KEY ??= "minioadmin";
+    process.env.S3_BUCKET ??= "helloworld";
+    process.env.S3_FORCE_PATH_STYLE ??= "true";
 
     const { Controller, Get, Module } = await import("@nestjs/common");
     const { Test } = await import("@nestjs/testing");

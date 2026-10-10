@@ -64,7 +64,15 @@ coolify:
         # DATABASE_URL intent: postgresql://helloworld:helloworld@<coolify-internal-host>:5432/helloworld
         # (resolve host from Coolify DB network / service name helloworld-test-postgres)
         garage_uuid: "wkcfjdulstfgbjcrmndvygup"
-        # S3_* from Garage service env after first start/configure in Coolify UI
+        # Coolify service: helloworld-test-garage (dxflrs/garage). Map to app S3_* (do not commit secrets):
+        #   S3_ENDPOINT          <- GARAGE_S3_API_URL (public S3 API host on Coolify)
+        #   S3_REGION            <- us-east-1 (SDK required; Garage ignores)
+        #   S3_ACCESS_KEY_ID     <- SERVICE_USER_GARAGE / GARAGE_DEFAULT_ACCESS_KEY
+        #   S3_SECRET_ACCESS_KEY <- SERVICE_PASSWORD_64_GARAGE / GARAGE_DEFAULT_SECRET_KEY
+        #   S3_BUCKET            <- GARAGE_DEFAULT_BUCKET (default)
+        #   S3_FORCE_PATH_STYLE  <- true
+        # Resolve values: `coolify service env list <garage_uuid> --context home -s --format json`
+        # Start if exited: `coolify service start <garage_uuid> --context home`
       app_plane:
         - api
         - worker

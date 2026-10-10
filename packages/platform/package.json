@@ -14,10 +14,13 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@helloworld/types": "workspace:*"
+    "@aws-sdk/client-s3": "3.1144.0",
+    "@helloworld/types": "workspace:*",
+    "neverthrow": "8.2.0"
   },
   "devDependencies": {
     "@helloworld/config": "workspace:*",
+    "@types/node": "24.7.2",
     "typescript": "7.0.2"
   }
 }

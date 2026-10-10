@@ -3,6 +3,7 @@ import {
   AuthModule,
   DatabaseModule,
   HealthModule,
+  ObjectStorageModule,
   createAppConfigModule,
   createLoggerModule,
 } from "@helloworld/modules";
@@ -15,6 +16,7 @@ import { envSchema } from "./configuration.js";
     AuthModule,
     DatabaseModule,
     HealthModule,
+    ObjectStorageModule,
     createLoggerModule(),
   ],
 })

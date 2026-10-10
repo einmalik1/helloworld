@@ -18,6 +18,7 @@ src/
 │   ├── schema-entry.ts  # combined entry for drizzle-kit + DatabaseService
 │   ├── database.module.ts
 │   └── database.service.ts
+├── object-storage/  # ObjectStorageModule — Nest DI over platform S3 adapter
 ├── health/      # HealthModule (@nestjs/terminus); routes marked @Public()
 ├── auth/        # Better Auth + @better-auth/api-key; global guard + @Public()
 ├── openapi/     # setupOpenApi — Swagger UI + JSON + nestjs-zod cleanupOpenApiDoc
@@ -42,6 +43,14 @@ Keep **domain** and **auth** Drizzle schemas as separate files. Subpath exports:
 - **Auth schema:** [`src/database/auth-schema.ts`](src/database/auth-schema.ts) — Better Auth owned; regenerate with `pnpm dlx auth@1.7.7 generate --config <auth-instance> --output packages/modules/src/database/auth-schema.ts`. **Do not** merge auth DDL into `schema.sql`  
 - **Migrations:** root `drizzle.config.ts` → SQL under [`drizzle/`](drizzle/); apply with **`pnpm db:migrate`**. Coolify **pre-deploy** runs the same command — **no** runtime DDL in Nest lifecycle  
 - Spec + ADR: [`tech-stack.md` § Database / Drizzle](../../openspec/tech-stack.md#database--drizzle-schema--migrations), [`decisions/0001-schema-migrations.md`](../../openspec/decisions/0001-schema-migrations.md)  
+
+### Object storage
+
+- `ObjectStorageModule` + `ObjectStorageService` — Nest DI over `@helloworld/platform` `createS3ObjectStorage`
+- Merge `s3EnvFields` (or `s3EnvSchema`) into the app `envSchema` when importing the module
+- Keys: `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET`, `S3_FORCE_PATH_STYLE`
+- Local: MinIO via `infra/s3` / `.env.example`. Coolify **test**: Garage mapping in [`spark/repo-profile.yaml`](../../spark/repo-profile.yaml) (no secrets in-repo)
+- Do **not** use the AWS SDK from web/CLI — clients go through the API
 
 ### Health (normative)
 
@@ -93,6 +102,7 @@ Hand-written Better Auth wiring (no community Nest Better Auth package). ADR [`0
     AuthModule,
     DatabaseModule,
     HealthModule,
+    ObjectStorageModule,
     createLoggerModule(),
     // Feature modules…
   ],

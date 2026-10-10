@@ -24,14 +24,19 @@ API and MCP call platform **in-process** (same use-cases). They do not duplicate
 
 No dependency on `@helloworld/api-client` or `@nestjs/*` in this package — Nest may wrap platform later from `apps/api` / `packages/modules`.
 
-## Layout (intent)
+## Layout
 
 ```text
 src/
 ├── index.ts           # public facade exports
 ├── <use-cases>/       # later: createGreeting, search…, impex…
-└── adapters/          # later: db, s3, search, graph
+└── adapters/
+    └── s3/            # S3-compatible object storage (Garage / MinIO)
 ```
+
+## Object storage
+
+`createS3ObjectStorage(config)` returns an `ObjectStorage` port (`putObject` / `getObject` / `deleteObject` / `headObject`) backed by `@aws-sdk/client-s3`. Nest apps obtain it via `@helloworld/modules` `ObjectStorageModule` — do not construct the SDK in controllers or in web/CLI clients.
 
 ## Scripts
 
