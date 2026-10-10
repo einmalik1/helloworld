@@ -4,14 +4,14 @@ Remote MCP server for agent integration. Thin HTTP process in front of `apps/api
 
 ## Stack
 
-| Piece | Choice |
-|---|---|
-| SDK | **`@modelcontextprotocol/sdk` 1.32.1** |
-| Transport | **HTTP** (remote / Coolify); not stdio as the v1 deploy path |
-| Domain access | HTTP → `apps/api` with a Better Auth **service API key** — **no** Nest-in-MCP, **no** `packages/api-client` |
-| Retrieve / search | MCP tools call api `GET /graph/*` and `GET /search` only — **never** AGE or Typesense directly |
-| Logging | **Service** — Pino (long-running Node HTTP server) |
-| Build | `tsc` → `dist/` when scaffolded |
+| Piece             | Choice                                                                                                      |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- |
+| SDK               | **`@modelcontextprotocol/sdk` 1.32.1**                                                                      |
+| Transport         | **HTTP** (remote / Coolify); not stdio as the v1 deploy path                                                |
+| Domain access     | HTTP → `apps/api` with a Better Auth **service API key** — **no** Nest-in-MCP, **no** `packages/api-client` |
+| Retrieve / search | MCP tools call api `GET /graph/*` and `GET /search` only — **never** AGE or Typesense directly              |
+| Logging           | **Service** — Pino (long-running Node HTTP server)                                                          |
+| Build             | `tsc` → `dist/` when scaffolded                                                                             |
 
 Global inventory: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#mcp-appsmcp). Facade contract: [`apps/api/README.md` § Retrieve / search](../api/README.md#retrieve--search-facade). ADR: [`0004`](../../openspec/decisions/0006-search-knowledge-graph.md).
 
@@ -27,4 +27,12 @@ QA/Prod: Coolify Application. Multi-stage `apps/mcp/Dockerfile` (monorepo-root b
 pnpm run --filter mcp dev
 ```
 
-Scaffolding (SDK HTTP server + tool wiring) comes when the package is implemented.
+### Tools (HTTP → api only)
+
+| Tool             | Api route             |
+| ---------------- | --------------------- |
+| `search`         | `GET /search`         |
+| `graph_related`  | `GET /graph/related`  |
+| `graph_subgraph` | `GET /graph/subgraph` |
+
+Set `MCP_API_KEY` (Better Auth managed key) and point `BETTER_AUTH_URL` / `API_URL` at the api base. Never set Typesense/AGE credentials on MCP.

@@ -11,13 +11,17 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "smoke": "vitest run src/search-graph/typesense.smoke.spec.ts"
   },
   "dependencies": {
     "@helloworld/types": "workspace:*"
   },
   "devDependencies": {
     "@helloworld/config": "workspace:*",
-    "typescript": "7.0.2"
+    "@types/node": "24.7.2",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
   }
 }
