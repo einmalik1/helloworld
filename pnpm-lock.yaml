@@ -298,13 +298,23 @@ importers:
   apps/web: {}
 
   packages/api-client:
+    dependencies:
+      ky:
+        specifier: 2.1.0
+        version: 2.1.0
     devDependencies:
       '@helloworld/config':
         specifier: workspace:*
         version: link:../config
+      '@types/node':
+        specifier: 24.7.2
+        version: 24.7.2
       typescript:
         specifier: 7.0.2
         version: 7.0.2
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(vite@8.3.4(@types/node@24.19.1)(esbuild@0.28.2)(tsx@4.23.15))
 
   packages/config: {}
 
@@ -377,6 +387,12 @@ importers:
       '@types/node':
         specifier: 24.7.2
         version: 24.7.2
+      '@types/supertest':
+        specifier: 7.2.1
+        version: 7.2.1
+      supertest:
+        specifier: 7.3.1
+        version: 7.3.1
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -2398,6 +2414,10 @@ packages:
     resolution: {integrity: sha512-m+aqu+LwO1O6sIopafj8HUVl5aawITwZQe/yHpMCKjaWBaA/d07B/QdMb3529REftiU+RMMHL3Vlsw3hON7vWg==}
     hasBin: true
 
+  ky@2.1.0:
+    resolution: {integrity: sha512-nIKwelw+7qVqKOlX4Eht6GXfEXlDHcdIjyLWV3s119kYt5s+70ayTnYS+0fRNmtgGRRAfqdeWQbh8YizqkS0ng==}
+    engines: {node: '>=22'}
+
   kysely@0.29.6:
     resolution: {integrity: sha512-hHaB8C/rfzDDtr/t8YZwxAuPJTT0zHyaPoVzcXwDYhYNAgH/4sIfVhi/XLLIY+bL/FqaIJnjATDbi8ObSELmxg==}
     engines: {node: '>=22.0.0'}
@@ -4391,6 +4411,8 @@ snapshots:
   js-yaml@5.4.2:
     dependencies:
       argparse: 2.0.1
+
+  ky@2.1.0: {}
 
   kysely@0.29.6: {}
 
