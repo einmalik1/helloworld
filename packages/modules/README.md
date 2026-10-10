@@ -2,10 +2,10 @@
 
 Reusable NestJS infrastructure for `apps/api` (and other Nest apps).
 
-Stack: [`spec/tech-stack.md`](../../spec/tech-stack.md#packagesmodules).  
+Stack: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#packagesmodules).  
 App conventions: [`apps/api/README.md`](../../apps/api/README.md#nestjs-conventions).  
 Depends on `@helloworld/types` when wired.  
-Build: `tsc` → `dist/` + subpath exports — [`Build / emit contract`](../../spec/tech-stack.md#build--emit-contract).
+Build: `tsc` → `dist/` + subpath exports — [`Build / emit contract`](../../openspec/tech-stack.md#build--emit-contract).
 
 ## Layout
 
@@ -31,24 +31,25 @@ Subpath exports per module when implemented. Not for CLI/TUI — those use `@hel
 
 ### Database
 
-- Drizzle ORM + **postgres.js** (`postgres` package) + `DATABASE_URL` from config  
-- `DatabaseService` — injectable; domain query methods (no generic CRUD dump)  
-- Schema ownership TBD with Drizzle wiring (align with `spec/erd/schema.sql`)
+- Drizzle ORM + **postgres.js** (`postgres` package) + `DATABASE_URL` from config
+- `DatabaseService` — injectable; domain query methods (no generic CRUD dump)
+- **Schema ownership:** Drizzle TS under `packages/modules` aligned with `openspec/data-model/schema.sql` SoT; apply with **`drizzle-kit migrate`** — [ADR 0001](../../openspec/decisions/0001-schema-migrations.md). No runtime DDL.
+- Domain use-cases live in `@helloworld/platform`, not as a generic CRUD dump here
 
 ### Health
 
-- `GET /health` via `@nestjs/terminus` (e.g. Node utilization / DB ping as chosen)  
+- `GET /health` via `@nestjs/terminus` (e.g. Node utilization / DB ping as chosen)
 - Controller (or routes) use **`@Public()`** so the global auth guard does not require a session/key
 
 ### Auth
 
-- Better Auth + `@better-auth/api-key`  
-- Global guard: session and/or `verifyApiKey`  
-- **`@Public()`** decorator — opt out per handler/controller  
+- Better Auth + `@better-auth/api-key`
+- Global guard: session and/or `verifyApiKey`
+- **`@Public()`** decorator — opt out per handler/controller
 - Not a single static env API key for all traffic
 
 ### OpenAPI
 
-- `setupOpenApi(app, options)` — Swagger UI (e.g. `/api/docs`), JSON export (e.g. `/openapi.json` or build-time `openapi:export`)  
-- Run **nestjs-zod** `cleanupOpenApiDoc` on the document so Orval/Swagger see clean schemas  
+- `setupOpenApi(app, options)` — Swagger UI (e.g. `/api/docs`), JSON export (e.g. `/openapi.json` or build-time `openapi:export`)
+- Run **nestjs-zod** `cleanupOpenApiDoc` on the document so Orval/Swagger see clean schemas
 - Document API-key / auth schemes consistent with Better Auth clients

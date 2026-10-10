@@ -4,13 +4,34 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./config": "./src/config/index.ts",
-    "./log": "./src/log/index.ts",
-    "./tty": "./src/tty/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.js"
+    },
+    "./log": {
+      "types": "./dist/log/index.d.ts",
+      "import": "./dist/log/index.js"
+    },
+    "./tty": {
+      "types": "./dist/tty/index.d.ts",
+      "import": "./dist/tty/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "ora": "9.4.1",
     "tslog": "5.2.0"
+  },
+  "devDependencies": {
+    "@helloworld/config": "workspace:*",
+    "@types/node": "^24.5.2",
+    "typescript": "7.0.2"
   }
 }

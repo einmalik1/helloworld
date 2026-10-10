@@ -1,22 +1,22 @@
 # docs
 
-HTTP documentation site. Publishes content from root `spec/` (features, decisions, architecture, tech-stack, ERD viewer).
+HTTP documentation site. Publishes content from root `openspec/` (features, decisions, architecture, tech-stack, ERD viewer).
 
-Do not author durable product specs here — edit `spec/` instead.
+Do not author durable product specs here — edit `openspec/` instead.
 
 ## Stack
 
-| Piece | Choice |
-|---|---|
+| Piece         | Choice                                                    |
+| ------------- | --------------------------------------------------------- |
 | Docs UI / MDX | Fumadocs (`fumadocs-core`, `fumadocs-ui`, `fumadocs-mdx`) |
-| Host | **Next.js** (App Router) — `next` **16.3.8** |
-| Content | `spec/` (read-only from this app’s perspective) |
+| Host          | **Next.js** (App Router) — `next` **16.3.8**              |
+| Content       | `openspec/` (read-only from this app’s perspective)           |
 
-Inventory: [`spec/tech-stack.md`](../../spec/tech-stack.md#docs-site-appsdocs).
+Inventory: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#docs-site-appsdocs).
 
 ## Deploy
 
-QA/Prod: Coolify Application. Multi-stage `apps/docs/Dockerfile` (Next.js build); Coolify builds from Git — see [`spec/tech-stack.md`](../../spec/tech-stack.md#coolify-build-deploy-data-services).
+QA/Prod: Coolify Application. Multi-stage `apps/docs/Dockerfile` (Next.js build); Coolify builds from Git — see [`openspec/tech-stack.md`](../../openspec/tech-stack.md#coolify-build-deploy-data-services).
 
 ## Local
 

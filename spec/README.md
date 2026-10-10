@@ -1,17 +1,11 @@
-# Spec
+# Spec (moved)
 
-Product specification — source of truth for features, domain decisions, architecture, tech stack, and the data model.
+Product SoTs live under **[`openspec/`](../openspec/)** — see [`openspec/README.md`](../openspec/README.md).
 
-`apps/docs` publishes this tree; do not author durable specs inside the docs app.
-
-| Path | Role |
+| Was here | Now |
 |---|---|
-| `features/` | Feature specs (behaviour, acceptance) |
-| `decisions/` | Architecture decision records (ADRs) |
-| `architecture.md` | System picture and boundaries (tech-agnostic) |
-| `tech-stack.md` | Technology stack inventory |
-| `tech-stack-todo.md` | Spec backlog vs template gaps (decide / write / impl later) |
-| `erd/schema.sql` | Data model (hand-edit only) |
-| `erd/generated/` | Output from `pnpm generate` (JSON, ERD, docs/, types/) — do not edit |
+| `erd/` | `openspec/data-model/` |
+| `decisions/` | `openspec/decisions/` |
+| `features/`, architecture, tech-stack | `openspec/` |
 
-Related: root `CONTEXT.md` (ubiquitous language). Plans live under `spark/plans/` (process), not here.
+This Root-`openspec/` directory is a redirect only — do not add new product SoTs here.

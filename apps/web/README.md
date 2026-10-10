@@ -2,9 +2,11 @@
 
 React-based web frontend as its own HTTP service.
 
+**Bundler:** **Vite** (dev port `5173` per `.env.example`). Talks to the API via `@helloworld/api-client` (sessions / Better Auth) — not `@helloworld/platform`.
+
 ## Deploy
 
-QA/Prod: Coolify Application. Multi-stage `apps/web/Dockerfile`; Coolify builds from Git — see [`spec/tech-stack.md`](../../spec/tech-stack.md#coolify-build-deploy-data-services).
+QA/Prod: Coolify Application. Multi-stage `apps/web/Dockerfile`; Coolify builds from Git — see [`openspec/tech-stack.md`](../../openspec/tech-stack.md#coolify-build-deploy-data-services).
 
 ## Local
 
@@ -18,4 +20,4 @@ pnpm run dev
 pnpm run --filter web dev
 ```
 
-Stack and bundler details come later — see [`spec/tech-stack.md`](../../spec/tech-stack.md).
+Stack and bundler details come later — see [`openspec/tech-stack.md`](../../openspec/tech-stack.md).

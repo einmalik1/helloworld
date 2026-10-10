@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-10T08:12:19.731927Z" agent="erd-pipeline" version="24.0.0">
+  <diagram id="erd-big-picture" name="erd-big-picture">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="n0" value="&lt;b&gt;person&lt;/b&gt;&lt;br&gt;Person · 4 fields" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563eb;fontColor=#ffffff;strokeColor=none" vertex="1" parent="1">
+          <mxGeometry x="40" y="60.0" width="220" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="n1" value="&lt;b&gt;channel&lt;/b&gt;&lt;br&gt;Channel · 4 fields" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563eb;fontColor=#ffffff;strokeColor=none" vertex="1" parent="1">
+          <mxGeometry x="40" y="170.0" width="220" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="n2" value="&lt;b&gt;greeting&lt;/b&gt;&lt;br&gt;Greeting · 5 fields" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563eb;fontColor=#ffffff;strokeColor=none" vertex="1" parent="1">
+          <mxGeometry x="40" y="280.0" width="220" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="n3" value="&lt;b&gt;greeting_reaction&lt;/b&gt;&lt;br&gt;Greeting reaction · 5 fields" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#059669;fontColor=#ffffff;strokeColor=none" vertex="1" parent="1">
+          <mxGeometry x="300" y="170.0" width="220" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="e0" value="author" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;labelBackgroundColor=#ffffff;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="n0" target="n2">
+          <mxGeometry relative="1" as="geometry">
+          <Array as="points"><mxPoint x="10" y="95.0"/><mxPoint x="10" y="315.0"/></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e1" value="channel" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;labelBackgroundColor=#ffffff;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="n1" target="n2">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" value="greeting" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;labelBackgroundColor=#ffffff;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="n2" target="n3">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" value="person" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;labelBackgroundColor=#ffffff;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="n0" target="n3">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

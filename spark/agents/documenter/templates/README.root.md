@@ -8,15 +8,15 @@ Short overview (2–4 sentences). Details live in component READMEs and under `s
 
 ## Layout
 
-| Path | Role |
-|---|---|
-| `apps/` | Services (web, api, worker, docs, storybook, mcp) |
-| `tools/` | cli, tui |
-| `packages/` | Shared libraries |
-| `infra/` | postgres, s3 |
-| `tests/` | System-wide tests |
-| `spec/` | Product specs (features, decisions, ERD) |
-| `spark/` | Repo profile and agent roles |
+| Path        | Role                                              |
+| ----------- | ------------------------------------------------- |
+| `apps/`     | Services (web, api, worker, docs, storybook, mcp) |
+| `tools/`    | cli, tui                                          |
+| `packages/` | Shared libraries                                  |
+| `infra/`    | postgres, s3                                      |
+| `tests/`    | System-wide tests                                 |
+| `openspec/`     | Product specs (features, decisions, ERD)          |
+| `spark/`    | Repo profile and agent roles                      |
 
 ## Components
 

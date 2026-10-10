@@ -24,9 +24,9 @@ if (!existsSync(config)) {
   process.exit(0);
 }
 
-const result = spawnSync(
-  "pnpm",
-  ["exec", "orval", "--config", "orval.config.ts"],
-  { cwd: root, stdio: "inherit", shell: process.platform === "win32" },
-);
+const result = spawnSync("pnpm", ["exec", "orval", "--config", "orval.config.ts"], {
+  cwd: root,
+  stdio: "inherit",
+  shell: process.platform === "win32",
+});
 process.exit(result.status ?? 1);

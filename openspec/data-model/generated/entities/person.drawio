@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-10T08:12:19.733301Z" agent="erd-pipeline" version="24.0.0">
+  <diagram id="ent-person" name="ent-person">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="main" value="&lt;b&gt;person&lt;/b&gt;&lt;br&gt;PK id&lt;br&gt;display_name&lt;br&gt;email&lt;br&gt;created_at" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563eb;fontColor=#ffffff;strokeColor=none" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="280" height="104" as="geometry"/>
+        </mxCell>
+        <mxCell id="nb0" value="&lt;b&gt;greeting&lt;/b&gt;&lt;br&gt;Greeting · 5 fields" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f1f5f9;fontColor=#475569;dashed=1;strokeColor=#94a3b8" vertex="1" parent="1">
+          <mxGeometry x="480" y="40" width="200" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="nb1" value="&lt;b&gt;greeting_reaction&lt;/b&gt;&lt;br&gt;Greeting reaction · 5 fields" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f1f5f9;fontColor=#475569;dashed=1;strokeColor=#94a3b8" vertex="1" parent="1">
+          <mxGeometry x="480" y="160" width="200" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="e0" value="greeting.author" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;labelBackgroundColor=#ffffff;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="" target="nb0">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e1" value="greeting reaction.person" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;labelBackgroundColor=#ffffff;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="" target="nb1">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

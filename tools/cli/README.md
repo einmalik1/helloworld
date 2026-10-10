@@ -2,24 +2,24 @@
 
 Installable **non-interactive** command-line client for Hello World. Talks to `apps/api` and `apps/worker` over HTTP.
 
-Separate from [`tools/tui`](../tui/README.md) (Ink UI). Stack inventory: [`spec/tech-stack.md`](../../spec/tech-stack.md#terminal-clients-toolscli-toolstui).
+Separate from [`tools/tui`](../tui/README.md) (Ink UI). Stack inventory: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#terminal-clients-toolscli-toolstui).
 
 ## Role
 
 Thin client: local config → HTTP → print result / exit code.  
 **Not** NestJS, no database, no Pino, no Playwright.
 
-| Concern | Choice |
-|---|---|
-| Framework | Commander **15.0.0** |
-| HTTP | ky **2.1.0** via `packages/api-client` (when wired) |
-| Terminal toolkit | `packages/terminal` (`config` / `log` / `tty`) |
-| User config | `@helloworld/terminal/config` |
-| Logging | `@helloworld/terminal/log` — **tslog** + **ora** (stderr); results on stdout |
-| Shared types | `packages/types` (when wired) |
-| Binary | `helloworld` → `bin/run.js` → `dist/…` |
-| Build | `tsc` → `dist/` — [`Build / emit contract`](../../spec/tech-stack.md#build--emit-contract) |
-| Tests | Vitest under `tools/cli` (and `tests/cli` for service-backed runs) |
+| Concern          | Choice                                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| Framework        | Commander **15.0.0**                                                                       |
+| HTTP             | ky **2.1.0** via `packages/api-client` (when wired)                                        |
+| Terminal toolkit | `packages/terminal` (`config` / `log` / `tty`)                                             |
+| User config      | `@helloworld/terminal/config`                                                              |
+| Logging          | `@helloworld/terminal/log` — **tslog** + **ora** (stderr); results on stdout               |
+| Shared types     | `packages/types` (when wired)                                                              |
+| Binary           | `helloworld` → `bin/run.js` → `dist/…`                                                     |
+| Build            | `tsc` → `dist/` — [`Build / emit contract`](../../openspec/tech-stack.md#build--emit-contract) |
+| Tests            | Vitest under `tools/cli` (and `tests/cli` for service-backed runs)                         |
 
 ## Layout (intent)
 
@@ -55,18 +55,22 @@ Intent (shape may grow with features):
 {
   "environment": "local",
   "environments": {
-    "local": { "apiUrl": "http://localhost:…", "workerUrl": "http://localhost:…", "credential": "…" },
+    "local": {
+      "apiUrl": "http://localhost:…",
+      "workerUrl": "http://localhost:…",
+      "credential": "…"
+    },
     "dev": {},
     "prod": {}
   }
 }
 ```
 
-| Key | Scope | Meaning |
-|---|---|---|
-| `apiUrl` / `workerUrl` | per environment | Base URLs for ky `prefixUrl` |
-| credentials / apiKey | per environment | Better Auth API key (`@better-auth/api-key`); never commit |
-| `environment` | global | Default env for TUI; CLI overrides via `--env` |
+| Key                    | Scope           | Meaning                                                    |
+| ---------------------- | --------------- | ---------------------------------------------------------- |
+| `apiUrl` / `workerUrl` | per environment | Base URLs for ky `prefixUrl`                               |
+| credentials / apiKey   | per environment | Better Auth API key (`@better-auth/api-key`); never commit |
+| `environment`          | global          | Default env for TUI; CLI overrides via `--env`             |
 
 Missing file → safe defaults for local. Corrupt/unreadable file → hard error (no silent prod→localhost fallback).
 
@@ -74,20 +78,20 @@ Missing file → safe defaults for local. Corrupt/unreadable file → hard error
 
 ## Global flags (intent)
 
-| Flag | Default | Effect |
-|---|---|---|
-| `--env <local\|dev\|prod>` | from config / sensible default | Environment for this run only |
-| `--json` | off | Raw JSON instead of tables/text |
+| Flag                       | Default                        | Effect                          |
+| -------------------------- | ------------------------------ | ------------------------------- |
+| `--env <local\|dev\|prod>` | from config / sensible default | Environment for this run only   |
+| `--json`                   | off                            | Raw JSON instead of tables/text |
 
 ## Commands (intent)
 
 Scaffold when features exist. Baseline ops:
 
-| Command | Role |
-|---|---|
-| `helloworld health` | Parallel `api` + `worker` `/health` |
-| `helloworld config list \| set \| unset \| env` | Local config / environment |
-| `helloworld …` | Domain subcommands against the REST API |
+| Command                                         | Role                                    |
+| ----------------------------------------------- | --------------------------------------- |
+| `helloworld health`                             | Parallel `api` + `worker` `/health`     |
+| `helloworld config list \| set \| unset \| env` | Local config / environment              |
+| `helloworld …`                                  | Domain subcommands against the REST API |
 
 Exit codes: `0` success, `1` HTTP / config / usage error.
 
@@ -107,8 +111,8 @@ helloworld --env local config list
 
 ## Boundaries
 
-| | `apps/api` / `apps/worker` | `tools/cli` |
-|---|---|---|
-| Role | Source of truth, DB, jobs | Thin client |
-| Persist | PostgreSQL / object store | XDG config JSON only |
-| Errors | neverthrow / HTTP mapping | throw → exit `1` |
+|         | `apps/api` / `apps/worker` | `tools/cli`          |
+| ------- | -------------------------- | -------------------- |
+| Role    | Source of truth, DB, jobs  | Thin client          |
+| Persist | PostgreSQL / object store  | XDG config JSON only |
+| Errors  | neverthrow / HTTP mapping  | throw → exit `1`     |

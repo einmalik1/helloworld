@@ -32,22 +32,54 @@ release_paths:
 deployment:
   hub: custom
   # Coolify builds each app from its multi-stage Dockerfile (Git + Dockerfile pack).
-  # See spec/tech-stack.md § Coolify. Optional later: registry pull-only deploys.
+  # See openspec/tech-stack.md § Coolify. Optional later: registry pull-only deploys.
 
 coolify:
-  # Fill UUIDs and context once Coolify projects exist.
-  context: ""
-  instance_url: ""
+  # Provisioned 2026-10-10 via Coolify CLI 1.8.0 (context: home). See openspec/changes/provision-coolify-test-env.
+  context: home
+  instance_url: "http://host.docker.internal:8000"
+  # CLI note: `coolify version` → 1.8.0 (update available 1.9.0). Garage create needed API (CLI --list-types stale vs API).
   team_id: 0
-  project_uuid: ""
+  project_uuid: "rx35b6552e0csdcmqffv5ycv"
+  server_uuid: "jgokede0e0ic2nld9gls8cqi"
   build_pack: dockerfile
   # Per-app Dockerfile paths when apps[] is filled, e.g. apps/api/Dockerfile (context: repo root).
+  #
+  # Environments:
+  #   test        — shared integration plane for agents/CI (Postgres, Garage; later search/graph; apps via API/MCP)
+  #   qa          — human/staging (not created yet in Coolify — create when needed)
+  #   production  — Coolify default env on project
+  # Do NOT start infra/docker-compose on the Coolify host from agents (port clashes). Laptops may use docker:local:*.
   environments:
-    - slug: production
-      name: production
+    - slug: test
+      name: test
+      purpose: agent_ci_integration
+      uuid: "jcuktxc8fkxljvvrtcofiu23"
+      data_plane:
+        - postgres
+        - object_storage
+        # later: search, knowledge_graph
+      resources:
+        postgres_uuid: "uajgxibw9cp5bbk0ftpozngg"
+        # DATABASE_URL intent: postgresql://helloworld:helloworld@<coolify-internal-host>:5432/helloworld
+        # (resolve host from Coolify DB network / service name helloworld-test-postgres)
+        garage_uuid: "wkcfjdulstfgbjcrmndvygup"
+        # S3_* from Garage service env after first start/configure in Coolify UI
+      app_plane:
+        - api
+        - worker
+        - mcp
+        # later: web, docs, …
     - slug: qa
       name: qa
+      purpose: staging
+      # uuid: create with `coolify project environments create <project_uuid> --name qa` when needed
+    - slug: production
+      name: production
+      purpose: production
+      uuid: "gupklxhd6mmcbhahjbag5a0i"
   apps: []
+  # App plane skipped until Dockerfiles exist under apps/*/Dockerfile — document blocker for api/worker/mcp.
 
 release:
   name: helloworld
@@ -60,16 +92,16 @@ release:
     package_name: helloworld
 
 doc_feature_paths:
-  - spec/features/
+  - openspec/features/
 
 doc_architecture_paths:
   - agents.md
-  - spec/architecture.md
-  - spec/tech-stack.md
+  - openspec/architecture.md
+  - openspec/tech-stack.md
 
 doc_domain_paths:
   - CONTEXT.md
-  - spec/decisions/
+  - openspec/decisions/
 
 doc_publish_defaults:
   - repo
@@ -78,10 +110,10 @@ telemetry:
   enabled: false
 
 # Schema / ERD / docs / types codegen — SoT for generator config (categories + per-stage knobs).
-# DDL SoT remains spec/erd/schema.sql; tables assign category keys via COMMENT ON TABLE.
+# DDL SoT remains openspec/data-model/schema.sql; tables assign category keys via COMMENT ON TABLE.
 generators:
-  schema_sql: spec/erd/schema.sql
-  schema_model: spec/erd/generated/schema-model.json
+  schema_sql: openspec/data-model/schema.sql
+  schema_model: openspec/data-model/generated/schema-model.json
   categories:
     - key: core
       label: Core
@@ -91,8 +123,8 @@ generators:
       color: "#059669"
   erd:
     enabled: true
-    out_dir: spec/erd/generated
-    nicht_crud_katalog: spec/erd/nicht-crud-katalog.md
+    out_dir: openspec/data-model/generated
+    nicht_crud_katalog: openspec/data-model/nicht-crud-katalog.md
     audit_fk_columns:
       - created_by
       - updated_by
@@ -102,12 +134,12 @@ generators:
       - actor_id
   docs:
     enabled: true
-    out_dir: spec/erd/generated/docs
+    out_dir: openspec/data-model/generated/docs
   types:
     enabled: true
     out_dirs:
       # Artifact copy under ERD generated/ is fine; package source uses schema/ (not a "generated/" folder).
-      - spec/erd/generated/types
+      - openspec/data-model/generated/types
       - packages/types/src/schema
   api:
     enabled: true
