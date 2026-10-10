@@ -19,13 +19,37 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "smoke": "vitest run src/nest-di.smoke.spec.ts"
   },
   "dependencies": {
-    "drizzle-orm": "0.45.3"
+    "@better-auth/api-key": "1.7.7",
+    "@nestjs/common": "12.1.2",
+    "@nestjs/config": "12.0.1",
+    "@nestjs/core": "12.1.2",
+    "@nestjs/platform-express": "12.1.2",
+    "@nestjs/swagger": "12.0.2",
+    "@nestjs/terminus": "12.1.0",
+    "better-auth": "1.7.7",
+    "drizzle-orm": "0.45.3",
+    "nestjs-pino": "5.3.0",
+    "nestjs-zod": "5.5.0",
+    "pino": "10.3.1",
+    "postgres": "3.4.9",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "zod": "4.6.5",
+    "pino-pretty": "13.2.0"
   },
   "devDependencies": {
     "@helloworld/config": "workspace:*",
-    "typescript": "7.0.2"
+    "@nestjs/testing": "12.1.2",
+    "@swc/core": "1.15.3",
+    "@types/express": "5.0.3",
+    "@types/node": "24.7.2",
+    "typescript": "7.0.2",
+    "unplugin-swc": "2.0.0",
+    "vitest": "5.0.3"
   }
 }
