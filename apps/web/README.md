@@ -31,6 +31,15 @@ Interactive knowledge-graph view in the SPA. **Cytoscape.js** renders `{ nodes, 
 
 ADR: [`openspec/decisions/0006-search-knowledge-graph.md`](../../openspec/decisions/0006-search-knowledge-graph.md).
 
+## Chat (minimal client)
+
+Temporary static client: [`chat.html`](./chat.html) → `PUBLIC_CHAT_URL` / `http://localhost:3200` with `x-api-key`. The browser must **not** call LLM vendor URLs — [ADR 0008](../../openspec/decisions/0008-chat-service-app.md).
+
+```bash
+pnpm --filter @helloworld/chat dev
+# open apps/web/chat.html (or any static server on :5173)
+```
+
 ## Deploy
 
 QA/Prod: Coolify Application. Multi-stage `apps/web/Dockerfile`; Coolify builds from Git — see [`openspec/tech-stack.md`](../../openspec/tech-stack.md#coolify-build-deploy-data-services).

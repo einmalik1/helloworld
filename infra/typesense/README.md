@@ -2,7 +2,7 @@
 
 Full-text / typo-tolerant search index for Hello World (secondary to Postgres). Product traffic reaches Typesense **only** via `apps/api` (`GET /search`) and `apps/worker` (index sync) — never from CLI/TUI/Web/MCP directly.
 
-Inventory: [`spec/tech-stack.md` § Search / knowledge graph](../../spec/tech-stack.md#search--knowledge-graph). ADR: [`0004`](../../spec/decisions/0004-search-knowledge-graph.md).
+Inventory: [`openspec/tech-stack.md` § Search / knowledge graph](../../openspec/tech-stack.md#search--knowledge-graph). ADR: [`0006`](../../openspec/decisions/0006-search-knowledge-graph.md).
 
 **Prod / QA:** Typesense as a Coolify service (or equivalent container) on the private network with api/worker. **Local:** Compose stand-in in this folder / root Compose.
 

@@ -16,3 +16,4 @@ Key: `core` · Color: `#2563eb`
 | greeting | channel_id | channel.id | fk |
 | greeting_reaction | greeting_id | greeting.id | fk |
 | greeting_reaction | person_id | person.id | fk |
+| conversation | owner_person_id | person.id | fk |

@@ -7,6 +7,7 @@ Do not edit by hand — run `pnpm generate`.
 |---|---|
 | [Core](categories/core.md) (`core`) | 3 |
 | [Social](categories/social.md) (`social`) | 1 |
+| [Chat](categories/chat.md) (`chat`) | 2 |
 
 ## All tables
 
@@ -14,3 +15,5 @@ Do not edit by hand — run `pnpm generate`.
 - [`channel`](tables/channel.md) — Channel (core)
 - [`greeting`](tables/greeting.md) — Greeting (core)
 - [`greeting_reaction`](tables/greeting_reaction.md) — Greeting reaction (social)
+- [`conversation`](tables/conversation.md) — Conversation (chat)
+- [`message`](tables/message.md) — Message (chat)

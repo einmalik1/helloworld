@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mxfile host="app.diagrams.net" modified="2026-10-10T08:12:19.732373Z" agent="erd-pipeline" version="24.0.0">
+<mxfile host="app.diagrams.net" modified="2026-10-10T10:31:57.146658Z" agent="erd-pipeline" version="24.0.0">
   <diagram id="cat-core" name="cat-core">
     <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
       <root>
@@ -17,6 +17,9 @@
         <mxCell id="n3" value="&lt;b&gt;greeting_reaction&lt;/b&gt;&lt;br&gt;Greeting reaction · 5 fields" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f1f5f9;fontColor=#475569;dashed=1;strokeColor=#94a3b8" vertex="1" parent="1">
           <mxGeometry x="40" y="180" width="220" height="70" as="geometry"/>
         </mxCell>
+        <mxCell id="n4" value="&lt;b&gt;conversation&lt;/b&gt;&lt;br&gt;Conversation · 5 fields" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f1f5f9;fontColor=#475569;dashed=1;strokeColor=#94a3b8" vertex="1" parent="1">
+          <mxGeometry x="300" y="180" width="220" height="70" as="geometry"/>
+        </mxCell>
         <mxCell id="e0" value="author" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;labelBackgroundColor=#ffffff;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="n0" target="n2">
           <mxGeometry relative="1" as="geometry">
           </mxGeometry>
@@ -30,6 +33,10 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="e3" value="person" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;labelBackgroundColor=#ffffff;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="n0" target="n3">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" value="owner person" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;labelBackgroundColor=#ffffff;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="n0" target="n4">
           <mxGeometry relative="1" as="geometry">
           </mxGeometry>
         </mxCell>

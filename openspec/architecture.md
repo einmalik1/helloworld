@@ -21,6 +21,7 @@ Graph exploration and full-text search sit **beside** Postgres, not instead of i
 | Graph UI | `apps/web` viz over API JSON | Consumes retrieve JSON only |
 | Sync | `apps/worker` after writes (outbox / jobs) | Not sync-on-write on the API request path |
 | Agents | `apps/mcp` tools | Call `apps/api` retrieve/search only — never AGE/search URLs |
+| Chat | `apps/chat` | LLM + streaming; web is client only — [ADR 0008](decisions/0008-chat-service-app.md) |
 
 ```text
 Clients (web / CLI / TUI / MCP)
@@ -37,6 +38,7 @@ apps/api  ── write ──►  Postgres (SoT) + graph extension
     └── GET /search         → search hits
 
 apps/web ── graph viz ──► retrieve JSON only
+apps/web ── chat UI   ──► apps/chat ──► LLM provider (server-side only)
 ```
 
 Chosen engines and deploy shape: [`tech-stack.md`](tech-stack.md#search--knowledge-graph). Rationale: [`decisions/0006-search-knowledge-graph.md`](decisions/0006-search-knowledge-graph.md).

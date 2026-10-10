@@ -6,7 +6,7 @@ Defines the generic import/export capability: bulk load and extract of domain re
 ## Requirements
 
 ### Requirement: Async import and export via worker
-Import and export of catalog resources MUST run asynchronously on the worker. Starting an import or export via the API MUST return quickly with acceptance semantics (`202` intent) and run identifiers.
+Import and export of catalog resources MUST run asynchronously on `apps/worker` under the `worker-jobs` model (v1: Nest `@nestjs/schedule` + Postgres-backed work state — not a mandatory Redis or pg-boss dependency). Starting an import or export via the API MUST return quickly with acceptance semantics (`202` intent) and run identifiers.
 
 #### Scenario: Start import returns without waiting for file apply
 - **WHEN** a client starts an import after uploading a file to object storage

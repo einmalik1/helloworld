@@ -22,7 +22,7 @@
 -- Output: paths from spark/repo-profile.yaml generators.*
 --   Edit only this file and the profile by hand; generated/ is overwritten.
 --
--- Demo model: person / channel / greeting / greeting_reaction (relations for ERD).
+-- Demo model: person / channel / greeting / greeting_reaction / conversation / message.
 
 CREATE TABLE person (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -74,3 +74,31 @@ COMMENT ON TABLE greeting_reaction IS 'category: social | label: Greeting reacti
 COMMENT ON COLUMN greeting_reaction.greeting_id IS 'Greeting being reacted to';
 COMMENT ON COLUMN greeting_reaction.person_id IS 'Person who reacted';
 COMMENT ON COLUMN greeting_reaction.emoji IS 'Reaction emoji (e.g. thumbs-up)';
+
+CREATE TABLE conversation (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_person_id uuid NOT NULL REFERENCES person (id) ON DELETE CASCADE,
+  title text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE conversation IS 'category: chat | label: Conversation | spec: openspec/specs/chat-service/spec.md | desc: Chat thread owned by a person; LLM traffic via apps/chat only';
+COMMENT ON COLUMN conversation.owner_person_id IS 'Person who owns the conversation';
+COMMENT ON COLUMN conversation.title IS 'Optional display title';
+
+CREATE TABLE message (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id uuid NOT NULL REFERENCES conversation (id) ON DELETE CASCADE,
+  role text NOT NULL,
+  content text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CHECK (role IN ('user', 'assistant', 'system', 'tool'))
+);
+
+CREATE INDEX message_conversation_created_idx ON message (conversation_id, created_at);
+
+COMMENT ON TABLE message IS 'category: chat | label: Message | spec: openspec/specs/chat-service/spec.md | desc: Ordered chat message in a conversation';
+COMMENT ON COLUMN message.conversation_id IS 'Parent conversation';
+COMMENT ON COLUMN message.role IS 'user | assistant | system | tool';
+COMMENT ON COLUMN message.content IS 'Message text (tool payloads may be serialized text in v1)';
