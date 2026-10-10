@@ -18,9 +18,13 @@
     "generate:types": "python3 spark/generators/run.py --only types",
     "generate:api": "python3 spark/generators/run.py --only api",
     "generate:nest-dto": "python3 spark/generators/run.py --only nest_dto",
-    "generate:client": "pnpm --filter @helloworld/api-client generate"
+    "generate:drizzle": "python3 spark/generators/run.py --only drizzle",
+    "generate:client": "pnpm --filter @helloworld/api-client generate",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "devDependencies": {
+    "drizzle-kit": "0.31.11",
     "oxfmt": "0.71.0",
     "oxlint": "1.86.0",
     "turbo": "2.11.6",

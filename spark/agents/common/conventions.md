@@ -60,9 +60,9 @@ Domain Drizzle **schema** TS comes from the `drizzle` generator stage (`schema.s
 
 | # | Step | Owner | Notes |
 |---|---|---|---|
-| 1 | Edit [`spec/erd/schema.sql`](../../../spec/erd/schema.sql) (+ `spark/repo-profile.yaml` generator categories if needed) | Human / agent | SQL is the domain SoT |
-| 2 | `pnpm generate` | Anyone | core → types → api → nest_dto (+ drizzle stage) |
-| 3 | Apply migrations (`pnpm db:migrate` intent — `drizzle-kit migrate`) | Anyone | Same script local + Coolify pre-deploy; **before** hand queries |
+| 1 | Edit [`openspec/data-model/schema.sql`](../../../openspec/data-model/schema.sql) (+ `spark/repo-profile.yaml` generator categories if needed) | Human / agent | SQL is the domain SoT |
+| 2 | `pnpm generate` | Anyone | core → types → api → nest_dto → drizzle |
+| 3 | Apply migrations (`pnpm db:migrate` — `drizzle-kit migrate`) | Anyone | Same script local + Coolify pre-deploy; **before** hand queries |
 | 4 | `DatabaseService` domain methods | Hand | Queries only — no generic CRUD; schema already generated |
 | 5 | Feature module (`controller` / `service` / `module`) + `AppModule` import | Hand | Use generated DTOs; neverthrow in the service |
 | 6 | `openapi:export` → `pnpm generate:client` | Anyone | Nest OpenAPI → Orval client |

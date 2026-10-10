@@ -92,7 +92,7 @@ API-focused steps when adding a Nest feature for a new domain table. **Normative
 |---|---|---|
 | 1 | SQL SoT | Edit `openspec/data-model/schema.sql` (+ profile categories) |
 | 2 | Generate | `pnpm generate` → Zod types, Nest DTOs under `src/{resource}/dto/`, domain Drizzle TS |
-| 3 | Migrate | `pnpm db:migrate` (intent) before hand queries |
+| 3 | Migrate | `pnpm db:migrate` before hand queries |
 | 4 | Persistence | Hand-write `DatabaseService` domain methods (injected into the feature service) |
 | 5 | Feature module | Hand-write `{feature}.module.ts` / `.controller.ts` / `.service.ts`; import in `AppModule` — see [NestJS conventions](#nestjs-conventions) |
 | 6 | Client SDK | `openapi:export` → `pnpm generate:client` (Orval) |
