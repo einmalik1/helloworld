@@ -14,8 +14,10 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@helloworld/types": "workspace:*"
+    "@helloworld/types": "workspace:*",
+    "neverthrow": "8.2.0"
   },
+
   "devDependencies": {
     "@helloworld/config": "workspace:*",
     "typescript": "7.0.2"
