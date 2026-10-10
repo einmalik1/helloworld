@@ -15,7 +15,8 @@ schema.sql ─────────┼→ core → schema-model.json
                     │         ├→ docs       (Markdown catalog)
                     │         ├→ types      (Entity Zod → packages/types/src/schema)
                     │         ├→ api        (API Zod → packages/types/src/api)
-                    │         └→ nest_dto   (createZodDto → apps/api/src/{resource}/dto)
+                    │         ├→ nest_dto   (createZodDto → apps/api/src/{resource}/dto)
+                    │         └→ drizzle    (domain Drizzle TS → packages/modules/…/schema)
                     │
 pnpm generate:client ─→ Orval (apps/api/openapi.json → packages/api-client/src/generated)
 ```
@@ -25,13 +26,14 @@ pnpm generate:client ─→ Orval (apps/api/openapi.json → packages/api-client
 | Script                   | What                                                   |
 | ------------------------ | ------------------------------------------------------ |
 | `pnpm generate`          | Full pipeline: all code stages + Orval client          |
-| `pnpm generate:code`     | Python stages only (`core` → `nest_dto`)               |
+| `pnpm generate:code`     | Python stages only (`core` → `drizzle`)                |
 | `pnpm generate:core`     | SQL → `schema-model.json`                              |
 | `pnpm generate:erd`      | JSON → ERD diagrams / HTML                             |
 | `pnpm generate:docs`     | JSON → Markdown catalog                                |
 | `pnpm generate:types`    | Entity Zod                                             |
 | `pnpm generate:api`      | API Zod (Create/Update/Response)                       |
 | `pnpm generate:nest-dto` | Nest `createZodDto` files                              |
+| `pnpm generate:drizzle`  | Domain Drizzle TS → `packages/modules`                 |
 | `pnpm generate:client`   | Orval SDK (skips until `apps/api/openapi.json` exists) |
 
 Low-level:
@@ -54,5 +56,10 @@ python3 spark/generators/run.py --only api --only nest_dto
 | types    | `generators/types`    | each path in `generators.types.out_dirs`           |
 | api      | `generators/api`      | `generators.api.out_dir`                           |
 | nest_dto | `generators/nest_dto` | `{nest_dto.out_dir}/{kebab-resource}/dto/*.dto.ts` |
+| drizzle  | `generators/drizzle`  | `generators.drizzle.out_dir` (domain tables only)  |
 
 Categories (label/color) are defined only in the profile. Tables assign a key via `COMMENT ON TABLE … category: <key>`.
+
+Auth Drizzle schema is **not** a Python stage — regenerate with Better Auth CLI into
+`packages/modules/src/database/auth-schema.ts`. Migrations: `pnpm db:generate` /
+`pnpm db:migrate` (see [`packages/modules/README.md`](../../packages/modules/README.md#database)).

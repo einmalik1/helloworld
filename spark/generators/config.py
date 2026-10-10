@@ -56,6 +56,12 @@ class NestDtoConfig:
 
 
 @dataclass
+class DrizzleConfig:
+    enabled: bool = True
+    out_dir: str = "packages/modules/src/database/schema"
+
+
+@dataclass
 class GeneratorsConfig:
     repo_root: Path
     schema_sql: str
@@ -66,6 +72,7 @@ class GeneratorsConfig:
     types: TypesConfig
     api: ApiConfig
     nest_dto: NestDtoConfig
+    drizzle: DrizzleConfig
 
     def path(self, rel: str) -> Path:
         return (self.repo_root / rel).resolve()
@@ -118,6 +125,7 @@ def load_generators_config(repo_root: Path | None = None) -> GeneratorsConfig:
     types_raw = block.get("types") or {}
     api_raw = block.get("api") or {}
     nest_raw = block.get("nest_dto") or {}
+    drizzle_raw = block.get("drizzle") or {}
 
     schema_sql = block.get("schema_sql") or "openspec/data-model/schema.sql"
     schema_model = block.get("schema_model") or "openspec/data-model/generated/schema-model.json"
@@ -153,6 +161,12 @@ def load_generators_config(repo_root: Path | None = None) -> GeneratorsConfig:
         out_dir=str(nest_raw.get("out_dir") or "apps/api/src"),
         import_types_from=str(nest_raw.get("import_types_from") or "@helloworld/types/api"),
     )
+    drizzle = DrizzleConfig(
+        enabled=bool(drizzle_raw.get("enabled", True)),
+        out_dir=str(
+            drizzle_raw.get("out_dir") or "packages/modules/src/database/schema"
+        ),
+    )
 
     return GeneratorsConfig(
         repo_root=root,
@@ -164,4 +178,5 @@ def load_generators_config(repo_root: Path | None = None) -> GeneratorsConfig:
         types=types,
         api=api,
         nest_dto=nest_dto,
+        drizzle=drizzle,
     )

@@ -80,6 +80,7 @@ coolify:
       uuid: "gupklxhd6mmcbhahjbag5a0i"
   apps: []
   # App plane skipped until Dockerfiles exist under apps/*/Dockerfile — document blocker for api/worker/mcp.
+  # When api/worker Dockerfiles land: Coolify pre-deploy command = `pnpm db:migrate` (same as local).
 
 release:
   name: helloworld
@@ -155,6 +156,9 @@ generators:
     enabled: true
     out_dir: apps/api/src
     import_types_from: "@helloworld/types/api"
+  drizzle:
+    enabled: true
+    out_dir: packages/modules/src/database/schema
 
 rules_paths:
   always:

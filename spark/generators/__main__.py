@@ -1,4 +1,4 @@
-"""CLI: load repo-profile → core → erd → docs → types → api → nest_dto."""
+"""CLI: load repo-profile → core → erd → docs → types → api → nest_dto → drizzle."""
 
 from __future__ import annotations
 
@@ -11,16 +11,17 @@ from generators.api.generate import generate_api
 from generators.config import find_repo_root, load_generators_config
 from generators.core.parse_schema import build_schema_model, write_schema_model
 from generators.docs.generate import generate_docs
+from generators.drizzle.generate import generate_drizzle
 from generators.erd.generate import generate_erd
 from generators.nest_dto.generate import generate_nest_dto
 from generators.types.generate import generate_types
 
-ALL_STAGES = ("core", "erd", "docs", "types", "api", "nest_dto")
+ALL_STAGES = ("core", "erd", "docs", "types", "api", "nest_dto", "drizzle")
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Hello World generators (SQL → JSON → ERD / docs / types / api / nest_dto)"
+        description="Hello World generators (SQL → JSON → ERD / docs / types / api / nest_dto / drizzle)"
     )
     parser.add_argument(
         "--repo-root",
@@ -66,6 +67,8 @@ def main(argv: list[str] | None = None) -> int:
         generate_api(cfg, model)
     if "nest_dto" in stages:
         generate_nest_dto(cfg, model)
+    if "drizzle" in stages:
+        generate_drizzle(cfg, model)
 
     return 0
 

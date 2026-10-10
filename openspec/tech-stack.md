@@ -622,32 +622,33 @@ Root quality gate (when wired): `format` → `lint` → `typecheck` → `test`. 
 
 ## Database / Drizzle (schema & migrations)
 
-SQL-first persistence: domain DDL in [`spec/data-model/schema.sql`](data-model/schema.sql) is the source of truth; Drizzle TypeScript and applied migrations are derived. Rationale and rejected alternatives: [`decisions/0001-schema-migrations.md`](decisions/0001-schema-migrations.md). Package contract: [`packages/modules/README.md`](../packages/modules/README.md#database).
+SQL-first persistence: domain DDL in [`openspec/data-model/schema.sql`](data-model/schema.sql) is the source of truth; Drizzle TypeScript and applied migrations are derived. Rationale and rejected alternatives: [`decisions/0001-schema-migrations.md`](decisions/0001-schema-migrations.md). Package contract: [`packages/modules/README.md`](../packages/modules/README.md#database).
 
 | Decision | Choice | Notes |
 |---|---|---|
-| Domain SoT | **`spec/data-model/schema.sql`** | Edit SQL first; ERD / Zod / Nest DTO / Drizzle generators consume it |
-| Drizzle ownership | **Generator stage → Drizzle TS** under `packages/modules` | Aligns with `pnpm generate`. **Not** hand-written domain schema as primary; **not** `drizzle-kit pull` as primary |
-| Auth tables | **Better Auth owned** | `@better-auth/cli generate` → separate Drizzle file (e.g. `auth-schema.ts`) in `packages/modules`; **do not** hand-merge auth DDL into `schema.sql` unless ERD docs for auth are explicitly required later |
-| Migration runner | **`drizzle-kit migrate`** | Same command surface local + QA/Prod |
-| When migrations run | Root/package script; Coolify **pre-deploy** runs that script | App boot assumes schema already applied |
+| Domain SoT | **`openspec/data-model/schema.sql`** | Edit SQL first; ERD / Zod / Nest DTO / Drizzle generators consume it |
+| Drizzle ownership | **Generator stage → Drizzle TS** under `packages/modules/src/database/schema/` | Aligns with `pnpm generate`. **Not** hand-written domain schema as primary; **not** `drizzle-kit pull` as primary |
+| Auth tables | **Better Auth owned** | `auth@1.7.7 generate` → `packages/modules/src/database/auth-schema.ts`; **do not** hand-merge auth DDL into `schema.sql` unless ERD docs for auth are explicitly required later |
+| Migration runner | **`drizzle-kit migrate`** via **`pnpm db:migrate`** | Same command surface local + Coolify pre-deploy |
+| When migrations run | Root script; Coolify **pre-deploy** runs `pnpm db:migrate` | App boot assumes schema already applied |
 | Runtime DDL | **Rejected** | No `CREATE TABLE IF NOT EXISTS` / idempotent `ALTER` in Nest `onModuleInit()` (or any lifecycle) |
 
-**Pipeline (intent)**
+**Pipeline**
 
 ```text
 schema.sql ──► pnpm generate (… + drizzle stage)
-                 → packages/modules/… domain Drizzle schema
-auth CLI ──────► packages/modules/… auth-schema.ts   (separate SoT)
-drizzle-kit ───► migrations/  →  pnpm db:migrate     (local = Coolify pre-deploy)
+                 → packages/modules/src/database/schema/
+auth CLI ──────► packages/modules/src/database/auth-schema.ts   (separate SoT)
+drizzle-kit ───► packages/modules/drizzle/  →  pnpm db:migrate     (local = Coolify pre-deploy)
 ```
 
-| Script (intent) | Role |
+| Script | Role |
 |---|---|
 | `pnpm generate` / `pnpm generate:drizzle` | Domain SQL → Drizzle TS (plus existing stages) |
-| `pnpm db:migrate` (name TBD when wiring) | `drizzle-kit migrate` against `DATABASE_URL` |
+| `pnpm db:generate` | `drizzle-kit generate` (domain + auth schema → SQL under `packages/modules/drizzle/`) |
+| `pnpm db:migrate` | `drizzle-kit migrate` against `DATABASE_URL` |
 
-Coolify: configure the **same** migrate script as a pre-deploy command for apps that need the DB (at least `apps/api` / `apps/worker`). Local Compose Postgres uses the same script against root `.env` `DATABASE_URL`.
+Coolify: configure **`pnpm db:migrate`** as a pre-deploy command for apps that need the DB (at least `apps/api` / `apps/worker`). Local Compose Postgres uses the same script against root `.env` `DATABASE_URL`. Config: root [`drizzle.config.ts`](../drizzle.config.ts).
 
 **New resource workflow:** after SQL + generate, run migrate before hand-written `DatabaseService` methods — agent checklist: [`spark/agents/common/conventions.md` § New resource workflow](../spark/agents/common/conventions.md#new-resource-workflow) (process **#6**, [GH #13](https://github.com/einmalik1/helloworld/issues/13)); Nest mirror: [`apps/api/README.md` § Feature / new resource](../apps/api/README.md#feature--new-resource-workflow).
 
@@ -663,7 +664,7 @@ Python + Jinja2 codegen driven by [`spark/repo-profile.yaml`](../spark/repo-prof
 | types | JSON → Entity Zod → `packages/types/src/schema/` (+ artifact under `spec/data-model/generated/types/`) |
 | api | Entity Zod → Create/Update/Response → `packages/types/src/api/` |
 | nest_dto | API Zod → `createZodDto` classes → `apps/api/src/{resource}/dto/` |
-| drizzle | JSON → domain Drizzle TS → `packages/modules` (intent; wire with migrations strategy) |
+| drizzle | JSON → domain Drizzle TS → `packages/modules/src/database/schema/` |
 
 **API Create omit:** PK-with-default + `generators.api.create_omit_columns` (default `created_at`, `updated_at`). Update = Create.partial(). Response = entity schema.
 
