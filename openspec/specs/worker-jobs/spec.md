@@ -6,14 +6,18 @@ Defines background job execution for Hello World: durable jobs on PostgreSQL (pg
 ## Requirements
 
 ### Requirement: Durable jobs on Postgres queue
-Long-running work (including impex) MUST run as durable jobs backed by PostgreSQL (pg-boss). Redis MUST NOT be required for the template job queue.
+Long-running work (including impex and search/graph projection sync) MUST run as jobs owned by `apps/worker` without a Redis broker. For template v1 the job trigger model MUST be Nest **`@nestjs/schedule`** plus durable work state in **PostgreSQL** (e.g. outbox / job rows). A separate queue product (e.g. pg-boss) MUST NOT be required in v1.
 
 #### Scenario: Import does not need Redis
-- **WHEN** an import job is enqueued
-- **THEN** job durability is provided via PostgreSQL/pg-boss without a Redis dependency
+- **WHEN** an import job is enqueued or scheduled
+- **THEN** job coordination does not require Redis
+
+#### Scenario: Schedule is the v1 trigger
+- **WHEN** an agent reads the worker-jobs capability after this change is archived
+- **THEN** the normative trigger is `@nestjs/schedule` / Postgres-backed work state, not a mandatory pg-boss dependency
 
 ### Requirement: Worker owns job execution
-`apps/worker` MUST execute queued jobs and update terminal job/run state. The API MUST NOT keep HTTP requests open until large import/export file processing completes.
+`apps/worker` MUST execute jobs and update terminal job/run state. The API MUST NOT keep HTTP requests open until large import/export file processing or index projection completes.
 
 #### Scenario: API returns quickly when starting work
 - **WHEN** a client starts an import or export via the API

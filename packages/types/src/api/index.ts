@@ -6,4 +6,6 @@ export * from "./person.js";
 export * from "./channel.js";
 export * from "./greeting.js";
 export * from "./greeting_reaction.js";
+export * from "./conversation.js";
+export * from "./message.js";
 

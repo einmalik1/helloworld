@@ -33,7 +33,7 @@ This spec defines the **pattern**. Per-entity formats and field mapping live in 
 | **API** (`apps/api`)                     | Authenticate; validate request; accept or authorize upload of import file to object storage; create import/export **run** (domain record and/or enqueue); return `202` + identifiers; authorize download (presigned URL or proxied stream); expose run status that clients need for product UX. |
 | **Worker** (`apps/worker`)               | Execute import/export **jobs** (parse, validate with Zod/domain rules, write via DB, write export file to object storage); update job/run progress and terminal state; expose job-control HTTP for operators (list/status/trigger) in addition to `/health`.                                    |
 | **Object storage** (`infra/s3` / Garage) | Store import uploads and export artifacts; not processed inside the API request beyond upload handshake.                                                                                                                                                                                        |
-| **Queue** (pg-boss on PostgreSQL)        | Durable job execution, retries, concurrency limits.                                                                                                                                                                                                                                             |
+| **Jobs** (worker + Postgres work/outbox) | Durable-enough job execution via Nest `@nestjs/schedule` + Postgres-backed run/outbox state ([ADR 0007](../decisions/0007-worker-schedule-not-pg-boss.md)); no Redis / no mandatory pg-boss in v1.                                                                                              |
 | **Clients** (web, CLI, TUI)              | Call API for impex runs and file access; TUI/CLI may also use worker job HTTP for operational job views.                                                                                                                                                                                        |
 
 ## High-level flows
@@ -58,7 +58,7 @@ Tiny payloads may be handled synchronously on the API only if explicitly allowed
 
 ## Job model (intent)
 
-Logical run states (names may map to pg-boss states + a domain `impex_run` table when modeled in ERD):
+Logical run states (names may map to worker job rows + a domain `impex_run` table when modeled in ERD):
 
 | State       | Meaning                                         |
 | ----------- | ----------------------------------------------- |
@@ -121,14 +121,14 @@ Job HTTP is for operators/CLI/TUI; web product flows prefer the API run endpoint
 
 ## Non-goals / explicit defaults
 
-- No Redis required for impex (queue = PostgreSQL / pg-boss).
+- No Redis required for impex (jobs = worker + PostgreSQL work/outbox state).
 - MCP does not talk to the DB for impex; if agents need impex, they call the **API** with a token (same as other domain tools).
 - External “event bus” is not required for impex completion notifications in v1 (polling is enough); optional webhook-on-complete can be a later job type.
 
 ## Related
 
 - OpenSpec capabilities: `impex`, `worker-jobs`, `object-storage` (under `openspec/specs/` after baseline archive)
-- Worker / queue: [ADR 0005](../decisions/0005-worker-pg-boss.md)
+- Worker / jobs: [ADR 0007](../decisions/0007-worker-schedule-not-pg-boss.md) (supersedes 0005)
 - Architecture boundaries: [`../architecture.md`](../architecture.md)
 - Stack (API, worker, S3, queue): [`../tech-stack.md`](../tech-stack.md)
 - DDL: [`../erd/schema.sql`](../erd/schema.sql) — add `impex_run` (or equivalent) when the data model is extended

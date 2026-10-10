@@ -7,7 +7,11 @@ erDiagram
   channel["Channel · 4 fields"]
   greeting["Greeting · 5 fields"]
   greeting_reaction["Greeting reaction · 5 fields"]
+  conversation["Conversation · 5 fields"]
+  message["Message · 5 fields"]
   person ||--o{ greeting : "author_id"
   channel ||--o{ greeting : "channel_id"
   greeting ||--o{ greeting_reaction : "greeting_id"
   person ||--o{ greeting_reaction : "person_id"
+  person ||--o{ conversation : "owner_person_id"
+  conversation ||--o{ message : "conversation_id"

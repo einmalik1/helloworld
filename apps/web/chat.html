@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hello World — Chat</title>
+    <style>
+      :root {
+        font-family: system-ui, sans-serif;
+        color: #1a1a1a;
+        background: #f6f4f1;
+      }
+      body {
+        max-width: 40rem;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      #log {
+        border: 1px solid #ccc;
+        background: #fff;
+        min-height: 12rem;
+        padding: 0.75rem;
+        white-space: pre-wrap;
+      }
+      .row {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+      }
+      input {
+        flex: 1;
+        padding: 0.5rem;
+      }
+      button {
+        padding: 0.5rem 0.75rem;
+      }
+      .meta {
+        font-size: 0.85rem;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Chat</h1>
+    <p class="meta">
+      Client → <code id="chatBase"></code> only (no LLM vendor URL in the browser). Auth:
+      <code>x-api-key</code>.
+    </p>
+    <div id="log"></div>
+    <div class="row">
+      <input id="msg" placeholder="Message…" />
+      <button id="send" type="button">Send</button>
+    </div>
+    <script>
+      const CHAT =
+        window.PUBLIC_CHAT_URL ||
+        localStorage.getItem("PUBLIC_CHAT_URL") ||
+        "http://localhost:3200";
+      const API_KEY =
+        localStorage.getItem("CHAT_DEV_API_KEY") || "change-me-chat-local";
+      document.getElementById("chatBase").textContent = CHAT;
+
+      const logEl = document.getElementById("log");
+      let conversationId = null;
+
+      function log(line) {
+        logEl.textContent += line + "\n";
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      async function ensureConversation() {
+        if (conversationId) return;
+        const res = await fetch(CHAT + "/conversations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": API_KEY,
+          },
+          body: JSON.stringify({ title: "Web chat" }),
+        });
+        if (!res.ok) throw new Error("create conversation " + res.status);
+        const data = await res.json();
+        conversationId = data.id;
+        log("conversation " + conversationId);
+      }
+
+      document.getElementById("send").onclick = async () => {
+        const input = document.getElementById("msg");
+        const content = input.value.trim();
+        if (!content) return;
+        input.value = "";
+        try {
+          await ensureConversation();
+          log("you: " + content);
+          const res = await fetch(
+            CHAT + "/conversations/" + conversationId + "/messages",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-key": API_KEY,
+                Accept: "text/event-stream",
+              },
+              body: JSON.stringify({ content }),
+            },
+          );
+          if (!res.ok || !res.body) throw new Error("message " + res.status);
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buf = "";
+          let assistant = "";
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream: true });
+            const parts = buf.split("\n\n");
+            buf = parts.pop() || "";
+            for (const block of parts) {
+              const ev = /event: (\w+)/.exec(block)?.[1];
+              const dataLine = block.split("\n").find((l) => l.startsWith("data: "));
+              if (!dataLine) continue;
+              const data = JSON.parse(dataLine.slice(6));
+              if (ev === "token") {
+                assistant += data.text || "";
+              }
+              if (ev === "assistant_message") {
+                log("assistant: " + (data.content || assistant));
+                assistant = "";
+              }
+              if (ev === "error") log("error: " + data.detail);
+            }
+          }
+        } catch (e) {
+          log(String(e));
+        }
+      };
+    </script>
+  </body>
+</html>

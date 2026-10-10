@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-10T08:12:19.730485Z",
+  "generatedAt": "2026-10-10T10:31:57.144725Z",
   "sourceFile": "openspec/data-model/schema.sql",
   "tables": [
     {
@@ -342,6 +342,193 @@
           "onDelete": "CASCADE"
         }
       ]
+    },
+    {
+      "name": "conversation",
+      "category": "chat",
+      "label": "Conversation",
+      "spec": "openspec/specs/chat-service/spec.md",
+      "description": "Chat thread owned by a person; LLM traffic via apps/chat only",
+      "columns": [
+        {
+          "name": "id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": true,
+          "hasDefault": true,
+          "defaultValue": "gen_random_uuid()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": true,
+          "comment": null
+        },
+        {
+          "name": "owner_person_id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": {
+            "table": "person",
+            "column": "id",
+            "onDelete": "CASCADE"
+          },
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Person who owns the conversation"
+        },
+        {
+          "name": "title",
+          "sqlType": "text",
+          "logicalType": "Text",
+          "nullable": true,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Optional display title"
+        },
+        {
+          "name": "created_at",
+          "sqlType": "timestamptz",
+          "logicalType": "Timestamp (TZ)",
+          "nullable": false,
+          "hasDefault": true,
+          "defaultValue": "now()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": null
+        },
+        {
+          "name": "updated_at",
+          "sqlType": "timestamptz",
+          "logicalType": "Timestamp (TZ)",
+          "nullable": false,
+          "hasDefault": true,
+          "defaultValue": "now()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": null
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniqueConstraints": [],
+      "checkConstraints": [],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "column": "owner_person_id",
+          "references": "person.id",
+          "onDelete": "CASCADE"
+        }
+      ]
+    },
+    {
+      "name": "message",
+      "category": "chat",
+      "label": "Message",
+      "spec": "openspec/specs/chat-service/spec.md",
+      "description": "Ordered chat message in a conversation",
+      "columns": [
+        {
+          "name": "id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": true,
+          "hasDefault": true,
+          "defaultValue": "gen_random_uuid()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": true,
+          "comment": null
+        },
+        {
+          "name": "conversation_id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": {
+            "table": "conversation",
+            "column": "id",
+            "onDelete": "CASCADE"
+          },
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Parent conversation"
+        },
+        {
+          "name": "role",
+          "sqlType": "text",
+          "logicalType": "Text",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "user | assistant | system | tool"
+        },
+        {
+          "name": "content",
+          "sqlType": "text",
+          "logicalType": "Text",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Message text (tool payloads may be serialized text in v1)"
+        },
+        {
+          "name": "created_at",
+          "sqlType": "timestamptz",
+          "logicalType": "Timestamp (TZ)",
+          "nullable": false,
+          "hasDefault": true,
+          "defaultValue": "now()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": null
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "uniqueConstraints": [],
+      "checkConstraints": [
+        {
+          "name": "message_check",
+          "definition": "CHECK (role IN ('user', 'assistant', 'system', 'tool'))"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "message_conversation_created_idx",
+          "columns": [
+            "conversation_id",
+            "created_at"
+          ],
+          "unique": false,
+          "partial": null
+        }
+      ],
+      "foreignKeys": [
+        {
+          "column": "conversation_id",
+          "references": "conversation.id",
+          "onDelete": "CASCADE"
+        }
+      ]
     }
   ],
   "edges": [
@@ -376,6 +563,22 @@
       "toColumn": "id",
       "kind": "fk",
       "onDelete": "CASCADE"
+    },
+    {
+      "fromTable": "conversation",
+      "fromColumn": "owner_person_id",
+      "toTable": "person",
+      "toColumn": "id",
+      "kind": "fk",
+      "onDelete": "CASCADE"
+    },
+    {
+      "fromTable": "message",
+      "fromColumn": "conversation_id",
+      "toTable": "conversation",
+      "toColumn": "id",
+      "kind": "fk",
+      "onDelete": "CASCADE"
     }
   ],
   "externalReferences": [],
@@ -396,6 +599,15 @@
       "color": "#059669",
       "tables": [
         "greeting_reaction"
+      ]
+    },
+    {
+      "key": "chat",
+      "label": "Chat",
+      "color": "#d97706",
+      "tables": [
+        "conversation",
+        "message"
       ]
     }
   ]

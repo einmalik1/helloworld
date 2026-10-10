@@ -47,7 +47,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 - **#8 TypeScript / module contract** (process) — [`tech-stack.md` § Module / compiler](tech-stack.md#module--compiler-rules-all-ts-workspaces) + [`packages/config/README.md`](../packages/config/README.md) (ES2024 target, SWC Vitest-only, Nest DI spike).
 - **#14 Git conventions** (process) — branches, Conventional Commits, smoke pre-merge gate in [`spark/agents/common/conventions.md#git-conventions`](../spark/agents/common/conventions.md#git-conventions).
 - **#15 Small ops details** (product) — ky timeouts, Terminus health indicators, Nest env table, CLI/TUI config keys in the component READMEs listed under topic **#15**.
-- **#16** Search / knowledge graph (product) — AGE + Typesense + api facade + worker sync + Cytoscape; ADR [`0004`](decisions/0004-search-knowledge-graph.md).
+- **#16** Search / knowledge graph (product) — AGE + Typesense + api facade + worker sync + Cytoscape; ADR [`0004`](decisions/0006-search-knowledge-graph.md).
 
 ---
 
@@ -65,7 +65,7 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 | 11 | Docker / Coolify image shape | Spec partial | partial | open | `tech-stack.md` § Coolify + per-app Deploy |
 | 13 | Open version pins | Spec light | open | open | `tech-stack.md` inventory |
 | 15 | Small ops details | Spec | **done** | open | api-client / modules / terminal / `.env.example` / api README |
-| 16 | Search / knowledge graph | Spec | **done** | open | `architecture.md` + `tech-stack.md` + ADR `0004` + api/web/worker/mcp + `infra/postgres` + `infra/typesense` + `.env.example` |
+| 16 | Search / knowledge graph | Spec | **done** | open | `architecture.md` + `tech-stack.md` + ADR `0006` + api/web/worker/mcp + `infra/postgres` + `infra/typesense` + `.env.example` |
 
 ### Process
 
@@ -198,7 +198,7 @@ export class ListQueryDto extends createZodDto(querySchema) {}
 ### Decide — Worker
 
 - [ ] **define** worker runtime (Nest standalone vs plain Node)
-- [ ] **define** job model (Postgres-native queue e.g. pg-boss vs Nest `@nestjs/schedule` only vs other) — note: schedule alone is cron, not a job queue
+- [x] **define** job model — Nest `@nestjs/schedule` + Postgres work/outbox ([ADR 0007](decisions/0007-worker-schedule-not-pg-boss.md)); pg-boss not required in v1
 - [ ] **define** worker `/health` contract (CLI/TUI already expect worker URLs)
 - [ ] **define** whether worker exposes OpenAPI (second Orval input) or stays internal HTTP
 
@@ -419,15 +419,15 @@ Secondary indexes (graph + search) over domain entities — complements Postgres
 |---|---|
 | **Lane** | Product |
 | **Hauptproblem** | Spec |
-| **Spec status** | Spec done — [`architecture.md`](architecture.md#search--knowledge-graph-secondary-indexes); [`tech-stack.md`](tech-stack.md#search--knowledge-graph); ADR [`0004`](decisions/0004-search-knowledge-graph.md) |
+| **Spec status** | Spec done — [`architecture.md`](architecture.md#search--knowledge-graph-secondary-indexes); [`tech-stack.md`](tech-stack.md#search--knowledge-graph); ADR [`0004`](decisions/0006-search-knowledge-graph.md) |
 | **Impl status** | Impl open |
-| **Spec targets** | architecture + tech-stack + ADR `0004` + api/web/worker/mcp READMEs + `infra/postgres` + `infra/typesense` + `.env.example` |
+| **Spec targets** | architecture + tech-stack + ADR `0006` + api/web/worker/mcp READMEs + `infra/postgres` + `infra/typesense` + `.env.example` |
 
 ### Decide — placement
 
 - [x] **define** component path — **no** `apps/graph`; AGE on Postgres; Typesense under `infra/typesense`; facade on `apps/api`
 - [x] **define** role vs Postgres — secondary indexes; Postgres remains SoT; writes API → DB first
-- [x] **define** domain projection — person / channel / greeting / reaction nodes + authored / posted_in / reacted_to / reaction_on edges (ADR `0004`)
+- [x] **define** domain projection — person / channel / greeting / reaction nodes + authored / posted_in / reacted_to / reaction_on edges (ADR `0006`)
 - [x] **define** sync model — worker transactional outbox + schedule drain + rebuild job; **not** sync-on-write
 
 ### Decide — engine / stack
@@ -454,7 +454,7 @@ Secondary indexes (graph + search) over domain entities — complements Postgres
 - [x] Component boundaries in [`architecture.md`](architecture.md)
 - [x] Inventory + subsection in [`tech-stack.md`](tech-stack.md)
 - [x] No new public app README — intents in api/web/worker/mcp + infra READMEs
-- [x] ADR [`0004-search-knowledge-graph.md`](decisions/0004-search-knowledge-graph.md)
+- [x] ADR [`0006-search-knowledge-graph.md`](decisions/0006-search-knowledge-graph.md)
 - [ ] Optional feature stub under `openspec/features/` when product behaviour needs acceptance criteria
 - [ ] Root [`README.md`](../README.md) Components/Layout touch-up when infra compose aliases land (impl-adjacent)
 - [x] Coolify / local data-service rows updated for AGE Postgres + Typesense
@@ -778,7 +778,7 @@ This topic is the **process** of writing ADRs (naming, structure, when). Candida
 - [ ] ADR: Coolify build-from-Git (Dockerfile pack) vs registry pull-only default
 - [ ] ADR: package emit to `dist/` (rationale for process **#2**)
 - [ ] ADR: Garage (QA/Prod) + local MinIO-compatible stand-in
-- [x] ADR: search / knowledge-graph service (engine + access path) — [`0004-search-knowledge-graph.md`](decisions/0004-search-knowledge-graph.md)
+- [x] ADR: search / knowledge-graph service (engine + access path) — [`0006-search-knowledge-graph.md`](decisions/0006-search-knowledge-graph.md)
 - [ ] Plus ADRs from **#1**, **#3**, **#4** as those decisions land
 
 ### Spec to write
@@ -854,4 +854,4 @@ CLI/TUI structural intent (separate binaries, XDG config, Commander vs Ink bound
 | 2026-10-09 | **#5** Better Auth wiring Spec done — inventory, module/mutator/env/terminal contracts, ADR `0003` |
 | 2026-10-09 | **#6** Workflow “new resource” Spec done — conventions checklist + api README mirror + tech-stack / AGENTS pointers |
 | 2026-10-09 | **#8** TypeScript / module contract Spec done — ES2024 target, SWC Vitest-only, Nest DI spike / workaround in config README |
-| 2026-10-09 | **#16** Search / knowledge graph Spec done — AGE + Typesense + api facade + worker outbox + Cytoscape; ADR `0004` |
+| 2026-10-09 | **#16** Search / knowledge graph Spec done — AGE + Typesense + api facade + worker outbox + Cytoscape; ADR `0006` |

@@ -10,3 +10,4 @@ erDiagram
   channel ||--o{ greeting : "channel_id"
   greeting ||--o{ greeting_reaction : "greeting_id (cross)"
   person ||--o{ greeting_reaction : "person_id (cross)"
+  person ||--o{ conversation : "owner_person_id (cross)"

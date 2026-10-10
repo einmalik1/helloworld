@@ -27,6 +27,7 @@ Versions below are the latest published on npm as of 2026-10-08 (pin in lockfile
 | Docs site (`apps/docs`) | Fumadocs on Next.js | fumadocs core/ui 16.15.17, mdx 15.4.5; **next 16.3.8** | [Fumadocs](https://github.com/fuma-nama/fumadocs) UI/MDX; host **Next.js** (App Router) — publishes `openspec/` |
 | Storybook (`apps/storybook`) | Storybook + `react-vite` | 10.6.1 | UI gallery; framework adapter **`@storybook/react-vite`** (matches Vite web) |
 | MCP (`apps/mcp`) | `@modelcontextprotocol/sdk` | 1.32.1 | Remote **HTTP** MCP server; Pino logging — see [MCP](#mcp-appsmcp) |
+| Chat (`apps/chat`) | NestJS | 12.x | LLM + streaming; provider secrets **only** here — [ADR 0008](decisions/0008-chat-service-app.md); web is client |
 | CLI (`tools/cli`) | Commander | 15.0.0 | Non-interactive terminal client; HTTP via `ky` — see Terminal clients below |
 | TUI (`tools/tui`) | Ink + React | ink 7.1.1, react 19.3.0 | Interactive terminal UI; same API surface via `ky` — separate binary from CLI |
 | HTTP client (cli/tui) | ky | 2.1.0 | Transport inside `@helloworld/api-client` (Orval mutator) |
@@ -255,7 +256,7 @@ Detail and local usage: [`tools/cli/README.md`](../tools/cli/README.md), [`tools
 
 Patterns for controllers, services (**neverthrow**), DTOs, exception filter, `@Public()`, and AppModule composition: **[`apps/api/README.md`](../apps/api/README.md#nestjs-conventions)**. Shared infra module contracts: [`packages/modules/README.md`](../packages/modules/README.md).
 
-**HTTP contract** (error Problem Details, status map, lists, CRUD, fixed routes): **[`apps/api/README.md` § HTTP contract](../apps/api/README.md#http-contract)** — ADR [`0002-api-problem-details`](decisions/0002-api-http-contract.md).
+**HTTP contract** (error Problem Details, status map, lists, CRUD, fixed routes): **[`apps/api/README.md` § HTTP contract](../apps/api/README.md#http-contract)** — ADR [`0002-api-http-contract`](decisions/0002-api-http-contract.md).
 
 **Security / ops baseline** (CORS from `WEB_ORIGIN`, Helmet, `x-request-id`, graceful shutdown, rate-limit stance): **[`apps/api/README.md` § Security / ops](../apps/api/README.md#security--ops-baseline)** — see [Security / ops baseline](#security--ops-baseline).
 

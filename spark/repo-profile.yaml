@@ -121,6 +121,9 @@ generators:
     - key: social
       label: Social
       color: "#059669"
+    - key: chat
+      label: Chat
+      color: "#d97706"
   erd:
     enabled: true
     out_dir: openspec/data-model/generated
