@@ -1,23 +1,23 @@
 # api-http-contract Specification
 
 ## Purpose
-Defines the HTTP product contract for `apps/api`: error envelope, status mapping, list/CRUD conventions, and fixed infrastructure routes that all resources and clients share.
+Defines the HTTP product contract for `apps/api`: error bodies (RFC 9457 Problem Details), status mapping, list/CRUD conventions, and fixed infrastructure routes that all resources and clients share. See [ADR 0002](../../decisions/0002-api-http-contract.md).
 
 ## Requirements
 
-### Requirement: Stable error JSON envelope
-API error responses MUST use a single envelope shape `{ "error": string }` and MAY include `"errors": array` for field-level details. Controllers MUST NOT invent per-route alternate error JSON shapes.
+### Requirement: RFC 9457 Problem Details errors
+API error responses MUST use RFC 9457 Problem Details (`application/problem+json`) with `type`, `title`, `status`, `detail`, and MAY include extension `errors` for field-level Zod issues. Controllers MUST NOT invent per-route alternate error JSON shapes.
 
-#### Scenario: Not found uses envelope
+#### Scenario: Not found uses Problem Details
 - **WHEN** a client requests a missing resource by id
-- **THEN** the response body includes an `error` string field (not only a free-form `message` key)
+- **THEN** the response is `application/problem+json` with a 404 `status` and a `detail` (not a legacy `{ "error" }` envelope alone)
 
 ### Requirement: Error class to HTTP status mapping
-Domain/service errors MUST map to HTTP statuses via an explicit table (e.g. not found → 404, validation → 400 or 422, database failure → 500). Status MUST NOT be inferred by parsing error message text.
+Domain/service errors MUST map to HTTP statuses via typed error classes (e.g. not found → 404, validation → **400**, database failure → 500). Status MUST NOT be inferred by parsing error message text. Validation MUST NOT use 422 in this stack.
 
 #### Scenario: Validation does not become 404 via string match
 - **WHEN** a validation error is returned from the service layer
-- **THEN** the HTTP status is the validation status from the map, not derived from `message.includes("not found")`
+- **THEN** the HTTP status is **400** from the map, not derived from `message.includes("not found")`
 
 ### Requirement: List and CRUD conventions
 Collection list endpoints MUST accept pagination query params `page` and `limit` (with a documented max). Resource IDs MUST be UUIDs. Create MUST return `201`; successful delete MUST return `204`. PATCH MUST apply partial updates consistent with generated Update DTOs.
