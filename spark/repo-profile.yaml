@@ -95,7 +95,7 @@ doc_feature_paths:
   - openspec/features/
 
 doc_architecture_paths:
-  - agents.md
+  - AGENTS.md
   - openspec/architecture.md
   - openspec/tech-stack.md
 
@@ -155,7 +155,7 @@ generators:
 
 rules_paths:
   always:
-    - agents.md
+    - AGENTS.md
     - spark/agents/common/
 
 repo:

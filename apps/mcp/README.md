@@ -1,12 +1,19 @@
 # mcp
 
-MCP server as a long-running service for agent integration.
+Remote MCP server for agent integration. Thin HTTP process in front of `apps/api` (and related backends).
 
-## Domain access
+## Stack
 
-MCP tools call **`@helloworld/platform` in-process** — same use-cases as `apps/api`. Do **not** use `@helloworld/api-client` as the MCP domain transport.
+| Piece | Choice |
+|---|---|
+| SDK | **`@modelcontextprotocol/sdk` 1.32.1** |
+| Transport | **HTTP** (remote / Coolify); not stdio as the v1 deploy path |
+| Domain access | HTTP → `apps/api` with a Better Auth **service API key** — **no** Nest-in-MCP, **no** `packages/api-client` |
+| Retrieve / search | MCP tools call api `GET /graph/*` and `GET /search` only — **never** AGE or Typesense directly |
+| Logging | **Service** — Pino (long-running Node HTTP server) |
+| Build | `tsc` → `dist/` when scaffolded |
 
-Decision: [ADR 0004](../../openspec/decisions/0004-platform-facade-mcp.md). OpenSpec: `mcp-tools`.
+Global inventory: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#mcp-appsmcp). Facade contract: [`apps/api/README.md` § Retrieve / search](../api/README.md#retrieve--search-facade). ADR: [`0004`](../../openspec/decisions/0006-search-knowledge-graph.md).
 
 ## Deploy
 
@@ -14,10 +21,10 @@ QA/Prod: Coolify Application. Multi-stage `apps/mcp/Dockerfile` (monorepo-root b
 
 ## Local
 
-**Prerequisites:** Postgres (and other backends platform needs). Prefer Coolify **test** when running on the Coolify host. Root [Local development](../../README.md#local-development). Config from the **root** `.env` only (section `# --- mcp ---`); do not add `apps/mcp/.env`.
+**Prerequisites:** a reachable `api` (and any backends tools call). Root [Local development](../../README.md#local-development). Config from the **root** `.env` only (section `# --- mcp ---`, e.g. `MCP_HOST` / `MCP_PORT`); do not add `apps/mcp/.env`.
 
 ```bash
 pnpm run --filter mcp dev
 ```
 
-Auth for protected tools: Better Auth managed API keys ([ADR 0003](../../openspec/decisions/0003-better-auth.md)).
+Scaffolding (SDK HTTP server + tool wiring) comes when the package is implemented.

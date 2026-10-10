@@ -2,11 +2,7 @@
 
 REST backend for persistence and domain API. Data via Postgres; files via S3. Auth via Better Auth (see [`openspec/tech-stack.md`](../../openspec/tech-stack.md)).
 
-Stack inventory and Nest package versions: [`openspec/tech-stack.md`](../../openspec/tech-stack.md). Shared Nest infra: [`packages/modules`](../../packages/modules/README.md). Domain use-cases: [`@helloworld/platform`](../../packages/platform/README.md).
-
-## HTTP contract
-
-Product HTTP shape (errors, lists, CRUD, fixed routes): [ADR 0002](../../openspec/decisions/0002-api-http-contract.md). OpenSpec capability: `api-http-contract`. Auth: [ADR 0003](../../openspec/decisions/0003-better-auth.md).
+Stack inventory and Nest package versions: [`openspec/tech-stack.md`](../../openspec/tech-stack.md). Shared Nest infra: [`packages/modules`](../../packages/modules/README.md).
 
 **Build:** `nest build` → `dist/`; Dev: `nest start --watch` (`@nestjs/cli`). Workspace libs build first (`tsc` → `dist/`). Contract: [`openspec/tech-stack.md` — Build / emit](../../openspec/tech-stack.md#build--emit-contract).
 
@@ -30,28 +26,80 @@ pnpm run --filter api dev
 
 All process env comes from the **single repo-root** `.env` (template: [`.env.example`](../../.env.example)). Nest does **not** own a second env file.
 
-| Rule       | Detail                                                                                                               |
-| ---------- | -------------------------------------------------------------------------------------------------------------------- |
-| Source     | Root `.env` loaded when the process is started from the repo root                                                    |
+| Rule | Detail |
+|---|---|
+| Source | Root `.env` loaded when the process is started from the repo root |
 | Validation | Zod `envSchema` in `apps/api` `configuration.ts` → `createAppConfigModule({ envSchema })` from `@helloworld/modules` |
-| Scope      | Schema lists only keys **this process** needs; values still live in the shared root file (sectioned by service)      |
-| Forbidden  | `apps/api/.env`, dotenv path overrides that point away from the repo root                                            |
+| Scope | Schema lists only keys **this process** needs; values still live in the shared root file (sectioned by service) |
+| Forbidden | `apps/api/.env`, dotenv path overrides that point away from the repo root |
 
-### Keys this app reads (intent)
+### Nest-facing env table (normative)
 
-Names align with root `.env.example` sections. Add keys there first, then to `envSchema`.
+Names align with root [`.env.example`](../../.env.example) sections. Add keys there first, then to `envSchema`. **No** static `API_KEY` — auth secrets are Better Auth only; CLI/TUI keys live in [`packages/terminal`](../../packages/terminal/README.md#config-keys-normative).
 
-| Key                                      | Section in `.env.example` | Role                                                                |
-| ---------------------------------------- | ------------------------- | ------------------------------------------------------------------- |
-| `NODE_ENV`                               | Shared                    | `development` / `production` / …                                    |
-| `LOG_LEVEL`                              | Shared                    | Pino level (`debug` \| `info` \| `warn` \| `error`, default `info`) |
-| `DATABASE_URL`                           | Postgres                  | PostgreSQL connection string                                        |
-| `API_HOST` / `API_PORT`                  | api                       | HTTP listen bind                                                    |
-| `BETTER_AUTH_SECRET` / `BETTER_AUTH_URL` | api                       | Better Auth server config                                           |
-| `WEB_ORIGIN`                             | api                       | CORS / trusted web origin                                           |
-| `S3_*`                                   | Object storage            | Only when this process touches object storage                       |
+| Key | Section | Required | Default | Description |
+|---|---|---|---|---|
+| `NODE_ENV` | Shared | no | `development` | Runtime mode (`development` / `production` / …) |
+| `LOG_LEVEL` | Shared | no | **`info`** | Pino level: `debug` \| `info` \| `warn` \| `error` |
+| `DATABASE_URL` | Postgres | **yes** | — | PostgreSQL connection string (postgres.js / Drizzle / health DB ping; AGE uses the same DB) |
+| `API_HOST` | api | no | `0.0.0.0` | HTTP listen host |
+| `API_PORT` | api | no | `3000` | HTTP listen port |
+| `BETTER_AUTH_SECRET` | api | **yes** | — | Better Auth signing secret (local template value in `.env.example` only) |
+| `BETTER_AUTH_URL` | api | **yes** | — | Better Auth base URL (e.g. `http://localhost:3000`) |
+| `WEB_ORIGIN` | api | **yes** | — | Trusted web origin for CORS / Better Auth `trustedOrigins` |
+| `TYPESENSE_HOST` | typesense | when search wired | `localhost` | Typesense host (api + worker S2S) |
+| `TYPESENSE_PORT` | typesense | when search wired | `8108` | Typesense HTTP port |
+| `TYPESENSE_PROTOCOL` | typesense | when search wired | `http` | `http` (local) / `https` (QA/Prod as provisioned) |
+| `TYPESENSE_API_KEY` | typesense | when search wired | — | Typesense API key (server-side only; never to browsers/CLI) |
+| `S3_ENDPOINT` | Object storage | when using S3 | — | S3-compatible endpoint |
+| `S3_REGION` | Object storage | when using S3 | `us-east-1` | Region |
+| `S3_ACCESS_KEY_ID` | Object storage | when using S3 | — | Access key |
+| `S3_SECRET_ACCESS_KEY` | Object storage | when using S3 | — | Secret key |
+| `S3_BUCKET` | Object storage | when using S3 | — | Bucket name |
+| `S3_FORCE_PATH_STYLE` | Object storage | when using S3 | `true` (local) | Path-style addressing for MinIO-compatible local S3 |
 
 Worker, web, mcp, … keep their keys in **other sections of the same file** — not in this Nest schema.
+
+### `envSchema` (sketch)
+
+```typescript
+// apps/api/src/configuration.ts
+import { z } from "zod";
+
+export const envSchema = z.object({
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
+  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  DATABASE_URL: z.string().min(1),
+  API_HOST: z.string().default("0.0.0.0"),
+  API_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
+  BETTER_AUTH_SECRET: z.string().min(1),
+  BETTER_AUTH_URL: z.string().url(),
+  WEB_ORIGIN: z.string().url(),
+  // TYPESENSE_* — include when retrieve/search is wired
+  // S3_* — include when this process touches object storage
+});
+
+export type AppConfig = z.infer<typeof envSchema>;
+```
+
+## Feature / new resource workflow
+
+API-focused steps when adding a Nest feature for a new domain table. **Normative global checklist** (ownership + generated vs hand): [`spark/agents/common/conventions.md` § New resource workflow](../../spark/agents/common/conventions.md#new-resource-workflow). Generators inventory: [`openspec/tech-stack.md` § Schema generators](../../openspec/tech-stack.md#schema-generators-sparkgenerators). Migrations: [`openspec/tech-stack.md` § Database / Drizzle](../../openspec/tech-stack.md#database--drizzle-schema--migrations).
+
+| # | Nest / API step | Detail |
+|---|---|---|
+| 1 | SQL SoT | Edit `openspec/data-model/schema.sql` (+ profile categories) |
+| 2 | Generate | `pnpm generate` → Zod types, Nest DTOs under `src/{resource}/dto/`, domain Drizzle TS |
+| 3 | Migrate | `pnpm db:migrate` (intent) before hand queries |
+| 4 | Persistence | Hand-write `DatabaseService` domain methods (injected into the feature service) |
+| 5 | Feature module | Hand-write `{feature}.module.ts` / `.controller.ts` / `.service.ts`; import in `AppModule` — see [NestJS conventions](#nestjs-conventions) |
+| 6 | Client SDK | `openapi:export` → `pnpm generate:client` (Orval) |
+| 7 | Tests | Vitest (+ `@nestjs/testing`) next to code; HTTP suite under `tests/api` |
+| 8 | Optional | CLI / TUI surface via `packages/api-client` — not required for API completeness |
+
+**Generated here:** `dto/` wrappers only. **Hand here:** controller, service, module, tests, AppModule wiring. Patterns: [Controller / service Result mapping](#controller--service-result-mapping--normative), [HTTP contract](#http-contract).
 
 ## Generated Nest DTOs
 
@@ -67,9 +115,95 @@ apps/api/src/{resource}/dto/
 
 Schemas come from `@helloworld/types/api`. Do not hand-edit these files.
 
+## HTTP contract
+
+Frozen product contract for REST responses. Exception filter (#7) and Orval client mutator must match this section. Rationale: [`openspec/decisions/0002-api-http-contract.md`](../../openspec/decisions/0002-api-http-contract.md). Issue: [#5](https://github.com/einmalik1/helloworld/issues/5).
+
+### Error envelope (RFC 9457 Problem Details)
+
+One global filter; **no** per-route error shapes. Failed responses use `Content-Type: application/problem+json` with [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html) fields:
+
+| Field | Required | Role |
+|---|---|---|
+| `type` | yes | Stable, documented problem URI — clients branch on this, not free text |
+| `title` | yes | Short, stable summary |
+| `status` | yes | HTTP status (mirrors the response status; status line remains authoritative) |
+| `detail` | yes | Occurrence-specific explanation — **not** for programmatic parsing |
+| `errors` | no | Extension member for field errors (Zod issues → `pointer` / `detail`), analogous to the RFC example |
+| `requestId` | yes | Extension member — same value as `x-request-id` / Pino bindings ([Security / ops](#security--ops-baseline)) |
+
+Do **not** use a legacy `{ error }` / `{ error, errors[] }` envelope. Never put secrets or tokens in any Problem Details field.
+
+### Status map (error classes only)
+
+Map exclusively from `@helloworld/types` error classes (and Nest / nestjs-zod validation failures). **Reject** `message.includes("not found")` and any string sniffing.
+
+| Klasse / Fall | HTTP | Notes |
+|---|---|---|
+| Zod / Validation | **400** | Nest-idiomatic; see ADR — frozen (not 422) |
+| NotFound | **404** | Domain / resource missing |
+| DatabaseError / unknown | **500** | Never leak internals or secrets |
+
+### Lists
+
+| Aspect | Contract |
+|---|---|
+| Query | `page` (1-based), `limit` — coerce to int; **max cap 100** |
+| Response | `{ items, total, page, limit }` — Orval-friendly; TUI can page via terminal config `pageSize` |
+| Sort / filter | Hand-written query DTOs per resource when needed; keep shared pagination fields stable |
+| Cursor | Deferred — revisit only if collections become large/volatile |
+
+Example query schema (hand-written `createZodDto`, not generated):
+
+```typescript
+const listQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+});
+```
+
+### Resource CRUD
+
+| Concern | Contract |
+|---|---|
+| Paths | `/resource`, `/resource/:id` |
+| Create | `POST /resource` → **201** (+ optional `Location`) |
+| Update | `PATCH /resource/:id` = partial (`Update = Create.partial()` via generator) |
+| Delete | `DELETE /resource/:id` → **204** |
+| IDs | **UUID** (`gen_random_uuid` in Postgres) unless a product feature requires shortIds |
+
+### Fixed infrastructure routes
+
+| Method | Path | Notes |
+|---|---|---|
+| `GET` | `/health` | `@Public()` — process up + DB ping (+ Typesense when search wired) |
+| `GET` | `/api/docs` | Swagger UI |
+| `GET` | `/openapi.json` | Runtime OpenAPI document **and** build-time `openapi:export` for Orval CI |
+
+### Retrieve / search facade
+
+Structured graph + search over secondary indexes. Engines (Apache AGE on Postgres, Typesense) are **network-internal** — clients never see Cypher or Typesense protocol. Rationale: [`openspec/decisions/0006-search-knowledge-graph.md`](../../openspec/decisions/0006-search-knowledge-graph.md). Inventory: [`openspec/tech-stack.md` § Search / knowledge graph](../../openspec/tech-stack.md#search--knowledge-graph).
+
+| Method | Path | Auth | Response |
+|---|---|---|---|
+| `GET` | `/graph/related` | session or `x-api-key` | `{ nodes, edges }` — neighbors of one entity |
+| `GET` | `/graph/subgraph` | session or `x-api-key` | `{ nodes, edges }` — ego network; query `depth` default `1`, max `3` |
+| `GET` | `/search` | session or `x-api-key` | `{ items: [{ id, type, title, body?, score? }], total }` |
+
+| Concern | Contract |
+|---|---|
+| Graph query params | `entityType`, `entityId`, optional `depth` |
+| Search query params | `q`, optional `types` (comma-separated), `limit` (default `20`, max `100`) |
+| Node/edge JSON | Product shapes for Cytoscape / clients — not AGE wire format |
+| Writes | Unchanged CRUD → Postgres first; worker projects to AGE + Typesense |
+| Health | Terminus: DB ping covers AGE host; **add Typesense probe** when search is wired |
+| Forbidden | Exposing Cypher, Typesense URLs/keys, or a public `apps/graph` |
+
 ## NestJS conventions
 
-Intent for scaffolding `main.ts`, `AppModule`, and feature modules. Align with [`packages/modules`](../../packages/modules/README.md).
+**Normative** scaffolding patterns for Nest **12** in this template (must match when generating or hand-wiring). Shared infra contracts: [`packages/modules`](../../packages/modules/README.md). Product contracts: [HTTP contract](#http-contract), Better Auth (process **#5**), [Security / ops](#security--ops-baseline).
+
+Stack anchors: Nest 12 · Express · `helmet` · `nestjs-pino` · `nestjs-zod` · Better Auth (not static `ApiKeyModule`) · neverthrow · Vitest.
 
 ### Layout
 
@@ -95,62 +229,164 @@ src/{feature}/
 └── dto/                      # generated createZodDto wrappers (see above)
 ```
 
-Rule: multiple related files → subfolder; a single service file may sit at the feature root.
+Rule: multiple related files → subfolder; a single service file may sit at the feature root. Optional external sync tree: `src/{feature}/sync/` + `{provider}/`.
 
-### AppModule (intent)
+### Bootstrap (`main.ts`) — normative
 
-Import shared modules from `@helloworld/modules`, then feature modules:
+```typescript
+async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create(AppModule);
+  app.useLogger(app.get(Logger)); // nestjs-pino Logger
+  app.enableShutdownHooks(); // Coolify restarts + Drizzle pool cleanup
+  app.use(helmet());
+  const configService = app.get(ConfigService<AppConfig, true>);
+  const webOrigin = configService.get("WEB_ORIGIN", { infer: true });
+  app.enableCors({ origin: webOrigin, credentials: true });
+  // request-id middleware: accept or generate `x-request-id`; bind on Pino + echo response header
+  app.useGlobalPipes(new ZodValidationPipe());
+  app.useGlobalFilters(new HttpExceptionFilter());
+  setupOpenApi(app, { title: "Hello World API", description: "REST API" });
+  const port = configService.get("API_PORT", { infer: true });
+  await app.listen(port);
+}
+```
 
-1. `createAppConfigModule({ envSchema })` — root env → validated config
-2. Auth module (Better Auth session + API-key guard; global)
-3. `DatabaseModule` — Drizzle + `DatabaseService`
-4. `HealthModule` — `GET /health` (**`@Public()`**)
-5. `LoggerModule` (nestjs-pino)
-6. Feature modules (e.g. greeting, channel, person)
+- Global **`ZodValidationPipe`** only (nestjs-zod) — **do not** add per-route `@UsePipes(new ZodValidationPipe(Dto))` when the global pipe is registered  
+- Global HTTP **exception filter** (map domain / Nest errors → [Problem Details](#error-envelope-rfc-9457-problem-details) including `requestId`; log via Pino)  
+- `setupOpenApi` runs from `main.ts` (not as a Nest provider), including **nestjs-zod** `cleanupOpenApiDoc`; optional `openapi:export` for Orval  
+- Ops defaults (CORS, Helmet, request-id, shutdown): [Security / ops baseline](#security--ops-baseline)
 
-`setupOpenApi(app, …)` runs from `main.ts` (not as a Nest provider), including **nestjs-zod** `cleanupOpenApiDoc` on the document.
+### LoggerModule defaults — normative
 
-### Bootstrap (`main.ts`)
+Package name: **`nestjs-pino`** (not `pino-nestjs`). Defaults match [`openspec/tech-stack.md` — Logging](../../openspec/tech-stack.md#logging):
 
-- Global **`ZodValidationPipe`** (nestjs-zod)
-- Global HTTP **exception filter** (map domain / Nest errors → status + body; log via Pino)
-- `setupOpenApi` + optional export path for Orval (`openapi:export`)
+```typescript
+LoggerModule.forRoot({
+  pinoHttp: {
+    level: process.env.LOG_LEVEL ?? "info",
+    autoLogging: false,
+    genReqId: (req) =>
+      (req.headers["x-request-id"] as string | undefined) ?? crypto.randomUUID(),
+    customProps: (req) => ({ requestId: req.id }),
+    transport:
+      process.env.NODE_ENV !== "production"
+        ? { target: "pino-pretty", options: { singleLine: true } }
+        : undefined,
+  },
+});
+```
 
-### Controller pattern
+| Setting | Template default |
+|---|---|
+| HTTP access logs | **`autoLogging: false`** (prefer off over flooding; filter `/health` only if access logs are turned on later) |
+| Local format | `pino-pretty` with **`singleLine: true`** when `NODE_ENV !== "production"` |
+| Prod / QA | JSON lines on stdout (no pretty transport) |
+| Correlation | Bind `requestId` from `x-request-id` (accept or generate) — see [Security / ops](#security--ops-baseline) |
 
-1. Thin — delegate to the service
-2. Inspect `Result` from the service → on `isErr()`, `throw new HttpException(...)` (controllers are the only layer that turns Results into HTTP exceptions for happy-path control flow)
-3. `@ApiResponse` / response DTO types for OpenAPI
-4. `@HttpCode` when not the Nest default
-5. Body/query validated via Zod DTO classes (`ZodValidationPipe` global or `@UsePipes`)
+Optional shared bootstrap helper: [`packages/modules`](../../packages/modules/README.md#logging-optional).
+
+### AppModule import order — normative
+
+```typescript
+@Module({
+  imports: [
+    createAppConfigModule({ envSchema }),
+    // AuthModule — Better Auth session + API-key guard (not static ApiKeyModule)
+    DatabaseModule,
+    HealthModule,
+    LoggerModule.forRoot({ /* pino defaults above */ }),
+    // Feature modules…
+  ],
+})
+export class AppModule {}
+```
+
+Order: config → auth → database → health → logger → features.
+
+### Controller / service Result mapping — normative
+
+```typescript
+// Service — return Result; do not throw for domain/DB failures
+async findAll(): Promise<Result<Entity[], DatabaseError>> {
+  try {
+    /* ... */
+    return ok(entities);
+  } catch (e) {
+    return err(new DatabaseError(e));
+  }
+}
+
+// Controller — only layer that turns Results into HTTP for happy-path control flow
+const result = await this.service.findAll();
+if (result.isErr()) {
+  throw new HttpException(
+    /* Problem Details body from filter / helper */,
+    /* status from status map */,
+  );
+}
+return result.value;
+```
+
+Controller checklist:
+
+1. Thin — delegate to the service  
+2. Inspect `Result` → on `isErr()`, `throw new HttpException(...)`  
+3. `@ApiResponse` / response DTO types for OpenAPI  
+4. `@HttpCode` when not the Nest default  
+5. Body/query via Zod DTO classes validated by the **global** `ZodValidationPipe` only
 
 ### Service pattern
 
-1. `@Injectable()`, constructor injection
-2. Return `Promise<Result<T, E>>` (**neverthrow**) — no `throw` for domain/DB failures
-3. Log with `@InjectPinoLogger`
-4. Config via `ConfigService<AppConfig, true>` (`{ infer: true }`)
+1. `@Injectable()`, constructor injection  
+2. Return `Promise<Result<T, E>>` (**neverthrow**) — no `throw` for domain/DB failures  
+3. Log with `@InjectPinoLogger`  
+4. Config via `ConfigService<AppConfig, true>` (`{ infer: true }`)  
 5. Persistence via injected `DatabaseService`
 
 ### DTO pattern
 
-- **Generated** Nest classes only: `export class CreateXDto extends createZodDto(createXSchema) {}`
-- Schemas live in `@helloworld/types/api` — do not redefine Zod in the app
+- **Generated** Nest classes only: `export class CreateXDto extends createZodDto(createXSchema) {}`  
+- Schemas live in `@helloworld/types/api` — do not redefine Zod in the app  
 - Hand-written query DTOs (pagination, filters) may use `createZodDto` locally when not generated
 
-### Exception filter
+### Exception filter — normative
 
-Global filter under `src/common/filters/`:
+Global filter under `src/common/filters/` (`@Catch()` / Nest HTTP exceptions as needed):
 
-- Map known errors from `@helloworld/types` (e.g. `HTTPError`, `ValidationError`, `DatabaseError`) to stable HTTP status + JSON body
-- Unknown errors → 500; log with context; never leak secrets
+- Map known errors from `@helloworld/types` (e.g. `NotFound`, `ValidationError`, `DatabaseError`) via the [status map](#status-map-error-classes-only) — never string sniffing  
+- Emit [RFC 9457 Problem Details](#error-envelope-rfc-9457-problem-details) (`application/problem+json`); Zod field issues go in optional `errors`; always include `requestId`  
+- Shape intent: `response.status(status).json(body)` with that envelope  
+- Unknown errors → 500; log with context + `requestId`; never leak secrets  
 - Works together with controller `HttpException` throws for `Result` mapping
 
 ### Auth on routes
 
-- Global guard: session cookie and/or Better Auth API key (`verifyApiKey`)
-- **`@Public()`** — skip the global guard (health, selected auth routes)
-- Details: [`packages/modules` auth](../../packages/modules/README.md)
+- Global guard: session cookie and/or Better Auth API key (`verifyApiKey` on header **`x-api-key`**) — **not** a static env `ApiKeyModule` / `ApiKeyGuard`  
+- **`@Public()`** — skip the global guard for `GET /health`, Better Auth HTTP routes, OpenAPI (`/api/docs`, `/openapi.json`)  
+- CORS / `trustedOrigins` from `WEB_ORIGIN` (required env above) — see [Security / ops](#security--ops-baseline)  
+- Details: [`packages/modules` auth](../../packages/modules/README.md#auth); inventory [`tech-stack.md` § Auth](../../openspec/tech-stack.md#auth-better-auth); ADR [`0003`](../../openspec/decisions/0003-better-auth.md)
+
+## Security / ops baseline
+
+Normative bootstrap/ops defaults for the Nest Express API on Coolify. Defaults are uncontested — no ADR. Inventory pointers: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#security--ops-baseline). Cross-links: Auth ([GH #7](https://github.com/einmalik1/helloworld/issues/7), [`tech-stack` § Auth](../../openspec/tech-stack.md#auth-better-auth)); Coolify deploy / restarts ([GH #9](https://github.com/einmalik1/helloworld/issues/9), [`tech-stack` § Coolify](../../openspec/tech-stack.md#coolify-build-deploy-data-services)).
+
+| Concern | Template default (v1) | Notes |
+|---|---|---|
+| **CORS** | Reflect **single** `WEB_ORIGIN` via `app.enableCors({ origin: webOrigin, credentials: true })` | Align Better Auth `trustedOrigins` with the same value. Multi-origin (comma-separated env or list) is **later** — do not overbuild in v1 |
+| **Helmet** | **Yes** — `helmet()` on Express in bootstrap | Cheap default for a public API template (`helmet` **8.3.0**) |
+| **Request correlation** | Accept or generate **`x-request-id`**; echo on the response; bind on Pino as `requestId`; include on Problem Details as `requestId` | Clients may send the header; otherwise generate a UUID |
+| **Graceful shutdown** | `app.enableShutdownHooks()` + Nest lifecycle hooks | Required for Coolify rolling restarts; close Drizzle / postgres.js pool in `onModuleDestroy` (or equivalent) |
+| **Rate limiting** | **Out of template v1** | Prefer Better Auth plugin limits on the API-key path later; optional light `@nestjs/throttler` on API-key routes only if needed — not a v1 requirement |
+| **Secrets** | Never log or put in error bodies | Tokens, API keys, cookies, raw auth headers — keep existing Logging rule |
+
+### Ops checklist (wiring)
+
+- [ ] `WEB_ORIGIN` → CORS + Better Auth `trustedOrigins` (single origin)
+- [ ] `helmet()` in `main.ts`
+- [ ] `x-request-id` middleware + Pino `genReqId` / `customProps` + Problem Details `requestId`
+- [ ] `enableShutdownHooks()` + DB pool cleanup on shutdown
+- [ ] No Nest throttle / Better Auth rate-limit plugin required for v1
+- [ ] Exception filter + logger never leak secrets
 
 ### External API integration (optional)
 
@@ -169,8 +405,23 @@ Validate external payloads with Zod; persist via `DatabaseService`; surface fail
 
 ## Testing
 
-| Layer | Tool                       | Notes                                                                                     |
-| ----- | -------------------------- | ----------------------------------------------------------------------------------------- |
-| Unit  | Vitest + `@nestjs/testing` | Mock `DatabaseService` / externals                                                        |
-| HTTP  | **supertest**              | Against testing-module Nest app or running server                                         |
-| Suite | `tests/api`                | Against running `api` + Postgres — see [`tests/api/README.md`](../../tests/api/README.md) |
+| Layer | Tool | Notes |
+|---|---|---|
+| Unit | Vitest + `@nestjs/testing` | Mock `DatabaseService` / externals; override Better Auth guard (below) |
+| HTTP | **supertest** | Against testing-module Nest app or running server |
+| Suite | `tests/api` | Against running `api` + Postgres — see [`tests/api/README.md`](../../tests/api/README.md) |
+
+### Vitest module test — normative
+
+Override the Better Auth guard (not a forever `ApiKeyGuard` name):
+
+```typescript
+const moduleRef = await Test.createTestingModule({
+  imports: [/* test config */],
+  controllers: [ResourceController],
+  providers: [{ provide: ResourceService, useValue: mockService }],
+})
+  .overrideGuard(/* AuthGuard — Better Auth session / API-key */)
+  .useValue({ canActivate: () => true })
+  .compile();
+```

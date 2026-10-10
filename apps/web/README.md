@@ -1,8 +1,35 @@
 # web
 
-React-based web frontend as its own HTTP service.
+React web frontend as its own HTTP service (Vite).
 
-**Bundler:** **Vite** (dev port `5173` per `.env.example`). Talks to the API via `@helloworld/api-client` (sessions / Better Auth) — not `@helloworld/platform`.
+## Stack
+
+| Piece | Choice |
+|---|---|
+| UI library | React **19.3** |
+| Bundler | **Vite 8.3.4** (+ `@vitejs/plugin-react`) — dev port **`5173`** (`WEB_PORT` / `WEB_ORIGIN`) |
+| UI kit | **shadcn/ui** on **Tailwind CSS 4.3.3** |
+| Tours | driver.js **1.9.0** |
+| API usage | Cookie session to Better Auth on `apps/api`; optional Orval `packages/api-client` — **not** `packages/terminal` |
+| Graph explorer | **Cytoscape.js** — viz over `GET /graph/related` / `GET /graph/subgraph` JSON only |
+| Storybook | Sibling app uses `@storybook/react-vite` (same Vite line) |
+| Logging | Web client rules (`console` / UI) — no Pino in the browser |
+| Build | `vite build` → bundler out |
+
+Global inventory: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#web-appsweb). Search/graph boundaries: [`openspec/tech-stack.md` § Search / knowledge graph](../../openspec/tech-stack.md#search--knowledge-graph).
+
+## Graph explorer (intent)
+
+Interactive knowledge-graph view in the SPA. **Cytoscape.js** renders `{ nodes, edges }` from the api retrieve facade — never talks to Apache AGE or Typesense directly.
+
+| Concern | Contract |
+|---|---|
+| Data source | Authenticated calls to `apps/api` (`/graph/related`, `/graph/subgraph`) |
+| Payload | Product JSON only — map into Cytoscape elements in the web layer |
+| Search UI | Optional: call `GET /search` for typeahead / hit lists, then open a subgraph |
+| Forbidden | Embedding Typesense/AGE clients or engine URLs in the browser |
+
+ADR: [`openspec/decisions/0006-search-knowledge-graph.md`](../../openspec/decisions/0006-search-knowledge-graph.md).
 
 ## Deploy
 
@@ -20,4 +47,4 @@ pnpm run dev
 pnpm run --filter web dev
 ```
 
-Stack and bundler details come later — see [`openspec/tech-stack.md`](../../openspec/tech-stack.md).
+Scaffolding (Vite + shadcn + auth client) comes when the package is implemented.

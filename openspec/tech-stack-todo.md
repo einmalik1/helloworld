@@ -2,52 +2,52 @@
 
 Working backlog for closing **specification** gaps against [`tech-stack.md`](tech-stack.md) and component READMEs so this monorepo can serve as a strong template before implementation waves.
 
-Useful patterns from a prior Nest/CLI project were **salvaged into the topic sections below** (marked _Prior reference_). Do not re-import that foreign doc; product-specific encyclopedias (meetings, dual-mode binary, static `API_KEY`, runtime DDL) stay rejected — see Appendix.
+Useful patterns from a prior Nest/CLI project were **salvaged into the topic sections below** (marked *Prior reference*). Do not re-import that foreign doc; product-specific encyclopedias (meetings, dual-mode binary, static `API_KEY`, runtime DDL) stay rejected — see Appendix.
 
 ## Product vs process
 
 Only two decision lanes:
 
-| Lane        | Meaning                                                                                                                                                     | Typical homes                                                                                                                      |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| **Product** | What the running system _is_: components, architecture/boundaries, stack & versions, integration paths, runtime contracts (API, auth, health, deploy shape) | [`architecture.md`](architecture.md), [`tech-stack.md`](tech-stack.md), app/infra READMEs, [`features/`](features/), ADR _content_ |
-| **Process** | How we _build and steer_ it: repo layout, where specs/ADRs/docs live, generators, coding conventions, quality gates, git/agent workflow                     | Root [`README.md`](../README.md), `spark/agents/common/`, generator docs, convention sections in READMEs, ADR _format/location_    |
+| Lane | Meaning | Typical homes |
+|---|---|---|
+| **Product** | What the running system *is*: components, architecture/boundaries, stack & versions, integration paths, runtime contracts (API, auth, health, deploy shape) | [`architecture.md`](architecture.md), [`tech-stack.md`](tech-stack.md), app/infra READMEs, [`features/`](features/), ADR *content* |
+| **Process** | How we *build and steer* it: repo layout, where specs/ADRs/docs live, generators, coding conventions, quality gates, git/agent workflow | Root [`README.md`](../README.md), `spark/agents/common/`, generator docs, convention sections in READMEs, ADR *format/location* |
 
-ADR files live under **process** (when/where/how we record). The decision _inside_ an ADR is often **product**.
+ADR files live under **process** (when/where/how we record). The decision *inside* an ADR is often **product**.
 
 Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped under the two chapters below.
 
 **Status key**
 
-| Status    | Meaning                                                           |
-| --------- | ----------------------------------------------------------------- |
-| Spec open | Decisions / contracts / conventions not (fully) written           |
-| Spec done | Direction documented; only wiring remains                         |
-| Impl open | Expected until implementation phase (listed for completeness)     |
-| Decide    | Explicit choice required (`define …`) before writing the contract |
+| Status | Meaning |
+|---|---|
+| Spec open | Decisions / contracts / conventions not (fully) written |
+| Spec done | Direction documented; only wiring remains |
+| Impl open | Expected until implementation phase (listed for completeness) |
+| Decide | Explicit choice required (`define …`) before writing the contract |
 
 **Placement convention** (already used in this repo)
 
-| Kind of content                   | Where                                                                                                                                           |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Inventory / contested tech choice | [`tech-stack.md`](tech-stack.md) (+ ADR under [`decisions/`](decisions/) when contested)                                                        |
-| Nest / API conventions            | [`apps/api/README.md`](../apps/api/README.md)                                                                                                   |
-| Shared Nest infra contracts       | [`packages/modules/README.md`](../packages/modules/README.md)                                                                                   |
-| Client SDK / transport            | [`packages/api-client/README.md`](../packages/api-client/README.md)                                                                             |
-| Terminal toolkit                  | [`packages/terminal/README.md`](../packages/terminal/README.md) + [`tools/cli`](../tools/cli/README.md) / [`tools/tui`](../tools/tui/README.md) |
-| App-specific deploy / local       | that app’s README                                                                                                                               |
-| Process / agent workflow          | `spark/agents/common/` (optional mirror in READMEs)                                                                                             |
+| Kind of content | Where |
+|---|---|
+| Inventory / contested tech choice | [`tech-stack.md`](tech-stack.md) (+ ADR under [`decisions/`](decisions/) when contested) |
+| Nest / API conventions | [`apps/api/README.md`](../apps/api/README.md) |
+| Shared Nest infra contracts | [`packages/modules/README.md`](../packages/modules/README.md) |
+| Client SDK / transport | [`packages/api-client/README.md`](../packages/api-client/README.md) |
+| Terminal toolkit | [`packages/terminal/README.md`](../packages/terminal/README.md) + [`tools/cli`](../tools/cli/README.md) / [`tools/tui`](../tools/tui/README.md) |
+| App-specific deploy / local | that app’s README |
+| Process / agent workflow | `spark/agents/common/` (optional mirror in READMEs) |
 
 **Already closed in spec**
 
-- **#2 Build / emit contract** (process) — written in [`tech-stack.md`](tech-stack.md#build--emit-contract). Implementation landed with bootstrap-platform (Turbo + dist exports).
-- **Closed by `spec-baseline` (ADRs + OpenSpec capabilities):**
-  - **#1** Schema / migrations → [ADR 0001](decisions/0001-schema-migrations.md) / capability `schema-migrations`
-  - **#3** API HTTP contract → [ADR 0002](decisions/0002-api-http-contract.md) / `api-http-contract`
-  - **#5** Better Auth → [ADR 0003](decisions/0003-better-auth.md) / `auth-better-auth`
-  - **#4** Worker queue + MCP access path (+ web Vite) → [ADR 0004](decisions/0004-platform-facade-mcp.md), [ADR 0005](decisions/0005-worker-pg-boss.md); inventory filled in `tech-stack.md`
-  - **#16** Search/graph access path + Postgres SoT + AGE default → [ADR 0006](decisions/0006-search-knowledge-graph.md) / `search-knowledge-graph`
-  - Remaining #4 inventory details (exact MCP SDK pin), #10/#11/#13/#15, process #6–#14: still open or partial — see sections below; do not re-open locked ADRs without a new change.
+- **#2 Build / emit contract** (process) — written in [`tech-stack.md`](tech-stack.md#build--emit-contract). Remaining work is mostly implementation (flip `exports` to `dist/`, wire `build` / `turbo.json`).
+- **#5 Better Auth wiring** (product) — [`tech-stack.md` § Auth](tech-stack.md#auth-better-auth) + modules / api-client / api / terminal contracts + ADR [`0003`](decisions/0003-better-auth.md).
+- **#10 Security / ops baseline** (product) — [`apps/api/README.md` § Security / ops](../apps/api/README.md#security--ops-baseline) + pointers in [`tech-stack.md`](tech-stack.md#security--ops-baseline).
+- **#6 Workflow “new resource”** (process) — checklist in [`spark/agents/common/conventions.md#new-resource-workflow`](../spark/agents/common/conventions.md#new-resource-workflow); Nest mirror + generators pointers.
+- **#8 TypeScript / module contract** (process) — [`tech-stack.md` § Module / compiler](tech-stack.md#module--compiler-rules-all-ts-workspaces) + [`packages/config/README.md`](../packages/config/README.md) (ES2024 target, SWC Vitest-only, Nest DI spike).
+- **#14 Git conventions** (process) — branches, Conventional Commits, smoke pre-merge gate in [`spark/agents/common/conventions.md#git-conventions`](../spark/agents/common/conventions.md#git-conventions).
+- **#15 Small ops details** (product) — ky timeouts, Terminus health indicators, Nest env table, CLI/TUI config keys in the component READMEs listed under topic **#15**.
+- **#16** Search / knowledge graph (product) — AGE + Typesense + api facade + worker sync + Cytoscape; ADR [`0004`](decisions/0004-search-knowledge-graph.md).
 
 ---
 
@@ -55,34 +55,34 @@ Topic numbers (`#1` … `#16`) are stable for cross-links; they are grouped unde
 
 ### Product
 
-| #   | Topic                        | Hauptproblem | Spec    | Impl | Spec targets                                                                        |
-| --- | ---------------------------- | ------------ | ------- | ---- | ----------------------------------------------------------------------------------- |
-| 1   | Schema / migrations          | Spec         | open    | open | `tech-stack.md` + ADR + `packages/modules/README.md`                                |
-| 3   | API contract conventions     | Spec         | open    | open | `apps/api/README.md` (+ short pointer in `tech-stack.md`)                           |
-| 4   | Worker / MCP / Web bundler   | Spec         | open    | open | `tech-stack.md` inventory + app READMEs + ADRs                                      |
-| 5   | Better Auth wiring           | Spec         | open    | open | `tech-stack.md` § Auth + `packages/modules` + `api-client`                          |
-| 10  | Security / ops baseline      | Spec         | open    | open | `apps/api/README.md` + pointers in `tech-stack.md`                                  |
-| 11  | Docker / Coolify image shape | Spec partial | partial | open | `tech-stack.md` § Coolify + per-app Deploy                                          |
-| 13  | Open version pins            | Spec light   | open    | open | `tech-stack.md` inventory                                                           |
-| 15  | Small ops details            | Spec         | open    | open | api-client / modules / `.env.example` / api README                                  |
-| 16  | Search / knowledge graph     | Spec         | open    | open | `architecture.md` + `tech-stack.md` + new app README + ADR; depends on **#4** (MCP) |
+| # | Topic | Hauptproblem | Spec | Impl | Spec targets |
+|---|---|---|---|---|---|
+| 1 | Schema / migrations | Spec | open | open | `tech-stack.md` + ADR + `packages/modules/README.md` |
+| 3 | API contract conventions | Spec | open | open | `apps/api/README.md` (+ short pointer in `tech-stack.md`) |
+| 4 | Worker / MCP / Web bundler | Spec | open | open | `tech-stack.md` inventory + app READMEs + ADRs |
+| 5 | Better Auth wiring | Spec | **done** | open | `tech-stack.md` § Auth + modules + api-client + terminal + api README + ADR `0003` |
+| 10 | Security / ops baseline | Spec | **done** | open | `apps/api/README.md` § Security / ops + pointers in `tech-stack.md` |
+| 11 | Docker / Coolify image shape | Spec partial | partial | open | `tech-stack.md` § Coolify + per-app Deploy |
+| 13 | Open version pins | Spec light | open | open | `tech-stack.md` inventory |
+| 15 | Small ops details | Spec | **done** | open | api-client / modules / terminal / `.env.example` / api README |
+| 16 | Search / knowledge graph | Spec | **done** | open | `architecture.md` + `tech-stack.md` + ADR `0004` + api/web/worker/mcp + `infra/postgres` + `infra/typesense` + `.env.example` |
 
 ### Process
 
-| #   | Topic                        | Hauptproblem | Spec     | Impl     | Spec targets                                          |
-| --- | ---------------------------- | ------------ | -------- | -------- | ----------------------------------------------------- |
-| 2   | Build / emit                 | Impl         | **done** | open     | (scaffold note until wired)                           |
-| 6   | Workflow “new resource”      | Spec         | open     | partial  | `apps/api/README.md` and/or `spark/agents/common/`    |
-| 7   | Nest reference snippets      | Spec         | open     | open     | `apps/api/README.md` (+ optional `packages/modules`)  |
-| 8   | TypeScript / module contract | Spec partial | partial  | open     | `tech-stack.md` § Module/compiler + `packages/config` |
-| 9   | Root dependency rule         | Spec         | open     | open     | `tech-stack.md` § Monorepo + root `README.md`         |
-| 12  | ADRs / decisions (process)   | Spec         | open     | n/a      | `openspec/decisions/NNNN-*.md`                            |
-| 14  | Git conventions              | Spec         | open     | optional | `spark/agents/common/` or root README                 |
+| # | Topic | Hauptproblem | Spec | Impl | Spec targets |
+|---|---|---|---|---|---|
+| 2 | Build / emit | Impl | **done** | open | (scaffold note until wired) |
+| 6 | Workflow “new resource” | Spec | **done** | partial | `spark/agents/common/conventions.md` + `apps/api/README.md` + pointers |
+| 7 | Nest reference snippets | Spec | open | open | `apps/api/README.md` (+ optional `packages/modules`) |
+| 8 | TypeScript / module contract | Spec | **done** | open | `tech-stack.md` § Module/compiler + `packages/config` |
+| 9 | Root dependency rule | Spec | open | open | `tech-stack.md` § Monorepo + root `README.md` |
+| 12 | ADRs / decisions (process) | Spec | open | n/a | `openspec/decisions/NNNN-*.md` |
+| 14 | Git conventions | Spec | **done** | optional | `spark/agents/common/conventions.md` (+ pointers in `AGENTS.md` / `README.md`) |
 
 **Suggested order (spec work only)**
 
-1. **Product:** 1 → 4 → **16** (with MCP access path) → 3+5 → 10, 11, 13, 15
-2. **Process:** 6+7 → 9, 8-rest → **12** in parallel as product decisions land → 14 optional → **2** implement
+1. **Product:** 1 → 4 → **16** (with MCP access path) → 3+5 → 10, 11, 13, 15  
+2. **Process:** 6+7 → 9 → **12** in parallel as product decisions land → **14** / **8** done → **2** implement  
 
 ---
 
@@ -92,12 +92,12 @@ Decisions about the running system: components, architecture, stack/versions, co
 
 ## 1. Schema / migrations strategy
 
-|                  |                                                                                                                                                                                              |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Lane**         | Product                                                                                                                                                                                      |
-| **Hauptproblem** | Spec                                                                                                                                                                                         |
-| **Spec status**  | Spec open                                                                                                                                                                                    |
-| **Impl status**  | Impl open (after decisions)                                                                                                                                                                  |
+| | |
+|---|---|
+| **Lane** | Product |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec open |
+| **Impl status** | Impl open (after decisions) |
 | **Spec targets** | [`tech-stack.md`](tech-stack.md) (Database / Drizzle); ADR `decisions/NNNN-schema-migrations.md`; short contract in [`packages/modules/README.md`](../packages/modules/README.md) § Database |
 
 ### Decide
@@ -112,7 +112,7 @@ Decisions about the running system: components, architecture, stack/versions, co
 - [ ] Document chosen pipeline in `tech-stack.md` (SoT → Drizzle → migrate)
 - [ ] ADR with rejected alternatives (esp. runtime DDL)
 - [ ] Update `packages/modules/README.md`: remove “Schema ownership TBD”; state folder layout + migrate command intent
-- [ ] Note interaction with generators (`types` / `api` / `nest_dto` stay; optional new `drizzle` stage if chosen) — generator _usage_ also appears under process **#6**
+- [ ] Note interaction with generators (`types` / `api` / `nest_dto` stay; optional new `drizzle` stage if chosen) — generator *usage* also appears under process **#6**
 
 ### Impl (later)
 
@@ -128,12 +128,12 @@ Prior project used **no** migration runner: DDL in `onModuleInit()` via `CREATE 
 
 ## 3. API contract conventions
 
-|                  |                                                                                                                                                                       |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Lane**         | Product                                                                                                                                                               |
-| **Hauptproblem** | Spec                                                                                                                                                                  |
-| **Spec status**  | Spec open                                                                                                                                                             |
-| **Impl status**  | Impl open                                                                                                                                                             |
+| | |
+|---|---|
+| **Lane** | Product |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec open |
+| **Impl status** | Impl open |
 | **Spec targets** | [`apps/api/README.md`](../apps/api/README.md) (primary); short pointer from [`tech-stack.md`](tech-stack.md) § Zod↔OpenAPI / Testing; ADR if error envelope contested |
 
 ### Decide
@@ -160,12 +160,12 @@ Prior project used **no** migration runner: DDL in `onModuleInit()` via `CREATE 
 
 **Fixed routes (adopt as defaults unless decided otherwise):**
 
-| Method | Path                         | Role                                      |
-| ------ | ---------------------------- | ----------------------------------------- |
-| CRUD   | `/resource`, `/resource/:id` | list / get / create / patch / delete      |
-| `GET`  | `/health`                    | public health                             |
-| `GET`  | `/api/docs`                  | Swagger UI                                |
-| `GET`  | `/openapi.json`              | OpenAPI document (also build-time export) |
+| Method | Path | Role |
+|---|---|---|
+| CRUD | `/resource`, `/resource/:id` | list / get / create / patch / delete |
+| `GET` | `/health` | public health |
+| `GET` | `/api/docs` | Swagger UI |
+| `GET` | `/openapi.json` | OpenAPI document (also build-time export) |
 
 **Error envelope (candidate):** filter normalizes to `{ error: "..." }` or `{ error: "...", errors: [...] }` — not `{ message }` only. Map via error classes / status table, **not** `message.includes("not found")`.
 
@@ -187,13 +187,13 @@ export class ListQueryDto extends createZodDto(querySchema) {}
 
 ## 4. Worker / MCP / Web bundler (empty inventory rows)
 
-|                  |                                                                                  |
-| ---------------- | -------------------------------------------------------------------------------- |
-| **Lane**         | Product                                                                          |
-| **Hauptproblem** | Spec                                                                             |
-| **Spec status**  | Spec open                                                                        |
-| **Impl status**  | Impl open                                                                        |
-| **Spec targets** | Inventory + sections in [`tech-stack.md`](tech-stack.md); detail in `apps/worker | mcp | web/README.md`; ADR per contested choice |
+| | |
+|---|---|
+| **Lane** | Product |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec open |
+| **Impl status** | Impl open |
+| **Spec targets** | Inventory + sections in [`tech-stack.md`](tech-stack.md); detail in `apps/worker|mcp|web/README.md`; ADR per contested choice |
 
 ### Decide — Worker
 
@@ -215,6 +215,7 @@ export class ListQueryDto extends createZodDto(querySchema) {}
 - [ ] **define** Storybook framework adapter (`react-vite` etc.)
 - [ ] **define** client data fetching / API usage (`api-client` + session/cookies vs other)
 - [ ] **define** UI library baseline (none / shadcn / …) if template-relevant
+- [x] **define** guided tours: [driver.js](https://github.com/nilbuild/driver.js) **1.9.0** — inventory in [`tech-stack.md`](tech-stack.md)
 
 ### Spec to write
 
@@ -231,28 +232,30 @@ export class ListQueryDto extends createZodDto(querySchema) {}
 
 ## 5. Better Auth wiring
 
-|                  |                                                                                                                                                                                                                                    |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Lane**         | Product                                                                                                                                                                                                                            |
-| **Hauptproblem** | Spec                                                                                                                                                                                                                               |
-| **Spec status**  | Spec open                                                                                                                                                                                                                          |
-| **Impl status**  | Impl open                                                                                                                                                                                                                          |
-| **Spec targets** | [`tech-stack.md`](tech-stack.md) § Auth; [`packages/modules/README.md`](../packages/modules/README.md) § Auth; header in [`packages/api-client/README.md`](../packages/api-client/README.md); ADR if adapter/schema path contested |
+| | |
+|---|---|
+| **Lane** | Product |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec done — [`tech-stack.md` § Auth](tech-stack.md#auth-better-auth); ADR [`0003-better-auth`](decisions/0003-better-auth.md) |
+| **Impl status** | Impl open |
+| **Spec targets** | [`tech-stack.md`](tech-stack.md) § Auth; [`packages/modules/README.md`](../packages/modules/README.md) § Auth; [`packages/api-client/README.md`](../packages/api-client/README.md); [`apps/api/README.md`](../apps/api/README.md); [`packages/terminal/README.md`](../packages/terminal/README.md); ADR [`0003`](decisions/0003-better-auth.md) |
 
 ### Decide
 
-- [ ] **define** Nest integration style (hand-written Better Auth instance + global guard vs community Nest module)
-- [ ] **define** Drizzle adapter + schema generation path (depends on **#1**)
-- [ ] **define** API key header name (today “TBD”; api-client sketch uses `x-api-key` — confirm and freeze)
-- [ ] **define** web session flow: cookies, `WEB_ORIGIN` / CORS / `trustedOrigins`, which routes are `@Public()`
-- [ ] **define** key lifecycle for CLI/TUI (create/revoke UX; where keys are issued)
+- [x] **define** Nest integration style — hand-written Better Auth instance + global guard (**reject** community Nest module)
+- [x] **define** Drizzle adapter + schema generation path — official Drizzle adapter; `@better-auth/cli` (depends on **#1**, closed)
+- [x] **define** API key header name — freeze **`x-api-key`**
+- [x] **define** web session flow — cookies; `WEB_ORIGIN` → CORS / `trustedOrigins`; `@Public()` for `/health`, auth routes, OpenAPI
+- [x] **define** key lifecycle — issue/revoke via web settings (or authenticated CLI); store per-env in `@helloworld/terminal/config`
 
 ### Spec to write
 
-- [ ] Expand Auth section: adapter, header, session vs API-key parallel paths
-- [ ] Module contract in `packages/modules` (guard behaviour, `@Public()`)
-- [ ] Mutator auth contract in `packages/api-client` (header name, `configureClient`)
-- [ ] Env keys already in `.env.example` — document Required/Default in `apps/api/README.md` (see also **#15**)
+- [x] Expand Auth section: adapter, header, session vs API-key parallel paths
+- [x] Module contract in `packages/modules` (guard behaviour, `@Public()`)
+- [x] Mutator auth contract in `packages/api-client` (header name, `configureClient`)
+- [x] Env keys — Required/Default for `BETTER_AUTH_*` / `WEB_ORIGIN` in `apps/api/README.md` (broader env polish also **#15**)
+- [x] ADR contrasting Better Auth vs static `API_KEY`
+- [x] Terminal config: `apiKey` storage (not root `.env`)
 
 ### Impl (later)
 
@@ -260,51 +263,53 @@ export class ListQueryDto extends createZodDto(querySchema) {}
 
 ### Prior reference (rejected — for ADR contrast)
 
-Static env `API_KEY` + global `ApiKeyModule` checking header `x-api-key`, opt-out `@Public()`. **Rejected** in favour of Better Auth managed keys + sessions; keep header name `x-api-key` as a strong candidate for the API-key plugin path.
+Static env `API_KEY` + global `ApiKeyModule` checking header `x-api-key`, opt-out `@Public()`. **Rejected** in favour of Better Auth managed keys + sessions; header name **`x-api-key`** kept and frozen — see [`0003-better-auth.md`](decisions/0003-better-auth.md).
 
 ---
 
 ## 10. Security / ops baseline
 
-|                  |                                                                                                                                                                    |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Lane**         | Product                                                                                                                                                            |
-| **Hauptproblem** | Spec                                                                                                                                                               |
-| **Spec status**  | Spec open                                                                                                                                                          |
-| **Impl status**  | Impl open                                                                                                                                                          |
-| **Spec targets** | [`apps/api/README.md`](../apps/api/README.md) Bootstrap/Ops; pointers in [`tech-stack.md`](tech-stack.md) § Coolify / Auth; ADR for security defaults if contested |
+| | |
+|---|---|
+| **Lane** | Product |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec done — [`apps/api/README.md` § Security / ops](../apps/api/README.md#security--ops-baseline); pointers in [`tech-stack.md`](tech-stack.md#security--ops-baseline) |
+| **Impl status** | Impl open |
+| **Spec targets** | [`apps/api/README.md`](../apps/api/README.md) § Security / ops + Bootstrap; pointers in [`tech-stack.md`](tech-stack.md) § Security / ops, Coolify, Auth, Logging |
 
 ### Decide
 
-- [ ] **define** CORS policy from `WEB_ORIGIN` (and multi-origin later?)
-- [ ] **define** whether `helmet` (or equivalent) is template-default
-- [ ] **define** request correlation: header name / generation / log + error body field (Logging already wants correlation)
-- [ ] **define** graceful shutdown (`enableShutdownHooks` / signal handling) for Coolify restarts
-- [ ] **define** rate limiting for API keys (Better Auth optional limits vs Nest throttle) — in or out of template v1
+- [x] **define** CORS policy — single `WEB_ORIGIN` in v1; multi-origin later (comma-separated / list) — do not overbuild
+- [x] **define** Helmet — **yes** as Express template default (`helmet()` in bootstrap; **8.3.0**)
+- [x] **define** request correlation — accept/generate **`x-request-id`**; Pino `requestId` + Problem Details `requestId`
+- [x] **define** graceful shutdown — `app.enableShutdownHooks()` + Nest lifecycle (Coolify restarts; Drizzle pool cleanup)
+- [x] **define** rate limiting — **out of template v1**; prefer Better Auth plugin limits later (optional `@nestjs/throttler` on API-key routes only if needed)
 
 ### Spec to write
 
-- [ ] Ops/security checklist in `apps/api/README.md`
-- [ ] Cross-link Auth + Coolify sections
-- [ ] Secrets logging rules already present — keep; ensure filter never leaks tokens
+- [x] Ops/security checklist in `apps/api/README.md`
+- [x] Cross-link Auth + Coolify sections
+- [x] Secrets logging rules already present — keep; ensure filter never leaks tokens
+- [x] Short pointers in `tech-stack.md` (Security / ops + Coolify / Auth / Logging)
+- [x] Bootstrap sketch updated (Helmet, CORS, shutdown, request-id bindings)
 
 ### Impl (later)
 
-- [ ] Wire CORS, helmet (if chosen), request-id middleware, shutdown hooks, optional throttle
+- [ ] Wire CORS, helmet, request-id middleware, shutdown hooks (no Nest throttle required for v1)
 
 ---
 
 ## 11. Docker / Coolify image shape
 
-|                  |                                                                            |
-| ---------------- | -------------------------------------------------------------------------- |
-| **Lane**         | Product                                                                    |
-| **Hauptproblem** | Spec partial                                                               |
-| **Spec status**  | Partial — multi-stage intent + `dist/` runtime in Coolify / Build emit     |
-| **Impl status**  | Impl open                                                                  |
+| | |
+|---|---|
+| **Lane** | Product |
+| **Hauptproblem** | Spec partial |
+| **Spec status** | Partial — multi-stage intent + `dist/` runtime in Coolify / Build emit |
+| **Impl status** | Impl open |
 | **Spec targets** | [`tech-stack.md`](tech-stack.md) § Coolify; per-app README Deploy sections |
 
-Runtime/deploy shape of the product (how each service ships). Build _tooling_ details also touch process **#2**.
+Runtime/deploy shape of the product (how each service ships). Build *tooling* details also touch process **#2**.
 
 ### Decide
 
@@ -342,12 +347,12 @@ CMD ["node", "dist/main.js"]
 
 ## 13. Open version pins
 
-|                  |                                                                    |
-| ---------------- | ------------------------------------------------------------------ |
-| **Lane**         | Product                                                            |
-| **Hauptproblem** | Spec light                                                         |
-| **Spec status**  | Spec open (“pin when wiring”)                                      |
-| **Impl status**  | Impl open                                                          |
+| | |
+|---|---|
+| **Lane** | Product |
+| **Hauptproblem** | Spec light |
+| **Spec status** | Spec open (“pin when wiring”) |
+| **Impl status** | Impl open |
 | **Spec targets** | [`tech-stack.md`](tech-stack.md) inventory (+ Nest packages table) |
 
 ### Decide
@@ -368,121 +373,96 @@ CMD ["node", "dist/main.js"]
 
 ## 15. Small ops details (timeouts, health, env table)
 
-|                  |                                                                                                                                                                                                                                                                  |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Lane**         | Product                                                                                                                                                                                                                                                          |
-| **Hauptproblem** | Spec                                                                                                                                                                                                                                                             |
-| **Spec status**  | Spec open                                                                                                                                                                                                                                                        |
-| **Impl status**  | Impl open                                                                                                                                                                                                                                                        |
-| **Spec targets** | Timeouts → [`packages/api-client/README.md`](../packages/api-client/README.md); Health → [`packages/modules/README.md`](../packages/modules/README.md); Env Required/Default → [`.env.example`](../.env.example) + [`apps/api/README.md`](../apps/api/README.md) |
+| | |
+|---|---|
+| **Lane** | Product |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec done — timeouts / health / env table / config keys in component READMEs |
+| **Impl status** | Impl open |
+| **Spec targets** | Timeouts → [`packages/api-client/README.md`](../packages/api-client/README.md#timeouts-normative); Health → [`packages/modules/README.md`](../packages/modules/README.md#health-normative); Env → [`.env.example`](../.env.example) + [`apps/api/README.md`](../apps/api/README.md#nest-facing-env-table-normative); Config keys → [`packages/terminal/README.md`](../packages/terminal/README.md#config-keys-normative) |
 
 ### Decide
 
-- [ ] **define** ky timeouts (prior: 30s general, 3s health — adopt?)
-- [ ] **define** `/health` indicators (DB ping + memory/utilization vs “as chosen”)
-- [ ] **define** per-key Required / Default / Description table for Nest-facing env (beyond `.env.example` comments)
-- [ ] **define** CLI/TUI config key names (`apiUrl` / `workerUrl` / credential field) as frozen schema intent
+- [x] **define** ky timeouts — **adopt** 30s general / 3s health
+- [x] **define** `/health` indicators — Terminus **DB ping** + process up; **no** memory metrics in v1
+- [x] **define** per-key Required / Default / Description table for Nest-facing env — mirror `.env.example`; `LOG_LEVEL` default **`info`**; Better Auth secrets required; **no** static `API_KEY`
+- [x] **define** CLI/TUI config key names — freeze `apiUrl`, `workerUrl`, `apiKey` in `@helloworld/terminal/config` Zod schema
 
 ### Spec to write
 
-- [ ] Document timeouts in api-client mutator contract
-- [ ] Health module contract: exact checks + `@Public()`
-- [ ] Env table in `apps/api/README.md` (Required/Default); keep single root `.env` rule
-- [ ] Optional: `envSchema` example snippet in api README (adapted from prior project, with Better Auth keys not `API_KEY`)
+- [x] Document timeouts in api-client mutator contract
+- [x] Health module contract: exact checks + `@Public()`
+- [x] Env table in `apps/api/README.md` (Required/Default/Description); keep single root `.env` rule
+- [x] `envSchema` example snippet in api README (Better Auth keys, not `API_KEY`)
+- [x] Frozen config keys in `packages/terminal/README.md`
 
 ### Impl (later)
 
 - [ ] Mutator timeouts, Terminus indicators, Zod `envSchema` matching the table
+- [ ] Wire `@helloworld/terminal/config` schema to the frozen keys
 
-### Prior reference (adapt)
+### Prior reference (adapt) — decisions landed above
 
-**ky:** general timeout **30s**; health checks **3s** (prior CLI `api.ts`).
+**ky:** general timeout **30s**; health checks **3s**.
 
-**TUI config globals (candidates):** `pollInterval` default 30 (range 5–300); `pageSize` default 15 (range 5–100). Resolve URL/key: active environment → built-in defaults; missing file → defaults; corrupt file → hard error.
+**TUI config globals:** `pollInterval` default 30 (range 5–300); `pageSize` default 15 (range 5–100). Resolve URL/key: active environment → built-in defaults; missing file → defaults; corrupt file → hard error.
 
-**Env table shape (adapt names to helloworld — do not copy static `API_KEY` / `SERVER_HTTP_PORT` / `LOG_LEVEL` default `warn`):**
-
-| Variable (prior)   | helloworld intent                                            | Required    | Default                           |
-| ------------------ | ------------------------------------------------------------ | ----------- | --------------------------------- |
-| `SERVER_HTTP_PORT` | `API_PORT` (see `.env.example`)                              | —           | `3000`                            |
-| `DATABASE_URL`     | same                                                         | ✓           | —                                 |
-| `API_KEY`          | Better Auth keys / `BETTER_AUTH_*` — not a single static key | ✓ (secrets) | —                                 |
-| `LOG_LEVEL`        | same                                                         | —           | **`info`** (template), not `warn` |
-| `NODE_ENV`         | same                                                         | —           | `development`                     |
-
-**envSchema sketch (adapt keys):**
-
-```typescript
-export const envSchema = z.object({
-  API_PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
-  DATABASE_URL: z.string().min(1),
-  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
-  BETTER_AUTH_SECRET: z.string().min(1),
-  BETTER_AUTH_URL: z.string().url(),
-  WEB_ORIGIN: z.string().url(),
-  // … S3_* when this process needs object storage
-});
-```
+**Env:** see normative table in `apps/api/README.md` — no static `API_KEY`; `LOG_LEVEL` default **`info`**.
 
 ---
 
 ## 16. Search / knowledge-graph service
 
-New long-running **app/service** in the template: a searchable knowledge graph over domain entities (Hello World: greetings, channels, people, reactions, …). No prior-project salvage for this. Complements Postgres (system of record) rather than replacing it.
+Secondary indexes (graph + search) over domain entities — complements Postgres SoT. **No** public `apps/graph`. Issue: [#12](https://github.com/einmalik1/helloworld/issues/12).
 
-|                  |                                                                                                                                                                                                                                                                                                                                                                    |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Lane**         | Product                                                                                                                                                                                                                                                                                                                                                            |
-| **Hauptproblem** | Spec                                                                                                                                                                                                                                                                                                                                                               |
-| **Spec status**  | Spec open (component not yet in inventory / architecture)                                                                                                                                                                                                                                                                                                          |
-| **Impl status**  | Impl open                                                                                                                                                                                                                                                                                                                                                          |
-| **Spec targets** | [`architecture.md`](architecture.md) (component + boundaries); [`tech-stack.md`](tech-stack.md) inventory + Coolify/Docker row; new `apps/<name>/README.md` (name TBD); local stand-in under `infra/` if needed; ADR `decisions/NNNN-search-knowledge-graph.md`; env section in root `.env.example`; optional `tests/<name>/`; cross-link **#4** (MCP access path) |
+| | |
+|---|---|
+| **Lane** | Product |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec done — [`architecture.md`](architecture.md#search--knowledge-graph-secondary-indexes); [`tech-stack.md`](tech-stack.md#search--knowledge-graph); ADR [`0004`](decisions/0004-search-knowledge-graph.md) |
+| **Impl status** | Impl open |
+| **Spec targets** | architecture + tech-stack + ADR `0004` + api/web/worker/mcp READMEs + `infra/postgres` + `infra/typesense` + `.env.example` |
 
 ### Decide — placement
 
-- [ ] **define** component name and path (candidates: `apps/graph`, `apps/search`, `apps/knowledge`, …) and whether the graph **engine** lives under `infra/` (like Postgres/S3) with a thin Nest (or other) app in front, vs one combined app image
-- [ ] **define** role vs Postgres: graph is secondary index / exploration layer; Postgres remains SoT (or document a different rule if chosen)
-- [ ] **define** domain projection for Hello World: which entities/edges are indexed (greeting ↔ channel ↔ person ↔ reaction, …) and update vocabulary in root `CONTEXT.md` if new terms appear
-- [ ] **define** sync model: how graph stays current with API writes (worker jobs, outbox, CDC, periodic rebuild, sync-on-write from `apps/api`)
+- [x] **define** component path — **no** `apps/graph`; AGE on Postgres; Typesense under `infra/typesense`; facade on `apps/api`
+- [x] **define** role vs Postgres — secondary indexes; Postgres remains SoT; writes API → DB first
+- [x] **define** domain projection — person / channel / greeting / reaction nodes + authored / posted_in / reacted_to / reaction_on edges (ADR `0004`)
+- [x] **define** sync model — worker transactional outbox + schedule drain + rebuild job; **not** sync-on-write
 
 ### Decide — engine / stack
 
-- [ ] **define** graph / search engine (candidates to evaluate: Neo4j, Memgraph, Apache AGE on Postgres, FalkorDB, Weaviate/Qdrant if vector-first, Elasticsearch/OpenSearch if search-first, …) — pick for **template** fitness (local Compose + Coolify), not only product preference
-- [ ] **define** query style exposed to the product: Cypher / Gremlin / GraphQL / custom query DSL / structured “search greetings” API only
-- [ ] **define** whether full-text / vector search is in-scope for v1 of the template or graph traversal only
+- [x] **define** engines — **Apache AGE** (graph) + **Typesense** (search)
+- [x] **define** product query style — structured retrieve/search API only (`/graph/related`, `/graph/subgraph`, `/search`)
+- [x] **define** search scope v1 — full-text / typo-tolerant; vector deferred
 
 ### Decide — access path (how clients reach it)
 
-- [ ] **define** primary access path for humans/apps:
-  - direct HTTP from clients (own REST/GraphQL surface on the new app), and/or
-  - only via `apps/api` (BFF / facade — graph not publicly exposed), and/or
-  - via `apps/mcp` tools for agents, and/or
-  - combination (e.g. REST for web/CLI, MCP for agents)
-- [ ] **define** whether CLI/TUI/web talk to the graph service URL directly or only through `api` / `api-client`
-- [ ] **define** auth: same Better Auth session/API-key model as `apps/api`, service-to-service key, or network-internal only
-- [ ] **define** relationship to **#4** MCP: if MCP is chosen as a path, does MCP call the graph service, call `api`, or embed graph queries?
+- [x] **define** primary access — **only via `apps/api`** facade; MCP tools call api; CLI/TUI/web via api / api-client
+- [x] **define** no direct engine URLs for clients
+- [x] **define** auth — Better Auth on api; AGE/Typesense network-internal (api/worker S2S)
+- [x] **define** MCP path — HTTP → api retrieve/search only (aligns with **#4**)
 
 ### Decide — ops
 
-- [ ] **define** local Compose stand-in (`infra/…`) and Coolify provisioning (one-click vs custom Dockerfile)
-- [ ] **define** `/health` for the graph app and whether CLI `health` aggregates it
-- [ ] **define** root `.env` section keys (endpoints, credentials) — still single root `.env`
+- [x] **define** local Compose — `infra/postgres` (AGE image) + `infra/typesense`; Coolify pin same Postgres image + Typesense service
+- [x] **define** `/health` — api probes Typesense; AGE covered by Postgres DB ping (no separate graph-app health)
+- [x] **define** root `.env` — `TYPESENSE_*`; AGE via `DATABASE_URL` + extension bootstrap
 
 ### Spec to write
 
-- [ ] Add component to [`architecture.md`](architecture.md) (technology-agnostic: “search / knowledge graph service”)
-- [ ] Add inventory row + short subsection in [`tech-stack.md`](tech-stack.md) (engine, client libs, deploy)
-- [ ] Scaffold README under chosen `apps/<name>/` (role, boundaries, access path, local/Coolify)
-- [ ] ADR: engine choice + access path + sync model; rejected alternatives
-- [ ] Feature intent stub under `openspec/features/` when search behaviour is product-ready (optional until engine chosen)
-- [ ] Update root [`README.md`](../README.md) Components table + Layout when path is frozen
-- [ ] Docker / Coolify table row (alongside api/worker/…)
-- [ ] If MCP is an access path: update MCP subsection under **#4** and `apps/mcp/README.md` intent
+- [x] Component boundaries in [`architecture.md`](architecture.md)
+- [x] Inventory + subsection in [`tech-stack.md`](tech-stack.md)
+- [x] No new public app README — intents in api/web/worker/mcp + infra READMEs
+- [x] ADR [`0004-search-knowledge-graph.md`](decisions/0004-search-knowledge-graph.md)
+- [ ] Optional feature stub under `openspec/features/` when product behaviour needs acceptance criteria
+- [ ] Root [`README.md`](../README.md) Components/Layout touch-up when infra compose aliases land (impl-adjacent)
+- [x] Coolify / local data-service rows updated for AGE Postgres + Typesense
+- [x] MCP README retrieve/search-only intent
 
 ### Impl (later)
 
-- [ ] Provision engine + app scaffold, sync pipeline, auth, health, tests suite folder
-- [ ] Wire consumers (web / CLI / MCP) per chosen access path
+- [ ] AGE custom image, Typesense Compose/Coolify, outbox + projection jobs, api facade routes, Cytoscape explorer, health probe, tests
 
 ---
 
@@ -492,13 +472,13 @@ Decisions about how we develop, document, generate, and change the system.
 
 ## 2. Build / emit contract
 
-|                  |                                                                                        |
-| ---------------- | -------------------------------------------------------------------------------------- |
-| **Lane**         | Process                                                                                |
-| **Hauptproblem** | Impl (spec done)                                                                       |
-| **Spec status**  | Spec done — [`tech-stack.md#build--emit-contract`](tech-stack.md#build--emit-contract) |
-| **Impl status**  | Impl open                                                                              |
-| **Spec targets** | — (remove scaffold note when wired); Web bundler still TBD under product **#4**        |
+| | |
+|---|---|
+| **Lane** | Process |
+| **Hauptproblem** | Impl (spec done) |
+| **Spec status** | Spec done — [`tech-stack.md#build--emit-contract`](tech-stack.md#build--emit-contract) |
+| **Impl status** | Impl open |
+| **Spec targets** | — (remove scaffold note when wired); Web bundler still TBD under product **#4** |
 
 ### Decide
 
@@ -539,33 +519,34 @@ App scripts (prior): `"build": "nest build"`, `"dev": "nest start --watch"`, `"t
 
 ## 6. Workflow “new resource”
 
-|                  |                                                                                                                                                                  |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Lane**         | Process                                                                                                                                                          |
-| **Hauptproblem** | Spec                                                                                                                                                             |
-| **Spec status**  | Spec open                                                                                                                                                        |
-| **Impl status**  | Partial (generators exist; Nest/DB/client wiring incomplete)                                                                                                     |
-| **Spec targets** | [`apps/api/README.md`](../apps/api/README.md) Feature workflow; and/or `spark/agents/common/`; pointer from [`tech-stack.md`](tech-stack.md) § Schema generators |
+| | |
+|---|---|
+| **Lane** | Process |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec done — [`spark/agents/common/conventions.md` § New resource](../spark/agents/common/conventions.md#new-resource-workflow); Nest mirror [`apps/api/README.md`](../apps/api/README.md#feature--new-resource-workflow); pointers in [`tech-stack.md`](tech-stack.md#schema-generators-sparkgenerators) + [`AGENTS.md`](../AGENTS.md) |
+| **Impl status** | Partial (generators exist; Nest/DB/client wiring incomplete) |
+| **Spec targets** | [`spark/agents/common/conventions.md`](../spark/agents/common/conventions.md#new-resource-workflow) (primary); [`apps/api/README.md`](../apps/api/README.md#feature--new-resource-workflow); pointer from [`tech-stack.md`](tech-stack.md) § Schema generators; [`AGENTS.md`](../AGENTS.md) |
 
-Depends on product **#1** (migrations) for the migrate step.
+Depends on product **#1** (migrations) for the migrate step — **#1** closed; migrate via `drizzle-kit migrate` / `pnpm db:migrate` intent.
 
 ### Decide
 
-- [ ] **define** canonical step order and ownership (who edits SQL vs who runs generate vs who writes queries)
-- [ ] **define** what is generated vs hand-written (DTO wrappers generated; services/controllers hand; Drizzle queries per **#1**)
+- [x] **define** canonical step order and ownership (who edits SQL vs who runs generate vs who writes queries)
+- [x] **define** what is generated vs hand-written (DTO wrappers generated; services/controllers hand; Drizzle queries per **#1**)
 
 ### Spec to write
 
-- [ ] Checklist (agent-ready), roughly:
+- [x] Checklist (agent-ready) in `spark/agents/common/conventions.md`:
   1. Edit `openspec/data-model/schema.sql` (+ profile categories if needed)
-  2. `pnpm generate` (core → types → api → nest_dto)
+  2. `pnpm generate` (core → types → api → nest_dto + drizzle)
   3. Migration / Drizzle schema update (**#1**)
   4. `DatabaseService` domain methods
   5. Feature module (controller/service) + `AppModule` import
   6. `openapi:export` → `pnpm generate:client`
   7. Unit + `tests/api`
   8. Optional: CLI command / TUI surface
-- [ ] Link checklist from generators section and agent common rules
+- [x] Nest-focused mirror in `apps/api/README.md`
+- [x] Link checklist from generators section, `AGENTS.md`, and Database / Drizzle note
 
 ### Impl (later)
 
@@ -582,18 +563,18 @@ Prior “new feature” steps (pre-generator era — merge with generate pipelin
 5. Import in `AppModule`
 6. Tests under app test folder
 
-Prior blueprint also had a greenfield monorepo checklist (config → types → modules → nest app → patterns → turbo) — useful only if scaffolding a _new_ repo from this template; keep as optional spark/agent note later.
+Prior blueprint also had a greenfield monorepo checklist (config → types → modules → nest app → patterns → turbo) — useful only if scaffolding a *new* repo from this template; keep as optional spark/agent note later.
 
 ---
 
 ## 7. Nest reference snippets
 
-|                  |                                                                                                                                                                      |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Lane**         | Process                                                                                                                                                              |
-| **Hauptproblem** | Spec                                                                                                                                                                 |
-| **Spec status**  | Spec open (patterns exist as prose only)                                                                                                                             |
-| **Impl status**  | Impl open                                                                                                                                                            |
+| | |
+|---|---|
+| **Lane** | Process |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec open (patterns exist as prose only) |
+| **Impl status** | Impl open |
 | **Spec targets** | [`apps/api/README.md`](../apps/api/README.md) § NestJS conventions; optional bootstrap helper notes in [`packages/modules/README.md`](../packages/modules/README.md) |
 
 Coding conventions / scaffolding patterns (how we implement Nest). Product contracts they implement (error map, auth) live under **#3** / **#5**.
@@ -643,10 +624,9 @@ LoggerModule.forRoot({
   pinoHttp: {
     level: process.env.LOG_LEVEL ?? "info",
     autoLogging: false,
-    transport:
-      process.env.NODE_ENV !== "production"
-        ? { target: "pino-pretty", options: { singleLine: true } }
-        : undefined,
+    transport: process.env.NODE_ENV !== "production"
+      ? { target: "pino-pretty", options: { singleLine: true } }
+      : undefined,
   },
 });
 ```
@@ -660,7 +640,7 @@ LoggerModule.forRoot({
     // AuthModule — Better Auth session + API-key guard (not static ApiKeyModule)
     DatabaseModule,
     HealthModule,
-    LoggerModule.forRoot({/* pino above */}),
+    LoggerModule.forRoot({ /* pino above */ }),
     // Feature modules…
   ],
 })
@@ -705,46 +685,48 @@ const moduleRef = await Test.createTestingModule({
 
 ## 8. TypeScript / module contract
 
-|                  |                                                                                                                         |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **Lane**         | Process                                                                                                                 |
-| **Hauptproblem** | Spec partial                                                                                                            |
-| **Spec status**  | Partial — rules already in Build / emit (`type: module`, `nodenext`, `.js` suffixes, decorators)                        |
-| **Impl status**  | Impl open                                                                                                               |
+| | |
+|---|---|
+| **Lane** | Process |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec done — [`tech-stack.md` § Module / compiler](tech-stack.md#module--compiler-rules-all-ts-workspaces); [`packages/config/README.md`](../packages/config/README.md) |
+| **Impl status** | Impl open |
 | **Spec targets** | [`tech-stack.md`](tech-stack.md) § Module / compiler rules; [`packages/config/README.md`](../packages/config/README.md) |
 
 ### Decide
 
-- [ ] **define** `compilerOptions.target` (prior project used ES2023 — confirm)
-- [ ] **define** SWC role: Vitest decorator support only vs also Nest build emit
-- [ ] **define** / verify TypeScript 7 + `emitDecoratorMetadata` works for Nest DI; if not, document that SWC (or Nest compiler) owns decorator metadata emit
+- [x] **define** `compilerOptions.target` — **ES2024** (TS 7 + Node 26); fallback **ES2023** if Nest DI / emit spike fails (document in `packages/config`)
+- [x] **define** SWC role — **Vitest only** via `unplugin-swc` **2.0.0**; Nest emit stays `nest build` / `tsc`
+- [x] **define** Nest DI / metadata — early spike under TS 7; if `emitDecoratorMetadata` fails, document metadata owner (Nest compiler / SWC) in `packages/config/README.md`
 
 ### Spec to write
 
-- [ ] Fill gaps in Module / compiler rules (target, SWC)
-- [ ] `packages/config` README: what `tsconfig.base.json` / vitest base guarantee
+- [x] Fill gaps in Module / compiler rules (target, SWC, DI spike)
+- [x] `packages/config` README: what `tsconfig.base.json` / vitest base guarantee + spike / workaround note
+- [x] Testing row: pin `unplugin-swc` as Vitest-only (not Nest emit)
 
 ### Impl (later)
 
-- [ ] Land `tsconfig.base.json`, vitest SWC, verify Nest DI under TS 7
+- [ ] Land `tsconfig.base.json`, vitest SWC (`unplugin-swc`)
+- [ ] Nest DI smoke under TS 7; if red, apply fallback target / metadata-owner note in `packages/config/README.md`
 
-### Prior reference (adapt)
+### Prior reference (adapt — decisions landed above)
 
-- Target **ES2023**; `moduleResolution` `nodenext`; relative imports with `.js` suffix; `"type": "module"`
-- Nest: `experimentalDecorators` + `emitDecoratorMetadata`
-- Vitest: `unplugin-swc` for decorator support in tests
+- Target **ES2024** (was ES2023 in prior); `moduleResolution` `nodenext`; relative imports with `.js` suffix; `"type": "module"`
+- Nest: `experimentalDecorators` + `emitDecoratorMetadata`; emit via Nest/`tsc`
+- Vitest: `unplugin-swc` for decorator support in tests only
 - Shared bases in `packages/config`: `tsconfig.base.json`, `vitest.config.ts`, `oxlintrc.json`
 
 ---
 
 ## 9. Root dependency rule
 
-|                  |                                                                               |
-| ---------------- | ----------------------------------------------------------------------------- |
-| **Lane**         | Process                                                                       |
-| **Hauptproblem** | Spec                                                                          |
-| **Spec status**  | Spec open                                                                     |
-| **Impl status**  | Impl open                                                                     |
+| | |
+|---|---|
+| **Lane** | Process |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec open |
+| **Impl status** | Impl open |
 | **Spec targets** | [`tech-stack.md`](tech-stack.md) § Monorepo; root [`README.md`](../README.md) |
 
 ### Decide
@@ -771,15 +753,15 @@ Filter usage: `pnpm run --filter <pkg> …` / `pnpm add <pkg> --filter <pkg>` fr
 
 ## 12. ADRs / decisions (recording process)
 
-|                  |                                                  |
-| ---------------- | ------------------------------------------------ |
-| **Lane**         | Process                                          |
-| **Hauptproblem** | Spec                                             |
-| **Spec status**  | Spec open (`decisions/` empty aside from README) |
-| **Impl status**  | n/a                                              |
-| **Spec targets** | [`decisions/NNNN-short-title.md`](decisions/)    |
+| | |
+|---|---|
+| **Lane** | Process |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec open (`decisions/` empty aside from README) |
+| **Impl status** | n/a |
+| **Spec targets** | [`decisions/NNNN-short-title.md`](decisions/) |
 
-This topic is the **process** of writing ADRs (naming, structure, when). Candidate ADR _subjects_ below are mostly **product** decisions — write them when those product topics are decided.
+This topic is the **process** of writing ADRs (naming, structure, when). Candidate ADR *subjects* below are mostly **product** decisions — write them when those product topics are decided.
 
 ### Decide / write (process)
 
@@ -790,14 +772,14 @@ This topic is the **process** of writing ADRs (naming, structure, when). Candida
 ### Product ADR candidates (content — land with product topics)
 
 - [ ] ADR: two binaries (`helloworld` / `helloworld-tui`) vs dual-mode single binary
-- [ ] ADR: Better Auth (sessions + managed API keys) vs static env `API_KEY` module
+- [x] ADR: Better Auth (sessions + managed API keys) vs static env `API_KEY` module — [`0003-better-auth.md`](decisions/0003-better-auth.md)
 - [ ] ADR: CLI/TUI logging via tslog+ora (`packages/terminal`) vs Pino in tools
 - [ ] ADR: Orval + ky mutator vs hand-written HTTP client
 - [ ] ADR: Coolify build-from-Git (Dockerfile pack) vs registry pull-only default
 - [ ] ADR: package emit to `dist/` (rationale for process **#2**)
 - [ ] ADR: Garage (QA/Prod) + local MinIO-compatible stand-in
-- [ ] ADR: search / knowledge-graph service (engine + access path) — see **#16**
-- [ ] Plus ADRs from **#1**, **#3**, **#4**, **#16** as those decisions land
+- [x] ADR: search / knowledge-graph service (engine + access path) — [`0004-search-knowledge-graph.md`](decisions/0004-search-knowledge-graph.md)
+- [ ] Plus ADRs from **#1**, **#3**, **#4** as those decisions land
 
 ### Spec to write
 
@@ -808,24 +790,24 @@ This topic is the **process** of writing ADRs (naming, structure, when). Candida
 
 ## 14. Git conventions
 
-|                  |                                                                                                                      |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Lane**         | Process                                                                                                              |
-| **Hauptproblem** | Spec                                                                                                                 |
-| **Spec status**  | Spec open                                                                                                            |
-| **Impl status**  | Optional (hooks / CI)                                                                                                |
-| **Spec targets** | Prefer `spark/agents/common/` or root [`README.md`](../README.md); **not** required inside `tech-stack.md` inventory |
+| | |
+|---|---|
+| **Lane** | Process |
+| **Hauptproblem** | Spec |
+| **Spec status** | Spec done — [`spark/agents/common/conventions.md#git-conventions`](../spark/agents/common/conventions.md#git-conventions); pointers in [`AGENTS.md`](../AGENTS.md) + root [`README.md`](../README.md) |
+| **Impl status** | Optional (hooks / CI) |
+| **Spec targets** | Process home: `spark/agents/common/conventions.md` — **not** inside `tech-stack.md` inventory |
 
 ### Decide
 
-- [ ] **define** branch naming (`feature/*`, `fix/*`, `chore/*` — adopt prior project or variant)
-- [ ] **define** commit convention (Conventional Commits — yes/no)
-- [ ] **define** pre-merge quality gate: `format` → `lint` → `typecheck` → `test` (+ `build` where relevant)
+- [x] **define** branch naming (`feature/*`, `fix/*`, `chore/*`) — **adopt**
+- [x] **define** commit convention (Conventional Commits) — **adopt**
+- [x] **define** pre-merge quality gate: `format` → `lint` → `typecheck` → **smoke** (+ `build` where relevant) — **not** the full test suite
 
 ### Spec to write
 
-- [ ] Short process note for humans/agents
-- [ ] Link from AGENTS.md / spark common if that is the house style
+- [x] Short process note for humans/agents in `spark/agents/common/conventions.md`
+- [x] Link from `AGENTS.md` / root `README.md`
 
 ### Impl (later)
 
@@ -835,7 +817,7 @@ This topic is the **process** of writing ADRs (naming, structure, when). Candida
 
 - Branches: `feature/*`, `fix/*`, `chore/*`
 - Commits: Conventional Commits
-- Pre-merge: `format` → `lint` → `typecheck` → `test`
+- Pre-merge: `format` → `lint` → `typecheck` → **smoke** (full suite = CI / deeper verification)
 
 ---
 
@@ -843,16 +825,16 @@ This topic is the **process** of writing ADRs (naming, structure, when). Candida
 
 ## Rejected prior-project patterns (do not port)
 
-| Prior pattern                                                      | Why not                                                           |
-| ------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| Prior pattern | Why not |
+|---|---|
 | Dual-mode single binary CLI/TUI (`argv.length` → Ink vs Commander) | Template: two installable tools (`helloworld` / `helloworld-tui`) |
-| Static env `API_KEY` / `ApiKeyModule`                              | Better Auth managed keys + sessions                               |
-| Runtime DDL in `onModuleInit()`                                    | Prefer real migrations (**#1**)                                   |
-| Status via `message.includes("not found")`                         | Explicit error-class → status map (**#3**)                        |
-| `LOG_LEVEL` default `warn`                                         | Template default `info`                                           |
-| Silent migration of flat legacy CLI configs                        | Greenfield template — hard error on corrupt config is enough      |
-| Product command/keybinding encyclopedia (meetings, Confluence, …)  | Keep CLI/TUI READMEs structural                                   |
-| Older pins (Nest 11, pnpm 11, TS 5.7, Vitest 4, ky 1.x, …)         | Use [`tech-stack.md`](tech-stack.md) inventory                    |
+| Static env `API_KEY` / `ApiKeyModule` | Better Auth managed keys + sessions |
+| Runtime DDL in `onModuleInit()` | Prefer real migrations (**#1**) |
+| Status via `message.includes("not found")` | Explicit error-class → status map (**#3**) |
+| `LOG_LEVEL` default `warn` | Template default `info` |
+| Silent migration of flat legacy CLI configs | Greenfield template — hard error on corrupt config is enough |
+| Product command/keybinding encyclopedia (meetings, Confluence, …) | Keep CLI/TUI READMEs structural |
+| Older pins (Nest 11, pnpm 11, TS 5.7, Vitest 4, ky 1.x, …) | Use [`tech-stack.md`](tech-stack.md) inventory |
 
 CLI/TUI structural intent (separate binaries, XDG config, Commander vs Ink boundaries) already lives in [`tools/cli/README.md`](../tools/cli/README.md) and [`tools/tui/README.md`](../tools/tui/README.md) — no need to keep the foreign doc for that.
 
@@ -860,9 +842,16 @@ CLI/TUI structural intent (separate binaries, XDG config, Commander vs Ink bound
 
 ## Progress log
 
-| Date       | Change                                                                                                      |
-| ---------- | ----------------------------------------------------------------------------------------------------------- |
-| 2026-10-04 | Backlog created from chat analysis; #2 marked Spec done                                                     |
-| 2026-10-04 | Added **#16** Search / knowledge-graph service (new app; access via REST / MCP / facade TBD)                |
-| 2026-10-04 | Restructured into **Product** vs **Process** chapters; topic numbers kept for cross-links                   |
-| 2026-10-04 | Salvaged prior-project snippets into topic _Prior reference_ sections; removed root foreign `TECH-STACK.md` |
+| Date | Change |
+|---|---|
+| 2026-10-04 | Backlog created from chat analysis; #2 marked Spec done |
+| 2026-10-04 | Added **#16** Search / knowledge-graph service (new app; access via REST / MCP / facade TBD) |
+| 2026-10-04 | Restructured into **Product** vs **Process** chapters; topic numbers kept for cross-links |
+| 2026-10-04 | Salvaged prior-project snippets into topic *Prior reference* sections; removed root foreign `TECH-STACK.md` |
+| 2026-10-09 | **#14** Git conventions Spec done — process note + smoke gate; tracking closed |
+| 2026-10-09 | **#15** Small ops details Spec done — ky 30s/3s, Terminus DB+up, Nest env table, terminal `apiUrl`/`workerUrl`/`apiKey` |
+| 2026-10-09 | **#10** Security / ops baseline Spec done — api README checklist + tech-stack pointers (CORS, Helmet, request-id, shutdown, rate-limit out of v1) |
+| 2026-10-09 | **#5** Better Auth wiring Spec done — inventory, module/mutator/env/terminal contracts, ADR `0003` |
+| 2026-10-09 | **#6** Workflow “new resource” Spec done — conventions checklist + api README mirror + tech-stack / AGENTS pointers |
+| 2026-10-09 | **#8** TypeScript / module contract Spec done — ES2024 target, SWC Vitest-only, Nest DI spike / workaround in config README |
+| 2026-10-09 | **#16** Search / knowledge graph Spec done — AGE + Typesense + api facade + worker outbox + Cytoscape; ADR `0004` |

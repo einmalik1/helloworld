@@ -1,6 +1,6 @@
 # Architecture
 
-System picture and component boundaries for Hello World — technology-agnostic where possible.
+System picture and component boundaries for Hello World — technology-agnostic.
 
 Keep it factual. Chosen technologies live in [`tech-stack.md`](tech-stack.md). Rationale for contested choices lives in [`decisions/`](decisions/).
 
@@ -8,34 +8,38 @@ Keep it factual. Chosen technologies live in [`tech-stack.md`](tech-stack.md). R
 
 See root `README.md` for the layout inventory (`apps/`, `tools/`, `infra/`, `tests/`, `spark/`, `packages/`).
 
-| Layer | Components | Role |
+### Search / knowledge graph (secondary indexes)
+
+Graph exploration and full-text search sit **beside** Postgres, not instead of it. Postgres remains the system of record; clients never talk to the graph or search engines directly.
+
+| Piece | Role | Boundary |
 |---|---|---|
-| **Clients** | `apps/web`, `tools/cli`, `tools/tui` | Talk to product HTTP via `@helloworld/api-client` only |
-| **Facades** | `apps/api`, `apps/mcp` | HTTP and MCP surfaces; thin; call `@helloworld/platform` |
-| **Application** | `packages/platform` | Use-cases + adapters (DB, S3, search/graph) |
-| **Nest infra** | `packages/modules` | Config, Drizzle/DB module, health, Better Auth, OpenAPI |
-| **Jobs** | `apps/worker` | pg-boss consumers (impex and other jobs) |
-| **Data** | Postgres, object storage (Garage/MinIO) | SoT + files |
-| **Secondary index** | Search / knowledge graph | Rebuildable from Postgres; not SoT ([ADR 0006](decisions/0006-search-knowledge-graph.md)) |
-| **Docs / gallery** | `apps/docs`, `apps/storybook` | Publish specs / UI gallery |
+| Relational SoT | Postgres (domain tables) | All writes: clients → `apps/api` → DB first |
+| Graph projection | Cypher-capable layer **in the same Postgres** (extension) | No public `apps/graph`; no separate graph DB in v1 |
+| Search index | Dedicated search service under `infra/` | Network-internal; indexed from worker jobs |
+| Product facade | Structured retrieve/search routes on `apps/api` | Clients get `{ nodes, edges }` / search hits only — not engine protocols |
+| Graph UI | `apps/web` viz over API JSON | Consumes retrieve JSON only |
+| Sync | `apps/worker` after writes (outbox / jobs) | Not sync-on-write on the API request path |
+| Agents | `apps/mcp` tools | Call `apps/api` retrieve/search only — never AGE/search URLs |
 
 ```text
-  web / cli / tui
-        |  api-client (HTTP)
-        v
-     apps/api  --------+--------  apps/mcp
-        |              |  platform in-process
-        v              v
-           packages/platform
-                |
-     +----------+----------+----------+
-     |          |          |          |
-  Postgres    S3/Garage  search/   (future)
-                         graph
-        ^
-        |
-   apps/worker (pg-boss jobs, impex)
+Clients (web / CLI / TUI / MCP)
+    │  HTTP + auth
+    ▼
+apps/api  ── write ──►  Postgres (SoT) + graph extension
+    │                       │
+    │                       │  worker outbox / jobs
+    │                       ▼
+    │                  apps/worker ──► graph projection
+    │                              └─► search index
+    │
+    ├── GET graph retrieve  → { nodes, edges }
+    └── GET /search         → search hits
+
+apps/web ── graph viz ──► retrieve JSON only
 ```
+
+Chosen engines and deploy shape: [`tech-stack.md`](tech-stack.md#search--knowledge-graph). Rationale: [`decisions/0006-search-knowledge-graph.md`](decisions/0006-search-knowledge-graph.md).
 
 ## Configuration boundary
 
@@ -43,17 +47,8 @@ Runtime configuration for all services and tools is a **single repo-root env fil
 
 ## Data model
 
-Authoritative DDL: [`erd/schema.sql`](erd/schema.sql).  
-Migrations: [ADR 0001](decisions/0001-schema-migrations.md).  
-Regenerate: `pnpm generate` — Python generators under `spark/generators/`, config in `spark/repo-profile.yaml` → [`erd/generated/`](erd/generated/).
-
-## Auth
-
-Better Auth sessions (web) + managed API keys (tools/MCP) — [ADR 0003](decisions/0003-better-auth.md).
-
-## Deploy / test plane
-
-Coolify environments **test** / **qa** / **production** in `spark/repo-profile.yaml`. Agents/CI use **test**, not host Compose on the Coolify server.
+Authoritative DDL: [`data-model/schema.sql`](data-model/schema.sql).  
+Regenerate: `pnpm generate` (or `pnpm generate:erd`) — Python generators under `spark/generators/`, config in `spark/repo-profile.yaml` → [`data-model/generated/`](data-model/generated/).
 
 ## Related
 
@@ -63,4 +58,3 @@ Coolify environments **test** / **qa** / **production** in `spark/repo-profile.y
 | [`features/`](features/) | Behaviour / acceptance |
 | [`decisions/`](decisions/) | ADRs |
 | Root `CONTEXT.md` | Ubiquitous language |
-| OpenSpec `openspec/specs/` | Capability requirements (after baseline archive) |
