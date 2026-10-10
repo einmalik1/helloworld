@@ -1,0 +1,31 @@
+{
+  "name": "tui",
+  "version": "0.0.0",
+  "private": true,
+  "bin": {
+    "helloworld-tui": "./bin/run.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/main.tsx",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "smoke": "vitest run test/tui.smoke.spec.ts"
+  },
+  "dependencies": {
+    "@helloworld/api-client": "workspace:*",
+    "@helloworld/terminal": "workspace:*",
+    "ink": "7.1.1",
+    "ink-text-input": "6.0.0",
+    "react": "19.3.0"
+  },
+  "devDependencies": {
+    "@helloworld/config": "workspace:*",
+    "@types/node": "24.7.2",
+    "@types/react": "19.2.7",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
+  }
+}

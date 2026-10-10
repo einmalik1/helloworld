@@ -13,13 +13,13 @@ Operator UI: browse status, confirm actions, edit local/remote settings in an al
 | ---------------- | ------------------------------------------------------------------------------------------------ |
 | UI               | Ink **7.1.1** + React **19.3.0**                                                                 |
 | Text fields      | `ink-text-input` **6.0.0**                                                                       |
-| HTTP             | ky **2.1.0** via `packages/api-client` (when wired)                                              |
+| HTTP             | ky **2.1.0** via `packages/api-client`                                                           |
 | Terminal toolkit | `packages/terminal` (`config` / `log` / `tty`)                                                   |
 | User config      | `@helloworld/terminal/config`                                                                    |
 | Logging          | `@helloworld/terminal/log` — **tslog** (+ **ora** if needed); fatals on stderr; UI toasts for UX |
 | Shared types     | `packages/types` (when wired)                                                                    |
 | Binary           | `helloworld-tui` → `bin/run.js` → `dist/…`                                                       |
-| Build            | `tsc` → `dist/` — [`Build / emit contract`](../../openspec/tech-stack.md#build--emit-contract)       |
+| Build            | `tsc` → `dist/` — [`Build / emit contract`](../../openspec/tech-stack.md#build--emit-contract)   |
 | Tests            | Vitest under `tools/tui` (and `tests/tui` for interaction/snapshots)                             |
 
 ## Layout (intent)
