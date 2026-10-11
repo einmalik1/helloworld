@@ -3,11 +3,12 @@
 Generated from `schema-model.json`. Categories from `spark/repo-profile.yaml`.
 Do not edit by hand — run `pnpm generate`.
 
-| Category | Tables |
-|---|---|
-| [Core](categories/core.md) (`core`) | 3 |
-| [Social](categories/social.md) (`social`) | 1 |
-| [Chat](categories/chat.md) (`chat`) | 2 |
+| Category                                  | Tables |
+| ----------------------------------------- | ------ |
+| [Core](categories/core.md) (`core`)       | 3      |
+| [Social](categories/social.md) (`social`) | 1      |
+| [Chat](categories/chat.md) (`chat`)       | 2      |
+| [Infra](categories/infra.md) (`infra`)    | 1      |
 
 ## All tables
 
@@ -17,3 +18,4 @@ Do not edit by hand — run `pnpm generate`.
 - [`greeting_reaction`](tables/greeting_reaction.md) — Greeting reaction (social)
 - [`conversation`](tables/conversation.md) — Conversation (chat)
 - [`message`](tables/message.md) — Message (chat)
+- [`search_sync_outbox`](tables/search_sync_outbox.md) — Search sync outbox (infra)

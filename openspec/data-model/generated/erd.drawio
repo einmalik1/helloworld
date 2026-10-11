@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mxfile host="app.diagrams.net" modified="2026-10-10T10:31:57.146180Z" agent="erd-pipeline" version="24.0.0">
+<mxfile host="app.diagrams.net" modified="2026-10-10T22:55:28.806050Z" agent="erd-pipeline" version="24.0.0">
   <diagram id="erd-big-picture" name="erd-big-picture">
     <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
       <root>
@@ -22,6 +22,9 @@
         </mxCell>
         <mxCell id="n5" value="&lt;b&gt;message&lt;/b&gt;&lt;br&gt;Message · 5 fields" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d97706;fontColor=#ffffff;strokeColor=none" vertex="1" parent="1">
           <mxGeometry x="560" y="225.0" width="220" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="n6" value="&lt;b&gt;search_sync_outbox&lt;/b&gt;&lt;br&gt;Search sync outbox · 7 fields" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#64748b;fontColor=#ffffff;strokeColor=none" vertex="1" parent="1">
+          <mxGeometry x="820" y="170.0" width="220" height="70" as="geometry"/>
         </mxCell>
         <mxCell id="e0" value="author" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;labelBackgroundColor=#ffffff;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;" edge="1" parent="1" source="n0" target="n2">
           <mxGeometry relative="1" as="geometry">

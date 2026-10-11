@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-10T10:31:57.144725Z",
+  "generatedAt": "2026-10-10T22:56:00.654230Z",
   "sourceFile": "openspec/data-model/schema.sql",
   "tables": [
     {
@@ -58,15 +58,11 @@
           "comment": null
         }
       ],
-      "primaryKey": [
-        "id"
-      ],
+      "primaryKey": ["id"],
       "uniqueConstraints": [
         {
           "name": "person_unique",
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       ],
       "checkConstraints": [],
@@ -129,15 +125,11 @@
           "comment": null
         }
       ],
-      "primaryKey": [
-        "id"
-      ],
+      "primaryKey": ["id"],
       "uniqueConstraints": [
         {
           "name": "channel_unique",
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       ],
       "checkConstraints": [],
@@ -220,9 +212,7 @@
           "comment": null
         }
       ],
-      "primaryKey": [
-        "id"
-      ],
+      "primaryKey": ["id"],
       "uniqueConstraints": [],
       "checkConstraints": [],
       "indexes": [],
@@ -315,17 +305,11 @@
           "comment": null
         }
       ],
-      "primaryKey": [
-        "id"
-      ],
+      "primaryKey": ["id"],
       "uniqueConstraints": [
         {
           "name": "greeting_reaction_unique",
-          "columns": [
-            "greeting_id",
-            "person_id",
-            "emoji"
-          ]
+          "columns": ["greeting_id", "person_id", "emoji"]
         }
       ],
       "checkConstraints": [],
@@ -415,9 +399,7 @@
           "comment": null
         }
       ],
-      "primaryKey": [
-        "id"
-      ],
+      "primaryKey": ["id"],
       "uniqueConstraints": [],
       "checkConstraints": [],
       "indexes": [],
@@ -501,9 +483,7 @@
           "comment": null
         }
       ],
-      "primaryKey": [
-        "id"
-      ],
+      "primaryKey": ["id"],
       "uniqueConstraints": [],
       "checkConstraints": [
         {
@@ -514,10 +494,7 @@
       "indexes": [
         {
           "name": "message_conversation_created_idx",
-          "columns": [
-            "conversation_id",
-            "created_at"
-          ],
+          "columns": ["conversation_id", "created_at"],
           "unique": false,
           "partial": null
         }
@@ -529,6 +506,116 @@
           "onDelete": "CASCADE"
         }
       ]
+    },
+    {
+      "name": "search_sync_outbox",
+      "category": "infra",
+      "label": "Search sync outbox",
+      "spec": "openspec/specs/search-knowledge-graph/spec.md",
+      "description": "Async AGE/Typesense projection work drained by apps/worker",
+      "columns": [
+        {
+          "name": "id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": true,
+          "hasDefault": true,
+          "defaultValue": "gen_random_uuid()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": true,
+          "comment": null
+        },
+        {
+          "name": "aggregate_type",
+          "sqlType": "text",
+          "logicalType": "Text",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "person | channel | greeting | reaction"
+        },
+        {
+          "name": "aggregate_id",
+          "sqlType": "uuid",
+          "logicalType": "UUID",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Domain entity UUID being projected"
+        },
+        {
+          "name": "op",
+          "sqlType": "text",
+          "logicalType": "Text",
+          "nullable": false,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "upsert | delete"
+        },
+        {
+          "name": "payload",
+          "sqlType": "jsonb",
+          "logicalType": "JSON",
+          "nullable": true,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Optional snapshot for upsert projection"
+        },
+        {
+          "name": "created_at",
+          "sqlType": "timestamptz",
+          "logicalType": "Timestamp (TZ)",
+          "nullable": false,
+          "hasDefault": true,
+          "defaultValue": "now()",
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": null
+        },
+        {
+          "name": "processed_at",
+          "sqlType": "timestamptz",
+          "logicalType": "Timestamp (TZ)",
+          "nullable": true,
+          "hasDefault": false,
+          "defaultValue": null,
+          "references": null,
+          "logicalReference": null,
+          "isPrimaryKey": false,
+          "comment": "Set when worker finishes applying the row"
+        }
+      ],
+      "primaryKey": ["id"],
+      "uniqueConstraints": [],
+      "checkConstraints": [
+        {
+          "name": "search_sync_outbox_check",
+          "definition": "CHECK ( aggregate_type IN ('person', 'channel', 'greeting', 'reaction') AND op IN ('upsert', 'delete') )"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "search_sync_outbox_pending_idx",
+          "columns": ["created_at"],
+          "unique": false,
+          "partial": "processed_at IS NULL"
+        }
+      ],
+      "foreignKeys": []
     }
   ],
   "edges": [
@@ -587,28 +674,25 @@
       "key": "core",
       "label": "Core",
       "color": "#2563eb",
-      "tables": [
-        "person",
-        "channel",
-        "greeting"
-      ]
+      "tables": ["person", "channel", "greeting"]
     },
     {
       "key": "social",
       "label": "Social",
       "color": "#059669",
-      "tables": [
-        "greeting_reaction"
-      ]
+      "tables": ["greeting_reaction"]
     },
     {
       "key": "chat",
       "label": "Chat",
       "color": "#d97706",
-      "tables": [
-        "conversation",
-        "message"
-      ]
+      "tables": ["conversation", "message"]
+    },
+    {
+      "key": "infra",
+      "label": "Infra",
+      "color": "#64748b",
+      "tables": ["search_sync_outbox"]
     }
   ]
 }

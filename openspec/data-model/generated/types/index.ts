@@ -8,4 +8,4 @@ export * from "./greeting.js";
 export * from "./greeting_reaction.js";
 export * from "./conversation.js";
 export * from "./message.js";
-
+export * from "./search_sync_outbox.js";
