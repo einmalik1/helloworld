@@ -2,6 +2,7 @@
 
 export * from "./database/schema/index.js";
 export * from "./database/auth-schema.js";
+export * from "./database/job-schema.js";
 export * as databaseSchema from "./database/schema-entry.js";
 
 export { createAppConfigModule } from "./config/create-app-config-module.js";
@@ -12,6 +13,7 @@ export { DatabaseService } from "./database/database.service.js";
 export type { AppDatabase } from "./database/database.service.js";
 
 export { HealthModule } from "./health/health.module.js";
+export { TypesenseHealthIndicator } from "./health/typesense.health.js";
 
 export { AuthModule } from "./auth/auth.module.js";
 export { AuthGuard } from "./auth/auth.guard.js";

@@ -15,6 +15,10 @@
     "./database/auth-schema": {
       "types": "./dist/database/auth-schema.d.ts",
       "import": "./dist/database/auth-schema.js"
+    },
+    "./database/job-schema": {
+      "types": "./dist/database/job-schema.d.ts",
+      "import": "./dist/database/job-schema.js"
     }
   },
   "scripts": {

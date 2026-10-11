@@ -1,16 +1,26 @@
 import { Module } from "@nestjs/common";
 import { ScheduleModule } from "@nestjs/schedule";
-import { DatabaseModule, createAppConfigModule, createLoggerModule } from "@helloworld/modules";
+import {
+  AuthModule,
+  DatabaseModule,
+  HealthModule,
+  createAppConfigModule,
+  createLoggerModule,
+} from "@helloworld/modules";
 
 import { envSchema } from "./configuration.js";
+import { JobsModule } from "./jobs/jobs.module.js";
 import { ProjectionModule } from "./projection/projection.module.js";
 
 @Module({
   imports: [
     createAppConfigModule({ envSchema }),
+    AuthModule,
     DatabaseModule,
+    HealthModule,
     createLoggerModule(),
     ScheduleModule.forRoot(),
+    JobsModule,
     ProjectionModule,
   ],
 })

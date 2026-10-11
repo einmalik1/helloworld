@@ -1,15 +1,19 @@
 import { existsSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-/** Walk up from this file until package.json name helloworld / pnpm-workspace. */
+/** Ensure process.cwd() is the monorepo root so ConfigModule loads root `.env`. */
 export function chdirRepoRoot(): void {
-  let dir = dirname(fileURLToPath(import.meta.url));
-  for (let i = 0; i < 8; i++) {
-    if (existsSync(join(dir, "pnpm-workspace.yaml")) && existsSync(join(dir, "package.json"))) {
+  const here = dirname(fileURLToPath(import.meta.url));
+  let dir = here;
+  for (let i = 0; i < 8; i += 1) {
+    if (
+      existsSync(resolve(dir, "pnpm-workspace.yaml")) &&
+      existsSync(resolve(dir, ".env.example"))
+    ) {
       process.chdir(dir);
       return;
     }
-    dir = dirname(dir);
+    dir = resolve(dir, "..");
   }
 }

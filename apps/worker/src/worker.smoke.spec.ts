@@ -1,37 +1,123 @@
 import "reflect-metadata";
 
-import { Test } from "@nestjs/testing";
-import { afterAll, describe, expect, it } from "vitest";
+import type { INestApplication } from "@nestjs/common";
 import { SchedulerRegistry } from "@nestjs/schedule";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { SuperAgentTest } from "supertest";
 
-describe("worker smoke", () => {
-  afterAll(() => {
-    // leave env for other tests
-  });
+describe("Worker Nest smoke", () => {
+  let app: INestApplication;
+  let agent: SuperAgentTest;
 
-  it("boots ScheduleModule + ProjectionService providers", async () => {
-    process.env.DATABASE_URL ??= "postgresql://helloworld:helloworld@127.0.0.1:5432/helloworld";
-    process.env.LOG_LEVEL ??= "info";
-    process.env.NODE_ENV ??= "test";
-    process.env.TYPESENSE_API_KEY ??= "change-me-typesense-local";
-
+  beforeAll(async () => {
     const { chdirRepoRoot } = await import("./chdir-repo-root.js");
     chdirRepoRoot();
+    process.env.DATABASE_URL ??= "postgresql://helloworld:helloworld@127.0.0.1:5432/helloworld";
+    process.env.BETTER_AUTH_SECRET ??= "smoke-secret-change-me";
+    process.env.BETTER_AUTH_URL ??= "http://localhost:3000";
+    process.env.WEB_ORIGIN ??= "http://localhost:5173";
+    process.env.LOG_LEVEL ??= "info";
+    process.env.NODE_ENV ??= "test";
+    process.env.WORKER_PORT ??= "3001";
+    process.env.WORKER_HOST ??= "127.0.0.1";
+    process.env.WORKER_CONCURRENCY ??= "1";
+    process.env.TYPESENSE_API_KEY ??= "change-me-typesense-local";
 
+    const { Test } = await import("@nestjs/testing");
+    const {
+      AUTH_INSTANCE,
+      DatabaseService,
+      TypesenseHealthIndicator,
+    } = await import("@helloworld/modules");
     const { AppModule } = await import("./app.module.js");
+    const { OutboxDrainJob } = await import("./jobs/outbox-drain.job.js");
+    const { JobsRepository } = await import("./jobs/jobs.repository.js");
     const { ProjectionService } = await import("./projection/projection.service.js");
+    const { PROJECTION_SYNC, SEARCH_INDEX, SEARCH_SYNC_OUTBOX } = await import(
+      "./projection/projection.tokens.js"
+    );
+    const { requestIdMiddleware } = await import("./common/middleware/request-id.middleware.js");
+    const { HttpExceptionFilter } = await import("./common/filters/http-exception.filter.js");
+    const request = (await import("supertest")).default;
 
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(AUTH_INSTANCE)
+      .useValue({
+        handler: async () => new Response(null, { status: 404 }),
+        api: {
+          verifyApiKey: async () => ({ valid: false }),
+          getSession: async () => null,
+        },
+      })
+      .overrideProvider(DatabaseService)
+      .useValue({
+        db: {},
+        sql: {},
+        ping: async () => undefined,
+        onModuleDestroy: async () => undefined,
+      })
+      .overrideProvider(TypesenseHealthIndicator)
+      .useValue({
+        isHealthy: async (key = "typesense") => ({ [key]: { status: "up" } }),
+      })
+      .overrideProvider(OutboxDrainJob)
+      .useValue({ drain: async () => undefined })
+      .overrideProvider(JobsRepository)
+      .useValue({
+        listJobs: async () => [],
+        getJob: async () => {
+          throw new Error("not used");
+        },
+        retryJob: async () => {
+          throw new Error("not used");
+        },
+        claimPendingOutbox: async () => [],
+      })
+      .overrideProvider(SEARCH_INDEX)
+      .useValue({})
+      .overrideProvider(SEARCH_SYNC_OUTBOX)
+      .useValue({})
+      .overrideProvider(PROJECTION_SYNC)
+      .useValue({
+        drainPending: async () => 0,
+        rebuild: async () => ({ nodes: 0, documents: 0 }),
+      })
+      .overrideProvider(ProjectionService)
+      .useValue({
+        drainOutbox: async () => undefined,
+        rebuildIndexes: async () => undefined,
+        rebuildNow: async () => ({ nodes: 0, documents: 0 }),
+      })
+      .compile();
 
-    const projection = moduleRef.get(ProjectionService);
-    expect(projection).toBeTruthy();
+    app = moduleRef.createNestApplication();
+    app.use(requestIdMiddleware);
+    app.useGlobalFilters(new HttpExceptionFilter());
+    await app.init();
+    agent = request(app.getHttpServer()) as unknown as SuperAgentTest;
+  });
+
+  afterAll(async () => {
+    await app?.close();
+  });
+
+  it("composes AppModule with ScheduleModule and ProjectionService", async () => {
+    expect(app).toBeTruthy();
+    const scheduler = app.get(SchedulerRegistry);
+    expect(scheduler).toBeTruthy();
+    const { ProjectionService } = await import("./projection/projection.service.js");
+    const projection = app.get(ProjectionService);
     expect(typeof projection.rebuildNow).toBe("function");
+  });
 
-    const registry = moduleRef.get(SchedulerRegistry);
-    expect(registry).toBeTruthy();
+  it("exposes public GET /health", async () => {
+    const res = await agent.get("/health").expect(200);
+    expect(res.body).toMatchObject({ status: "ok" });
+  });
 
-    await moduleRef.close();
+  it("requires auth for GET /jobs", async () => {
+    await agent.get("/jobs").expect(401);
   });
 });

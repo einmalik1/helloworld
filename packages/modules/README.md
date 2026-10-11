@@ -15,6 +15,7 @@ src/
 ├── database/
 │   ├── schema/          # domain Drizzle TS from generator (schema.sql → drizzle stage)
 │   ├── auth-schema.ts   # Better Auth CLI SoT (not in schema.sql)
+│   ├── job-schema.ts    # Worker job + outbox (platform; not in schema.sql)
 │   ├── schema-entry.ts  # combined entry for drizzle-kit + DatabaseService
 │   ├── database.module.ts
 │   └── database.service.ts
@@ -41,6 +42,7 @@ Keep **domain** and **auth** Drizzle schemas as separate files. Subpath exports:
 - Drizzle ORM **0.45.3** + drizzle-kit **0.31.11** (root scripts); Nest `DatabaseService` uses postgres.js **3.4.9**
 - **Domain schema:** `pnpm generate:drizzle` (or full `pnpm generate`) writes [`src/database/schema/`](src/database/schema/) from [`openspec/data-model/schema.sql`](../../openspec/data-model/schema.sql) — do not hand-edit those files  
 - **Auth schema:** [`src/database/auth-schema.ts`](src/database/auth-schema.ts) — Better Auth owned; regenerate with `pnpm dlx auth@1.7.7 generate --config <auth-instance> --output packages/modules/src/database/auth-schema.ts`. **Do not** merge auth DDL into `schema.sql`  
+- **Job / outbox schema:** [`src/database/job-schema.ts`](src/database/job-schema.ts) — platform-owned for `apps/worker` (ADR 0007); **not** in `schema.sql` (avoids Nest DTO/API stubs). Subpath: `@helloworld/modules/database/job-schema`  
 - **Migrations:** root `drizzle.config.ts` → SQL under [`drizzle/`](drizzle/); apply with **`pnpm db:migrate`**. Coolify **pre-deploy** runs the same command — **no** runtime DDL in Nest lifecycle  
 - Spec + ADR: [`tech-stack.md` § Database / Drizzle](../../openspec/tech-stack.md#database--drizzle-schema--migrations), [`decisions/0001-schema-migrations.md`](../../openspec/decisions/0001-schema-migrations.md)  
 

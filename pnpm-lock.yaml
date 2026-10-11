@@ -395,6 +395,9 @@ importers:
       '@helloworld/platform':
         specifier: workspace:*
         version: link:../../packages/platform
+      '@helloworld/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@nestjs/common':
         specifier: 12.1.2
         version: 12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -410,9 +413,18 @@ importers:
       '@nestjs/schedule':
         specifier: 12.0.2
         version: 12.0.2(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.1.2)
+      drizzle-orm:
+        specifier: 0.45.3
+        version: 0.45.3(kysely@0.29.6)(postgres@3.4.9)
+      helmet:
+        specifier: 8.3.0
+        version: 8.3.0
       nestjs-pino:
         specifier: 5.3.0
         version: 5.3.0(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.1.2)(pino-http@11.0.0)(pino@10.3.1)(rxjs@7.8.2)
+      nestjs-zod:
+        specifier: 5.5.0
+        version: 5.5.0(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/swagger@12.0.2(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.1.2)(reflect-metadata@0.2.2)(typescript@7.0.2))(rxjs@7.8.2)(zod@4.6.5)
       reflect-metadata:
         specifier: 0.2.2
         version: 0.2.2
@@ -432,9 +444,18 @@ importers:
       '@swc/core':
         specifier: 1.15.3
         version: 1.15.3
+      '@types/express':
+        specifier: 5.0.3
+        version: 5.0.3
       '@types/node':
         specifier: 24.7.2
         version: 24.7.2
+      '@types/supertest':
+        specifier: 7.2.1
+        version: 7.2.1
+      supertest:
+        specifier: 7.3.1
+        version: 7.3.1
       tsx:
         specifier: 4.23.15
         version: 4.23.15
