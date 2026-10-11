@@ -68,13 +68,20 @@ describe("API HTTP contract smoke", () => {
     await app?.close();
   });
 
-  it("composes AppModule (config/auth/db/health/logger/graph/search)", () => {
+  it("composes AppModule (config/auth/db/health/logger/graph/search/impex)", () => {
     expect(app).toBeTruthy();
   });
 
   it("registers graph and search routes (auth required)", async () => {
     await agent.get("/graph/related").expect(401);
     await agent.get("/search").query({ q: "hi" }).expect(401);
+  });
+
+  it("requires auth for impex routes", async () => {
+    await agent.post("/impex/uploads").send({ content: "[]" }).expect(401);
+    await agent.post("/impex/person/exports").send({ format: "json" }).expect(401);
+    await agent.post("/impex/person/imports").send({ objectKey: "x", format: "json" }).expect(401);
+    await agent.get("/impex/runs").expect(401);
   });
 
   it("maps NotFound to Problem Details with requestId", async () => {

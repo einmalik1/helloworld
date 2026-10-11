@@ -22,6 +22,12 @@ describe("Worker Nest smoke", () => {
     process.env.WORKER_HOST ??= "127.0.0.1";
     process.env.WORKER_CONCURRENCY ??= "1";
     process.env.TYPESENSE_API_KEY ??= "change-me-typesense-local";
+    process.env.S3_ENDPOINT ??= "http://127.0.0.1:9000";
+    process.env.S3_REGION ??= "us-east-1";
+    process.env.S3_ACCESS_KEY_ID ??= "minioadmin";
+    process.env.S3_SECRET_ACCESS_KEY ??= "minioadmin";
+    process.env.S3_BUCKET ??= "helloworld";
+    process.env.S3_FORCE_PATH_STYLE ??= "true";
 
     const { Test } = await import("@nestjs/testing");
     const {
@@ -30,7 +36,9 @@ describe("Worker Nest smoke", () => {
       TypesenseHealthIndicator,
     } = await import("@helloworld/modules");
     const { AppModule } = await import("./app.module.js");
+    const { ObjectStorageService } = await import("@helloworld/modules");
     const { OutboxDrainJob } = await import("./jobs/outbox-drain.job.js");
+    const { ImpexJob } = await import("./jobs/impex.job.js");
     const { JobsRepository } = await import("./jobs/jobs.repository.js");
     const { ProjectionService } = await import("./projection/projection.service.js");
     const { PROJECTION_SYNC, SEARCH_INDEX, SEARCH_SYNC_OUTBOX } = await import(
@@ -58,12 +66,19 @@ describe("Worker Nest smoke", () => {
         ping: async () => undefined,
         onModuleDestroy: async () => undefined,
       })
+      .overrideProvider(ObjectStorageService)
+      .useValue({
+        putObject: async () => ({ isErr: () => false, isOk: () => true }),
+        getObject: async () => ({ isErr: () => true, error: { message: "mock" } }),
+      })
       .overrideProvider(TypesenseHealthIndicator)
       .useValue({
         isHealthy: async (key = "typesense") => ({ [key]: { status: "up" } }),
       })
       .overrideProvider(OutboxDrainJob)
       .useValue({ drain: async () => undefined })
+      .overrideProvider(ImpexJob)
+      .useValue({ processQueued: async () => undefined })
       .overrideProvider(JobsRepository)
       .useValue({
         listJobs: async () => [],
@@ -74,6 +89,7 @@ describe("Worker Nest smoke", () => {
           throw new Error("not used");
         },
         claimPendingOutbox: async () => [],
+        claimQueuedImpexJobs: async () => [],
       })
       .overrideProvider(SEARCH_INDEX)
       .useValue({})
@@ -103,13 +119,16 @@ describe("Worker Nest smoke", () => {
     await app?.close();
   });
 
-  it("composes AppModule with ScheduleModule and ProjectionService", async () => {
+  it("composes AppModule with ScheduleModule, ProjectionService, and ImpexJob", async () => {
     expect(app).toBeTruthy();
     const scheduler = app.get(SchedulerRegistry);
     expect(scheduler).toBeTruthy();
     const { ProjectionService } = await import("./projection/projection.service.js");
     const projection = app.get(ProjectionService);
     expect(typeof projection.rebuildNow).toBe("function");
+    const { ImpexJob } = await import("./jobs/impex.job.js");
+    const impex = app.get(ImpexJob);
+    expect(typeof impex.processQueued).toBe("function");
   });
 
   it("exposes public GET /health", async () => {
