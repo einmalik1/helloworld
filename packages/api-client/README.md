@@ -69,17 +69,17 @@ export default defineConfig({
 
 ky timeouts for the hand-written mutator in `src/http.ts`:
 
-| Call class | Timeout | Notes |
-|---|---|---|
-| General (default client) | **30s** (`30_000` ms) | All Orval-generated calls and normal SDK usage |
-| Health probes | **3s** (`3_000` ms) | `GET /health` (and CLI/TUI aggregation of api + worker). Per-request override — do not lower the default client timeout |
+| Call class               | Timeout               | Notes                                                                                                                   |
+| ------------------------ | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| General (default client) | **30s** (`30_000` ms) | All Orval-generated calls and normal SDK usage                                                                          |
+| Health probes            | **3s** (`3_000` ms)   | `GET /health` (and CLI/TUI aggregation of api + worker). Per-request override — do not lower the default client timeout |
 
 Stack: ky **2.1**. Consumers that need a different budget pass `timeout` on that request only.
 
 ## ky mutator (sketch)
 
 ```ts
-// packages/api-client/src/http.ts
+// packages/api-client/src/http.ts — ky 2.1 uses `prefix` (not `prefixUrl`)
 import ky, { type Options } from "ky";
 
 export type ClientOptions = {
@@ -94,12 +94,12 @@ let http = ky.create({ timeout: GENERAL_TIMEOUT_MS });
 
 export function configureClient(opts: ClientOptions): void {
   http = ky.create({
-    prefixUrl: opts.apiUrl.replace(/\/$/, ""),
+    prefix: opts.apiUrl.replace(/\/$/, ""),
     timeout: GENERAL_TIMEOUT_MS,
     hooks: {
       beforeRequest: [
-        (req) => {
-          if (opts.apiKey) req.headers.set("x-api-key", opts.apiKey);
+        ({ request }) => {
+          if (opts.apiKey) request.headers.set("x-api-key", opts.apiKey);
         },
       ],
     },
@@ -111,9 +111,17 @@ export const customFetch = async <T>(url: string, options?: Options): Promise<T>
   return http(url, options).json<T>();
 };
 
-/** Health probe — 3s timeout; used by CLI/TUI aggregation */
+/** Health probe — 3s timeout against the configured client */
 export async function fetchHealth<T = unknown>(path = "health"): Promise<T> {
   return http.get(path, { timeout: HEALTH_TIMEOUT_MS }).json<T>();
+}
+
+/** One-off health probe (api + worker aggregation) — does not mutate the global client */
+export async function fetchHealthFrom<T = unknown>(
+  baseUrl: string,
+  options?: { apiKey?: string; path?: string },
+): Promise<T> {
+  /* … */
 }
 ```
 
@@ -121,14 +129,14 @@ export async function fetchHealth<T = unknown>(path = "health"): Promise<T> {
 
 Frozen mutator contract for machine clients (CLI/TUI/MCP-style callers). Nest verifies with Better Auth `verifyApiKey`. Spec: [`tech-stack.md` § Auth](../../spec/tech-stack.md#auth-better-auth).
 
-| Rule | Contract |
-|---|---|
-| Header name | **`x-api-key`** — frozen; do not invent `Authorization: Bearer` for API keys in v1 |
-| Options | `configureClient({ apiUrl, apiKey? })` — see sketch above |
-| When `apiKey` set | Mutator sets `req.headers.set("x-api-key", opts.apiKey)` on every request |
-| When omitted | No API-key header (unauthenticated or cookie-session path elsewhere) |
-| Key source (tools) | Resolved from `@helloworld/terminal/config` per environment — **not** root `.env` `API_KEY` |
-| Rejected | Static env-only global `API_KEY` as the product credential model ([ADR 0003](../../spec/decisions/0003-better-auth.md)) |
+| Rule               | Contract                                                                                                                |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Header name        | **`x-api-key`** — frozen; do not invent `Authorization: Bearer` for API keys in v1                                      |
+| Options            | `configureClient({ apiUrl, apiKey? })` — see sketch above                                                               |
+| When `apiKey` set  | Mutator sets `req.headers.set("x-api-key", opts.apiKey)` on every request                                               |
+| When omitted       | No API-key header (unauthenticated or cookie-session path elsewhere)                                                    |
+| Key source (tools) | Resolved from `@helloworld/terminal/config` per environment — **not** root `.env` `API_KEY`                             |
+| Rejected           | Static env-only global `API_KEY` as the product credential model ([ADR 0003](../../spec/decisions/0003-better-auth.md)) |
 
 OpenAPI / Swagger should document the same `x-api-key` scheme so Orval and humans stay aligned.
 

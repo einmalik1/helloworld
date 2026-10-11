@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@helloworld/modules": "workspace:*",
+    "@helloworld/platform": "workspace:*",
     "@helloworld/types": "workspace:*",
     "@nestjs/common": "12.1.2",
     "@nestjs/config": "12.0.1",

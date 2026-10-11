@@ -1,18 +1,22 @@
 # Local data plane for Hello World — Postgres + Typesense + MinIO (S3-compatible).
 # Start from repo root: pnpm run docker:local:up
 # Credentials/ports align with root `.env.example`.
-# AGE: stock postgres:18 is fine for CRUD; graph features need an AGE-enabled image
-# (see openspec/tech-stack.md § Search / knowledge graph + infra/postgres).
+# Postgres: AGE-enabled image from infra/postgres (not stock postgres:18).
+# See openspec/tech-stack.md § Search / knowledge graph + infra/postgres/README.md.
 
 services:
   postgres:
-    image: postgres:18
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    image: helloworld-postgres-age:pg18
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: helloworld
       POSTGRES_PASSWORD: helloworld
       POSTGRES_DB: helloworld
+    command: ["postgres", "-c", "shared_preload_libraries=age"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U helloworld -d helloworld"]
       interval: 5s

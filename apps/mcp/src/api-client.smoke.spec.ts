@@ -84,4 +84,31 @@ describe("api client", () => {
       ApiError,
     );
   });
+
+  it("calls product api search path only (never Typesense)", async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ items: [], total: 0 }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const api = createApiClient({
+      baseUrl: "http://api.example",
+      apiKey: "k",
+    });
+
+    await api.request({
+      method: "GET",
+      path: "/search",
+      query: { q: "hi", types: "greeting" },
+    });
+
+    const url = String(fetchMock.mock.calls[0]![0]);
+    expect(url).toContain("http://api.example/search");
+    expect(url).toContain("q=hi");
+    expect(url).not.toContain("8108");
+    expect(url).not.toContain("typesense");
+  });
 });

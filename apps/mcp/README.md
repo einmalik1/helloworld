@@ -9,8 +9,8 @@ Remote MCP server for agent integration. Thin HTTP process in front of `apps/api
 | SDK | **`@modelcontextprotocol/sdk` 1.32.1** |
 | Transport | **HTTP** (remote / Coolify); Streamable HTTP at `POST /mcp` |
 | Domain access | HTTP → `apps/api` with a Better Auth **service API key** — **no** Nest-in-MCP, **no** `packages/api-client` |
-| Tools (v1) | `person_*` CRUD + `greeting_create` / `greeting_list` / `greeting_get` |
-| Retrieve / search | Later: MCP tools call api `GET /graph/*` and `GET /search` only — **never** AGE or Typesense directly |
+| Tools | `person_*` CRUD, `greeting_create` / `greeting_list` / `greeting_get`, `search`, `graph_related`, `graph_subgraph` |
+| Retrieve / search | MCP tools call api `GET /graph/*` and `GET /search` only — **never** AGE or Typesense directly |
 | Logging | **Service** — Pino (long-running Node HTTP server) |
 | Build | `tsc` → `dist/` |
 
@@ -27,7 +27,7 @@ Global inventory: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#mcp-ap
 | `LOG_LEVEL` | no (default `info`) | Shared |
 | `NODE_ENV` | no | Shared |
 
-Do **not** add `apps/mcp/.env`.
+Do **not** add `apps/mcp/.env`. Never set Typesense/AGE credentials on MCP.
 
 ## Deploy
 
@@ -40,6 +40,16 @@ QA/Prod: Coolify Application. Multi-stage `apps/mcp/Dockerfile` (monorepo-root b
 ```bash
 pnpm run --filter mcp dev
 ```
+
+### Tools (HTTP → api only)
+
+| Tool | Api route |
+|---|---|
+| `person_create` / `person_list` / `person_get` / `person_update` / `person_delete` | `/person` |
+| `greeting_create` / `greeting_list` / `greeting_get` | `/greeting` |
+| `search` | `GET /search` |
+| `graph_related` | `GET /graph/related` |
+| `graph_subgraph` | `GET /graph/subgraph` |
 
 Smoke (mocked API, no live server required):
 

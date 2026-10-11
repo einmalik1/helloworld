@@ -12,6 +12,9 @@ export const MCP_TOOL_NAMES = [
   "greeting_create",
   "greeting_list",
   "greeting_get",
+  "search",
+  "graph_related",
+  "graph_subgraph",
 ] as const;
 
 export type McpToolName = (typeof MCP_TOOL_NAMES)[number];
@@ -216,6 +219,77 @@ export function registerDomainTools(server: McpServer, api: ApiClient): void {
     async ({ id }) => {
       try {
         const data = await api.request({ method: "GET", path: `/greeting/${id}` });
+        return toolResult(data);
+      } catch (error) {
+        return toolError(error);
+      }
+    },
+  );
+
+  server.registerTool(
+    "search",
+    {
+      description: "Full-text search via apps/api GET /search (never Typesense directly)",
+      inputSchema: {
+        q: z.string().describe("Search query"),
+        types: z.string().optional().describe("Comma-separated entity types"),
+        limit: z.number().int().min(1).max(100).optional().describe("Max hits"),
+      },
+    },
+    async ({ q, types, limit }) => {
+      try {
+        const data = await api.request({
+          method: "GET",
+          path: "/search",
+          query: { q, types, limit },
+        });
+        return toolResult(data);
+      } catch (error) {
+        return toolError(error);
+      }
+    },
+  );
+
+  server.registerTool(
+    "graph_related",
+    {
+      description: "Related entities via apps/api GET /graph/related",
+      inputSchema: {
+        entityType: z.string().describe("Entity type"),
+        entityId: z.string().uuid().describe("Entity id"),
+      },
+    },
+    async ({ entityType, entityId }) => {
+      try {
+        const data = await api.request({
+          method: "GET",
+          path: "/graph/related",
+          query: { entityType, entityId },
+        });
+        return toolResult(data);
+      } catch (error) {
+        return toolError(error);
+      }
+    },
+  );
+
+  server.registerTool(
+    "graph_subgraph",
+    {
+      description: "Ego network via apps/api GET /graph/subgraph",
+      inputSchema: {
+        entityType: z.string().describe("Entity type"),
+        entityId: z.string().uuid().describe("Entity id"),
+        depth: z.number().int().min(1).max(3).optional().describe("Traversal depth"),
+      },
+    },
+    async ({ entityType, entityId, depth }) => {
+      try {
+        const data = await api.request({
+          method: "GET",
+          path: "/graph/subgraph",
+          query: { entityType, entityId, depth },
+        });
         return toolResult(data);
       } catch (error) {
         return toolError(error);

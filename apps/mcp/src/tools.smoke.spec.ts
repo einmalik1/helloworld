@@ -26,6 +26,9 @@ describe("MCP domain tools", () => {
       "greeting_create",
       "greeting_list",
       "greeting_get",
+      "search",
+      "graph_related",
+      "graph_subgraph",
     ]);
   });
 });
