@@ -11,6 +11,10 @@ export const envSchema = z.object({
   BETTER_AUTH_URL: z.string().url(),
   WEB_ORIGIN: z.string().url(),
   ...s3EnvFields,
+  TYPESENSE_HOST: z.string().default("localhost"),
+  TYPESENSE_PORT: z.coerce.number().int().min(1).max(65_535).default(8108),
+  TYPESENSE_PROTOCOL: z.enum(["http", "https"]).default("http"),
+  TYPESENSE_API_KEY: z.string().min(1).default("change-me-typesense-local"),
 });
 
 export type AppConfig = z.infer<typeof envSchema>;

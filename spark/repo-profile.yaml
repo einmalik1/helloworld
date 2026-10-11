@@ -133,6 +133,9 @@ generators:
     - key: chat
       label: Chat
       color: "#d97706"
+    - key: infra
+      label: Infra
+      color: "#64748b"
   erd:
     enabled: true
     out_dir: openspec/data-model/generated

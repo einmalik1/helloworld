@@ -25,6 +25,10 @@ describe("API HTTP contract smoke", () => {
     process.env.S3_SECRET_ACCESS_KEY ??= "minioadmin";
     process.env.S3_BUCKET ??= "helloworld";
     process.env.S3_FORCE_PATH_STYLE ??= "true";
+    process.env.TYPESENSE_HOST ??= "localhost";
+    process.env.TYPESENSE_PORT ??= "8108";
+    process.env.TYPESENSE_PROTOCOL ??= "http";
+    process.env.TYPESENSE_API_KEY ??= "change-me-typesense-local";
 
     const { Controller, Get, Module } = await import("@nestjs/common");
     const { Test } = await import("@nestjs/testing");
@@ -64,8 +68,13 @@ describe("API HTTP contract smoke", () => {
     await app?.close();
   });
 
-  it("composes AppModule (config/auth/db/health/logger)", () => {
+  it("composes AppModule (config/auth/db/health/logger/graph/search)", () => {
     expect(app).toBeTruthy();
+  });
+
+  it("registers graph and search routes (auth required)", async () => {
+    await agent.get("/graph/related").expect(401);
+    await agent.get("/search").query({ q: "hi" }).expect(401);
   });
 
   it("maps NotFound to Problem Details with requestId", async () => {

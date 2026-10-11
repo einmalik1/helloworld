@@ -102,3 +102,28 @@ COMMENT ON TABLE message IS 'category: chat | label: Message | spec: openspec/sp
 COMMENT ON COLUMN message.conversation_id IS 'Parent conversation';
 COMMENT ON COLUMN message.role IS 'user | assistant | system | tool';
 COMMENT ON COLUMN message.content IS 'Message text (tool payloads may be serialized text in v1)';
+
+CREATE TABLE search_sync_outbox (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  aggregate_type text NOT NULL,
+  aggregate_id uuid NOT NULL,
+  op text NOT NULL,
+  payload jsonb,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  processed_at timestamptz,
+  CHECK (
+    aggregate_type IN ('person', 'channel', 'greeting', 'reaction')
+    AND op IN ('upsert', 'delete')
+  )
+);
+
+CREATE INDEX search_sync_outbox_pending_idx
+  ON search_sync_outbox (created_at)
+  WHERE processed_at IS NULL;
+
+COMMENT ON TABLE search_sync_outbox IS 'category: infra | label: Search sync outbox | spec: openspec/specs/search-knowledge-graph/spec.md | desc: Async AGE/Typesense projection work drained by apps/worker';
+COMMENT ON COLUMN search_sync_outbox.aggregate_type IS 'person | channel | greeting | reaction';
+COMMENT ON COLUMN search_sync_outbox.aggregate_id IS 'Domain entity UUID being projected';
+COMMENT ON COLUMN search_sync_outbox.op IS 'upsert | delete';
+COMMENT ON COLUMN search_sync_outbox.payload IS 'Optional snapshot for upsert projection';
+COMMENT ON COLUMN search_sync_outbox.processed_at IS 'Set when worker finishes applying the row';

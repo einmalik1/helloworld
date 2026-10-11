@@ -9,6 +9,8 @@ import {
 } from "@helloworld/modules";
 
 import { envSchema } from "./configuration.js";
+import { GraphModule } from "./graph/graph.module.js";
+import { SearchModule } from "./search/search.module.js";
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { envSchema } from "./configuration.js";
     HealthModule,
     ObjectStorageModule,
     createLoggerModule(),
+    GraphModule,
+    SearchModule,
   ],
 })
 export class AppModule {}
