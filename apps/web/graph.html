@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hello World — Graph</title>
+    <script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
+    <style>
+      :root {
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: #14212b;
+        --ink: #14212b;
+        --mist: #e7eef2;
+        --sea: #1f6f8b;
+        --sand: #f3ebe2;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 12% 18%, #d9e8ef 0%, transparent 42%),
+          linear-gradient(160deg, var(--sand), var(--mist));
+      }
+      header {
+        padding: 1.25rem 1.5rem 0.5rem;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        letter-spacing: -0.02em;
+      }
+      p {
+        margin: 0.35rem 0 0;
+        max-width: 36rem;
+        color: #3a4a55;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem 1rem;
+        align-items: end;
+      }
+      label {
+        display: grid;
+        gap: 0.25rem;
+        font-size: 0.8rem;
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+        padding: 0.45rem 0.6rem;
+        border: 1px solid #9bb0bc;
+        border-radius: 0.35rem;
+        background: #fff;
+      }
+      button {
+        background: var(--sea);
+        color: #fff;
+        border-color: var(--sea);
+        cursor: pointer;
+      }
+      #cy {
+        height: calc(100vh - 11rem);
+        border-top: 1px solid #c5d4dc;
+        background: rgba(255, 255, 255, 0.55);
+      }
+      #status {
+        padding: 0 1.5rem 0.75rem;
+        font-size: 0.85rem;
+        color: #3a4a55;
+        min-height: 1.2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Hello World</h1>
+      <p>
+        Graph explorer — Cytoscape.js over product API JSON only (no AGE/Typesense in the browser).
+      </p>
+    </header>
+    <div class="controls">
+      <label>
+        API base
+        <input id="apiBase" size="28" />
+      </label>
+      <label>
+        API key
+        <input id="apiKey" type="password" size="20" placeholder="x-api-key" />
+      </label>
+      <label>
+        Entity type
+        <select id="entityType">
+          <option value="person">person</option>
+          <option value="channel">channel</option>
+          <option value="greeting">greeting</option>
+          <option value="reaction">reaction</option>
+        </select>
+      </label>
+      <label>
+        Entity id
+        <input id="entityId" size="36" placeholder="uuid" />
+      </label>
+      <label>
+        Depth
+        <input id="depth" type="number" min="1" max="3" value="1" style="width: 4rem" />
+      </label>
+      <button id="load" type="button">Load subgraph</button>
+    </div>
+    <div id="status"></div>
+    <div id="cy"></div>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const apiBaseInput = document.getElementById("apiBase");
+      const apiKeyInput = document.getElementById("apiKey");
+      const statusEl = document.getElementById("status");
+      apiBaseInput.value =
+        params.get("api") || localStorage.getItem("hw.apiBase") || "http://localhost:3000";
+      apiKeyInput.value = localStorage.getItem("hw.apiKey") || "";
+
+      const cy = cytoscape({
+        container: document.getElementById("cy"),
+        style: [
+          {
+            selector: "node",
+            style: {
+              label: "data(label)",
+              "background-color": "#1f6f8b",
+              color: "#14212b",
+              "text-valign": "center",
+              "text-halign": "center",
+              "font-size": 10,
+              width: 36,
+              height: 36,
+            },
+          },
+          {
+            selector: "edge",
+            style: {
+              label: "data(type)",
+              width: 2,
+              "line-color": "#7a909c",
+              "target-arrow-color": "#7a909c",
+              "target-arrow-shape": "triangle",
+              "curve-style": "bezier",
+              "font-size": 8,
+            },
+          },
+        ],
+        layout: { name: "cose", animate: true },
+      });
+
+      document.getElementById("load").addEventListener("click", async () => {
+        const base = apiBaseInput.value.replace(/\/$/, "");
+        const key = apiKeyInput.value.trim();
+        localStorage.setItem("hw.apiBase", base);
+        localStorage.setItem("hw.apiKey", key);
+        const entityType = document.getElementById("entityType").value;
+        const entityId = document.getElementById("entityId").value.trim();
+        const depth = document.getElementById("depth").value || "1";
+        if (!entityId) {
+          statusEl.textContent = "Entity id is required.";
+          return;
+        }
+        statusEl.textContent = "Loading…";
+        const url = new URL("/graph/subgraph", base + "/");
+        url.searchParams.set("entityType", entityType);
+        url.searchParams.set("entityId", entityId);
+        url.searchParams.set("depth", depth);
+        try {
+          const headers = {};
+          if (key) headers["x-api-key"] = key;
+          const res = await fetch(url, { headers, credentials: "include" });
+          if (!res.ok) {
+            statusEl.textContent = `API ${res.status}`;
+            return;
+          }
+          const data = await res.json();
+          const elements = [
+            ...(data.nodes || []).map((n) => ({
+              data: { id: n.id, label: n.label || n.id, type: n.type },
+            })),
+            ...(data.edges || []).map((e) => ({
+              data: {
+                id: e.id,
+                source: e.source,
+                target: e.target,
+                type: e.type,
+              },
+            })),
+          ];
+          cy.elements().remove();
+          cy.add(elements);
+          cy.layout({ name: "cose", animate: true }).run();
+          statusEl.textContent = `${(data.nodes || []).length} nodes, ${(data.edges || []).length} edges`;
+        } catch (err) {
+          statusEl.textContent = err instanceof Error ? err.message : String(err);
+        }
+      });
+    </script>
+  </body>
+</html>

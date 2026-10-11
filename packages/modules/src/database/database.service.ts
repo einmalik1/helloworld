@@ -10,21 +10,22 @@ export type AppDatabase = PostgresJsDatabase<typeof schema>;
 
 @Injectable()
 export class DatabaseService implements OnModuleDestroy {
-  private readonly client: Sql;
+  /** Raw postgres.js client for AGE Cypher / outbox SQL used by platform adapters. */
+  readonly sql: Sql;
   readonly db: AppDatabase;
 
   constructor(config: ConfigService) {
     const url = config.getOrThrow<string>("DATABASE_URL");
-    this.client = postgres(url);
-    this.db = drizzle(this.client, { schema });
+    this.sql = postgres(url);
+    this.db = drizzle(this.sql, { schema });
   }
 
   /** Postgres reachability probe for Terminus / ops. */
   async ping(): Promise<void> {
-    await this.client`select 1`;
+    await this.sql`select 1`;
   }
 
   async onModuleDestroy(): Promise<void> {
-    await this.client.end({ timeout: 5 });
+    await this.sql.end({ timeout: 5 });
   }
 }
