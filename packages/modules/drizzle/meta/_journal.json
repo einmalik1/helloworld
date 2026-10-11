@@ -22,6 +22,13 @@
       "when": 1791696199592,
       "tag": "0002_motionless_odin",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791700102866,
+      "tag": "0003_dry_talon",
+      "breakpoints": true
     }
   ]
 }

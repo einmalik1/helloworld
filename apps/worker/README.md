@@ -23,7 +23,8 @@ Keep secondary indexes current after Postgres writes. Api remains SoT; this proc
 | ------------ | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | Outbox drain | `@Interval(15_000)` via `ProjectionService`             | Drain `search_sync_outbox`; apply AGE + Typesense mutations                    |
 | Rebuild      | `@Cron("0 3 * * *")` + `ProjectionService.rebuildNow()` | Full re-project domain → AGE graph + Typesense collection `helloworld`         |
-| Generic outbox | `@Interval(5_000)` via `OutboxDrainJob`               | Drain platform `outbox` rows (impex/other); records durable `job` rows         |
+| Generic outbox | `@Interval(5_000)` via `OutboxDrainJob`               | Drain platform `outbox` rows; records durable `job` rows                       |
+| Impex          | `@Interval(5_000)` via `ImpexJob`                       | Claim `impex.import` / `impex.export` jobs; person JSON ↔ S3 + `impex_run`     |
 
 | Concern        | Contract                                                                                                                     |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------- |

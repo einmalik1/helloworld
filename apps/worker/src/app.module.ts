@@ -4,6 +4,7 @@ import {
   AuthModule,
   DatabaseModule,
   HealthModule,
+  ObjectStorageModule,
   createAppConfigModule,
   createLoggerModule,
 } from "@helloworld/modules";
@@ -18,6 +19,7 @@ import { ProjectionModule } from "./projection/projection.module.js";
     AuthModule,
     DatabaseModule,
     HealthModule,
+    ObjectStorageModule,
     createLoggerModule(),
     ScheduleModule.forRoot(),
     JobsModule,

@@ -1,3 +1,4 @@
+import { s3EnvFields } from "@helloworld/modules";
 import { z } from "zod";
 
 export const envSchema = z.object({
@@ -14,6 +15,7 @@ export const envSchema = z.object({
   BETTER_AUTH_SECRET: z.string().min(1),
   BETTER_AUTH_URL: z.string().url(),
   WEB_ORIGIN: z.string().url(),
+  ...s3EnvFields,
 });
 
 export type AppConfig = z.infer<typeof envSchema>;
