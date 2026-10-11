@@ -25,3 +25,8 @@ export { setupOpenApi } from "./openapi/setup-open-api.js";
 export type { SetupOpenApiOptions } from "./openapi/setup-open-api.js";
 
 export { createLoggerModule } from "./logging/create-logger-module.js";
+
+export { ObjectStorageModule } from "./object-storage/object-storage.module.js";
+export { ObjectStorageService } from "./object-storage/object-storage.service.js";
+export { s3EnvFields, s3EnvSchema } from "./object-storage/s3-env.js";
+export type { S3Env } from "./object-storage/s3-env.js";

@@ -3,6 +3,8 @@ import ky, { type Options } from "ky";
 export type ClientOptions = {
   apiUrl: string;
   apiKey?: string;
+  /** Browser cookie sessions — pass `"include"`. Default: omit (ky default). */
+  credentials?: "include" | "omit" | "same-origin";
 };
 
 export const GENERAL_TIMEOUT_MS = 30_000;
@@ -12,6 +14,7 @@ function createKy(opts: ClientOptions, timeout: number) {
   return ky.create({
     prefix: opts.apiUrl.replace(/\/$/, ""),
     timeout,
+    credentials: opts.credentials,
     hooks: {
       beforeRequest: [
         ({ request }) => {

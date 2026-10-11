@@ -13,6 +13,9 @@ import { HealthModule } from "./health/health.module.js";
 import { Public, IS_PUBLIC_KEY } from "./auth/public.decorator.js";
 import { setupOpenApi } from "./openapi/setup-open-api.js";
 import { createLoggerModule } from "./logging/create-logger-module.js";
+import { ObjectStorageModule } from "./object-storage/object-storage.module.js";
+import { ObjectStorageService } from "./object-storage/object-storage.service.js";
+import { s3EnvFields } from "./object-storage/s3-env.js";
 
 const smokeEnvSchema = z.object({
   NODE_ENV: z
@@ -23,6 +26,7 @@ const smokeEnvSchema = z.object({
   BETTER_AUTH_SECRET: z.string().min(1),
   BETTER_AUTH_URL: z.string().url(),
   WEB_ORIGIN: z.string().url(),
+  ...s3EnvFields,
 });
 
 describe("Nest DI smoke (TS 7 + emitDecoratorMetadata)", () => {
@@ -30,7 +34,7 @@ describe("Nest DI smoke (TS 7 + emitDecoratorMetadata)", () => {
     // ConfigModule may cache; leave process.env for other tests as set below.
   });
 
-  it("wires config + database + health modules and Public metadata", async () => {
+  it("wires config + database + health + object storage modules and Public metadata", async () => {
     process.env.DATABASE_URL ??=
       "postgresql://helloworld:helloworld@127.0.0.1:5432/helloworld";
     process.env.BETTER_AUTH_SECRET ??= "smoke-secret-change-me";
@@ -38,6 +42,12 @@ describe("Nest DI smoke (TS 7 + emitDecoratorMetadata)", () => {
     process.env.WEB_ORIGIN ??= "http://localhost:5173";
     process.env.LOG_LEVEL ??= "info";
     process.env.NODE_ENV ??= "test";
+    process.env.S3_ENDPOINT ??= "http://127.0.0.1:9000";
+    process.env.S3_REGION ??= "us-east-1";
+    process.env.S3_ACCESS_KEY_ID ??= "minioadmin";
+    process.env.S3_SECRET_ACCESS_KEY ??= "minioadmin";
+    process.env.S3_BUCKET ??= "helloworld";
+    process.env.S3_FORCE_PATH_STYLE ??= "true";
 
     @Module({
       imports: [
@@ -45,6 +55,7 @@ describe("Nest DI smoke (TS 7 + emitDecoratorMetadata)", () => {
         createLoggerModule(),
         DatabaseModule,
         HealthModule,
+        ObjectStorageModule,
       ],
     })
     class SmokeModule {}
@@ -55,9 +66,14 @@ describe("Nest DI smoke (TS 7 + emitDecoratorMetadata)", () => {
 
     const config = moduleRef.get(ConfigService);
     expect(config.get("DATABASE_URL")).toBeTruthy();
+    expect(config.get("S3_ENDPOINT")).toBeTruthy();
 
     const database = moduleRef.get(DatabaseService);
     expect(database.db).toBeTruthy();
+
+    const objectStorage = moduleRef.get(ObjectStorageService);
+    expect(objectStorage.bucket).toBe(process.env.S3_BUCKET);
+    expect(objectStorage.adapter).toBeTruthy();
 
     class Sample {
       @Public()

@@ -3,6 +3,7 @@ import {
   AuthModule,
   DatabaseModule,
   HealthModule,
+  ObjectStorageModule,
   createAppConfigModule,
   createLoggerModule,
 } from "@helloworld/modules";
@@ -17,6 +18,7 @@ import { SearchModule } from "./search/search.module.js";
     AuthModule,
     DatabaseModule,
     HealthModule,
+    ObjectStorageModule,
     createLoggerModule(),
     GraphModule,
     SearchModule,

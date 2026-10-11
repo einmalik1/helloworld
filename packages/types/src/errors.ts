@@ -35,3 +35,13 @@ export class DatabaseError extends AppError {
     this.cause = cause;
   }
 }
+
+/** Object-storage failure — maps to HTTP 500. */
+export class StorageError extends AppError {
+  readonly cause?: unknown;
+
+  constructor(message = "Storage error", cause?: unknown) {
+    super(message, "storage");
+    this.cause = cause;
+  }
+}
