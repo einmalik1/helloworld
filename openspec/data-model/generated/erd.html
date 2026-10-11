@@ -6,186 +6,938 @@
     <title>Hello World — ERD Viewer</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <style>
-        :root {
-          --bg: #f8fafc; --panel: #ffffff; --border: #e2e8f0; --text: #0f172a;
-          --muted: #64748b; --accent: #2563eb; --accent-soft: #eff6ff;
-          --cat-fallback: #64748b;
-          --cat-core: #2563eb;
-    --cat-social: #059669;
-    --cat-chat: #d97706;
-        }
-        .cat-core { color: var(--cat-core); }
-  .cat-social { color: var(--cat-social); }
-  .cat-chat { color: var(--cat-chat); }
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
-        header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; gap: 24px; align-items: baseline; flex-wrap: wrap; position: sticky; top: 0; z-index: 10; }
-        header h1 { font-size: 18px; margin: 0; }
-        header .stats { color: var(--muted); font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap; }
-        nav { display: flex; gap: 4px; padding: 12px 24px 0; flex-wrap: wrap; }
-        nav button { border: 1px solid var(--border); background: var(--panel); padding: 8px 14px; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 13px; }
-        nav button.active { background: var(--accent); color: white; border-color: var(--accent); }
-        main { padding: 0 24px 48px; }
-        section.view { display: none; background: var(--panel); border: 1px solid var(--border); border-radius: 0 12px 12px 12px; padding: 24px; }
-        section.view.active { display: block; }
-        h2.cat-heading { font-size: 16px; margin: 28px 0 10px; border-bottom: 2px solid currentColor; padding-bottom: 4px; }
-        h2.cat-heading:first-child { margin-top: 0; }
-        .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-        .card { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: border-color .15s; }
-        .card:hover { border-color: var(--accent); }
-        .card h3 { margin: 0 0 4px; font-size: 14px; font-family: ui-monospace, monospace; }
-        .card .meta { font-size: 12px; color: var(--muted); }
-        table.fields { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
-        table.fields th, table.fields td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); }
-        table.fields th { background: var(--accent-soft); font-weight: 600; }
-        table.fields td.mono { font-family: ui-monospace, monospace; white-space: nowrap; }
-        .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px; border: 1px solid currentColor; margin-right: 4px; }
-        .diagram-host { margin-top: 14px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #ffffff; }
-        .diagram-toolbar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 8px 10px; border-bottom: 1px solid var(--border); background: var(--accent-soft); }
-        .diagram-toolbar button { border: 1px solid var(--border); background: var(--panel); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
-        .diagram-toolbar button:hover { border-color: var(--accent); }
-        .diagram-toolbar [data-zoom="fit"], .diagram-toolbar [data-zoom="reset"] { color: var(--muted); }
-        .diagram-toolbar [data-zoom="fit"]:hover, .diagram-toolbar [data-zoom="reset"]:hover { color: var(--accent); }
-        .diagram-toolbar .zoom-label { font-size: 12px; min-width: 44px; text-align: center; color: var(--muted); }
-        .layout-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-left: 4px; }
-        .layout-toggle button { border: none; border-radius: 0; padding: 4px 10px; font-size: 12px; background: var(--panel); }
-        .layout-toggle button + button { border-left: 1px solid var(--border); }
-        .layout-toggle button.active { background: var(--text); color: #ffffff; }
-        .theme-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-left: 4px; }
-        .theme-toggle button { border: none; border-radius: 0; padding: 4px 10px; font-size: 12px; background: var(--panel); }
-        .theme-toggle button + button { border-left: 1px solid var(--border); }
-        .theme-toggle button.active { background: var(--text); color: #ffffff; }
-        .diagram-box path.edge-highlight { stroke: #2563eb !important; stroke-width: 3.5px !important; }
-        .diagram-box path.edge-dim { opacity: 0.25; }
-        .diagram-box g.edgeLabel g.label.edge-dim-label { opacity: 0.25; }
-        .diagram-box g.edgeLabel g.label.edge-highlight-label rect { fill: #dbeafe !important; }
-        .diagram-box g.edgeLabel g.label.edge-highlight-label text, .diagram-box g.edgeLabel g.label.edge-highlight-label p, .diagram-box g.edgeLabel g.label.edge-highlight-label span { fill: #1e40af !important; color: #1e40af !important; }
-        .diagram-box path.relationshipLine { transition: opacity .15s, stroke-width .15s; }
-        .diagram-box g.edgeLabel, .diagram-box g.edgeLabel g.label { transition: opacity .15s; }
-        .diagram-box path.relationshipLine:hover { cursor: pointer; }
-        .diagram-box g.node { cursor: pointer; }
-        .diagram-box g.node:hover rect.basic, .diagram-box g.node.entity-active rect.basic { stroke: var(--accent) !important; stroke-width: 2.5px !important; filter: drop-shadow(0 3px 6px rgba(37, 99, 235, 0.35)); }
-        .diagram-box g.node rect.basic { transition: stroke .15s, filter .15s; }
-        .diagram-box g.node.entity-edge-active rect.basic { filter: drop-shadow(0 3px 6px rgba(37, 99, 235, 0.35)); }
-        .diagram-box g.node.entity-sat-dim { filter: saturate(0.1); }
-        .diagram-box g.node.entity-sat-dim g.label { opacity: 0.25; }
-        .diagram-box g.node { transition: filter .15s; }
-        .diagram-box g.node g.label { transition: opacity .15s; }
-        .entity-panel { position: absolute; z-index: 20; width: 300px; background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18); display: flex; flex-direction: column; }
-        .entity-panel-head { display: flex; align-items: baseline; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); background: var(--accent-soft); border-radius: 10px 10px 0 0; }
-        .entity-panel-head b { font-family: ui-monospace, monospace; font-size: 13px; }
-        .entity-panel-head span { font-size: 11px; color: var(--muted); flex: 1; }
-        .entity-panel-close { border: none; background: none; cursor: pointer; font-size: 16px; color: var(--muted); padding: 0 2px; line-height: 1; }
-        .entity-panel-close:hover { color: var(--text); }
-        .entity-panel-body { padding: 6px 0; }
-        .entity-panel-row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 12px; font-size: 12px; }
-        .entity-panel-row:hover { background: var(--accent-soft); }
-        .entity-panel-row code { font-family: ui-monospace, monospace; font-size: 11.5px; }
-        .entity-panel-row span { color: var(--muted); font-size: 11px; white-space: nowrap; }
-        .entity-panel-row .pk { color: var(--accent); font-size: 10px; }
-        .entity-panel-foot { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 4px 12px; border-top: 1px solid var(--border); min-height: 28px; }
-        .entity-panel-page { border: 1px solid var(--border); background: var(--panel); border-radius: 6px; cursor: pointer; padding: 1px 9px; font-size: 14px; color: var(--accent); line-height: 1.2; }
-        .entity-panel-page:hover:not(:disabled) { background: var(--accent); color: white; border-color: var(--accent); }
-        .entity-panel-page:disabled { opacity: 0.35; cursor: default; }
-        .entity-panel-pageinfo { font-size: 11px; color: var(--muted); min-width: 40px; text-align: center; }
-        .entity-panel-detail { border: none; border-top: 1px solid var(--border); background: var(--accent-soft); color: var(--accent); cursor: pointer; padding: 8px 12px; font-size: 12px; text-align: left; border-radius: 0 0 10px 10px; }
-        .entity-panel-detail:hover { background: var(--accent); color: white; }
-        .diagram-box path.relationshipLine.entity-loop { stroke: var(--accent) !important; stroke-width: 3px !important; }
-        .diagram-box path.relationshipLine.entity-loop-dim { opacity: 0.2; }
-        .diagram-toolbar .hint { font-size: 11px; color: var(--muted); margin-left: auto; }
-        .collapsible-diagram { margin-top: 14px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-        .collapsible-head { width: 100%; display: flex; align-items: center; gap: 8px; border: none; background: var(--accent-soft); color: var(--accent); cursor: pointer; padding: 10px 14px; font-size: 13.5px; text-align: left; }
-        .collapsible-head:hover { background: var(--accent); color: white; }
-        .collapsible-head .chev { font-size: 12px; width: 12px; }
-        .collapsible-body { background: var(--panel); }
-        .diagram-legend { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--panel); font-size: 13px; color: var(--text); }
-        .legend-toggle { border: 1px solid var(--border); background: var(--panel); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: var(--muted); }
-        .legend-toggle:hover { border-color: var(--accent); color: var(--accent); }
-        .diagram-legend.legend-collapsed { display: none; }
-        .legend-item { display: inline-flex; align-items: center; gap: 6px; }
-        .legend-item svg { flex-shrink: 0; }
-        .legend-info { border: 1px solid var(--border); background: var(--panel); color: var(--muted); border-radius: 99px; width: 17px; height: 17px; font-size: 10px; line-height: 1; cursor: help; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-family: ui-monospace, monospace; font-style: italic; }
-        .legend-info:hover { border-color: var(--accent); color: var(--accent); }
-        .legend-popup { position: fixed; z-index: 60; width: 360px; background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18); padding: 12px 14px; font-size: 12px; line-height: 1.55; color: var(--text); }
-        .legend-popup h4 { margin: 0 0 6px; font-size: 12.5px; font-family: ui-monospace, monospace; }
-        .legend-popup p { margin: 0; }
-        .legend-popup ul { margin: 0; padding-left: 16px; }
-        .legend-popup li { margin: 3px 0; }
-        .legend-popup code { font-family: ui-monospace, monospace; font-size: 11px; }
-        .legend-popup .badge { margin-right: 0; }
-        .diagram-box { position: relative; overflow: auto; max-height: 75vh; background: #ffffff; }
-        .diagram-box svg { max-width: none !important; display: block; margin-left: auto; margin-right: auto; }
-        .diagram-canvas { display: block; width: fit-content; margin-left: auto; margin-right: auto; }
-        .mermaid-error { color: #dc2626; font-size: 13px; padding: 12px; }
-        pre.diagram-src { display: none; background: #0f172a; color: #e2e8f0; padding: 12px; margin: 0; overflow: auto; max-height: 45vh; font-size: 12px; line-height: 1.5; }
-        .cat-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
-        .cat-bar button { border: 1px solid var(--border); background: var(--panel); border-radius: 99px; padding: 6px 14px; cursor: pointer; font-size: 13px; }
-        .cat-bar button.active { background: var(--text); color: #ffffff; border-color: var(--text); }
-        .member-chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 4px; }
-        .member-chips button { border: 1px dashed var(--border); background: var(--panel); border-radius: 6px; padding: 3px 10px; cursor: pointer; font-size: 12px; font-family: ui-monospace, monospace; }
-        .member-chips button:hover { border-color: var(--accent); color: var(--accent); }
-        .back { margin-bottom: 16px; }
-        .back button { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 13px; }
-        .sfref { color: #0891b2; }
-        h2.entity-title { font-family: ui-monospace, monospace; font-size: 20px; margin: 0 0 4px; }
-        .entity-detail { margin-top: 20px; }
-        .desc { color: var(--muted); font-size: 13px; margin: 4px 0 12px; }
-        footer { color: var(--muted); font-size: 12px; padding: 12px 24px 32px; }
-        /* Decisions view: chapter cards */
-        .decisions-intro { color: var(--muted); font-size: 13px; margin: 0 0 20px; max-width: 900px; line-height: 1.55; }
-        .decision-chapter { border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; margin-bottom: 24px; background: var(--panel); border-top: 3px solid var(--chapter-color); }
-        .decision-section-title { font-size: 15.5px; margin: 0 0 16px; padding: 6px 12px; border-radius: 8px; border-left: 4px solid var(--chapter-color); background: color-mix(in srgb, var(--chapter-color) 10%, transparent); color: var(--chapter-color); }
-        .decision-section-title:first-of-type { margin-top: 0; }
-        .chapter-leitentscheidungen { --chapter-color: var(--accent); }
-        .chapter-decision-record { --chapter-color: #7c3aed; }
-        .chapter-scope { --chapter-color: #059669; }
-        .decision-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
-        .decision-card { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: var(--panel); }
-        .decision-card h4 { margin: 0 0 8px; font-size: 13.5px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-        .decision-card .d-id { font-family: ui-monospace, monospace; font-size: 12px; color: white; background: var(--accent); border-radius: 6px; padding: 1px 8px; flex-shrink: 0; }
-        .decision-card p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--text); }
-        .decision-card .d-why { margin-top: 8px; font-size: 12px; color: var(--muted); border-left: 3px solid var(--border); padding-left: 10px; }
-        .decision-card .d-why b { color: var(--text); }
-        .decision-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
-        .decision-table th, .decision-table td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
-        .decision-table th { font-weight: 600; font-size: 12px; }
-        .decision-table td:first-child { font-weight: 600; width: 30%; }
-        .decision-table td:last-child { color: var(--muted); }
-        .decision-table td:last-child b { color: var(--text); }
-        .decision-table.tbl-architektur th { background: #ede9fe; color: #5b21b6; }
-        .decision-table.tbl-datenmodellierung th { background: #ede9fe; color: #5b21b6; }
-        .decision-table.tbl-verhalten th { background: #ede9fe; color: #5b21b6; }
-        .decision-table.tbl-outscope th { background: #fee2e2; color: #b91c1c; }
-        .decision-table.tbl-deferred th { background: #cffafe; color: #0e7490; }
-        /* Non-CRUD view: rendered markdown catalog */
-        .md-source-note { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; background: var(--accent-soft); padding: 10px 14px; margin: 0 0 20px; font-size: 12.5px; color: var(--muted); }
-        .md-source-note code { font-family: ui-monospace, monospace; font-size: 11.5px; color: var(--text); }
-        .md-body { max-width: 1100px; font-size: 13.5px; line-height: 1.65; }
-        .md-body h1 { font-size: 21px; margin: 0 0 14px; }
-        .md-body h2 { font-size: 16.5px; margin: 32px 0 10px; padding-bottom: 4px; border-bottom: 2px solid var(--accent); color: var(--accent); }
-        .md-body h3 { font-size: 14px; margin: 22px 0 8px; }
-        .md-body p { margin: 10px 0; }
-        .md-body ul, .md-body ol { margin: 10px 0; padding-left: 22px; }
-        .md-body li { margin: 4px 0; }
-        .md-body hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
-        .md-body code { font-family: ui-monospace, monospace; font-size: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
-        .md-body pre { background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 12px 14px; overflow: auto; font-size: 12px; line-height: 1.5; }
-        .md-body pre code { background: none; border: none; padding: 0; color: inherit; }
-        .md-body blockquote { margin: 14px 0; padding: 10px 16px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 8px 8px 0; color: var(--text); }
-        .md-body blockquote p { margin: 4px 0; }
-        .md-body table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 14px 0; }
-        .md-body th, .md-body td { text-align: left; padding: 7px 11px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
-        .md-body thead th { background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 12px; border-bottom: 2px solid var(--accent); }
-        .md-body tbody tr:hover { background: var(--accent-soft); }
-        .md-body a { color: var(--accent); }
-        /* Keep in-page anchors below the sticky header */
-        .md-body :is(h1, h2, h3, h4) { scroll-margin-top: 80px; }
-        /* Technical details on entity detail: collapsed by default */
-        .tech-details { margin-top: 18px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-        .tech-details-head { width: 100%; display: flex; align-items: center; gap: 8px; border: none; background: var(--accent-soft); color: var(--accent); cursor: pointer; padding: 10px 14px; font-size: 13px; text-align: left; }
-        .tech-details-head:hover { background: var(--accent); color: white; }
-        .tech-details-body { display: none; background: var(--panel); }
-        .tech-details.open .tech-details-body { display: block; }
+      :root {
+        --bg: #f8fafc;
+        --panel: #ffffff;
+        --border: #e2e8f0;
+        --text: #0f172a;
+        --muted: #64748b;
+        --accent: #2563eb;
+        --accent-soft: #eff6ff;
+        --cat-fallback: #64748b;
+        --cat-core: #2563eb;
+        --cat-social: #059669;
+        --cat-chat: #d97706;
+        --cat-infra: #64748b;
+      }
+      .cat-core {
+        color: var(--cat-core);
+      }
+      .cat-social {
+        color: var(--cat-social);
+      }
+      .cat-chat {
+        color: var(--cat-chat);
+      }
+      .cat-infra {
+        color: var(--cat-infra);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      header {
+        background: var(--panel);
+        border-bottom: 1px solid var(--border);
+        padding: 14px 24px;
+        display: flex;
+        gap: 24px;
+        align-items: baseline;
+        flex-wrap: wrap;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      header h1 {
+        font-size: 18px;
+        margin: 0;
+      }
+      header .stats {
+        color: var(--muted);
+        font-size: 13px;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      nav {
+        display: flex;
+        gap: 4px;
+        padding: 12px 24px 0;
+        flex-wrap: wrap;
+      }
+      nav button {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        padding: 8px 14px;
+        border-radius: 8px 8px 0 0;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      nav button.active {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+      main {
+        padding: 0 24px 48px;
+      }
+      section.view {
+        display: none;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 0 12px 12px 12px;
+        padding: 24px;
+      }
+      section.view.active {
+        display: block;
+      }
+      h2.cat-heading {
+        font-size: 16px;
+        margin: 28px 0 10px;
+        border-bottom: 2px solid currentColor;
+        padding-bottom: 4px;
+      }
+      h2.cat-heading:first-child {
+        margin-top: 0;
+      }
+      .table-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 12px;
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        cursor: pointer;
+        transition: border-color 0.15s;
+      }
+      .card:hover {
+        border-color: var(--accent);
+      }
+      .card h3 {
+        margin: 0 0 4px;
+        font-size: 14px;
+        font-family: ui-monospace, monospace;
+      }
+      .card .meta {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      table.fields {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-top: 8px;
+      }
+      table.fields th,
+      table.fields td {
+        text-align: left;
+        padding: 6px 10px;
+        border-bottom: 1px solid var(--border);
+      }
+      table.fields th {
+        background: var(--accent-soft);
+        font-weight: 600;
+      }
+      table.fields td.mono {
+        font-family: ui-monospace, monospace;
+        white-space: nowrap;
+      }
+      .badge {
+        display: inline-block;
+        font-size: 11px;
+        padding: 1px 7px;
+        border-radius: 99px;
+        border: 1px solid currentColor;
+        margin-right: 4px;
+      }
+      .diagram-host {
+        margin-top: 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #ffffff;
+      }
+      .diagram-toolbar {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border);
+        background: var(--accent-soft);
+      }
+      .diagram-toolbar button {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 6px;
+        padding: 4px 10px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .diagram-toolbar button:hover {
+        border-color: var(--accent);
+      }
+      .diagram-toolbar [data-zoom="fit"],
+      .diagram-toolbar [data-zoom="reset"] {
+        color: var(--muted);
+      }
+      .diagram-toolbar [data-zoom="fit"]:hover,
+      .diagram-toolbar [data-zoom="reset"]:hover {
+        color: var(--accent);
+      }
+      .diagram-toolbar .zoom-label {
+        font-size: 12px;
+        min-width: 44px;
+        text-align: center;
+        color: var(--muted);
+      }
+      .layout-toggle {
+        display: inline-flex;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+        margin-left: 4px;
+      }
+      .layout-toggle button {
+        border: none;
+        border-radius: 0;
+        padding: 4px 10px;
+        font-size: 12px;
+        background: var(--panel);
+      }
+      .layout-toggle button + button {
+        border-left: 1px solid var(--border);
+      }
+      .layout-toggle button.active {
+        background: var(--text);
+        color: #ffffff;
+      }
+      .theme-toggle {
+        display: inline-flex;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+        margin-left: 4px;
+      }
+      .theme-toggle button {
+        border: none;
+        border-radius: 0;
+        padding: 4px 10px;
+        font-size: 12px;
+        background: var(--panel);
+      }
+      .theme-toggle button + button {
+        border-left: 1px solid var(--border);
+      }
+      .theme-toggle button.active {
+        background: var(--text);
+        color: #ffffff;
+      }
+      .diagram-box path.edge-highlight {
+        stroke: #2563eb !important;
+        stroke-width: 3.5px !important;
+      }
+      .diagram-box path.edge-dim {
+        opacity: 0.25;
+      }
+      .diagram-box g.edgeLabel g.label.edge-dim-label {
+        opacity: 0.25;
+      }
+      .diagram-box g.edgeLabel g.label.edge-highlight-label rect {
+        fill: #dbeafe !important;
+      }
+      .diagram-box g.edgeLabel g.label.edge-highlight-label text,
+      .diagram-box g.edgeLabel g.label.edge-highlight-label p,
+      .diagram-box g.edgeLabel g.label.edge-highlight-label span {
+        fill: #1e40af !important;
+        color: #1e40af !important;
+      }
+      .diagram-box path.relationshipLine {
+        transition:
+          opacity 0.15s,
+          stroke-width 0.15s;
+      }
+      .diagram-box g.edgeLabel,
+      .diagram-box g.edgeLabel g.label {
+        transition: opacity 0.15s;
+      }
+      .diagram-box path.relationshipLine:hover {
+        cursor: pointer;
+      }
+      .diagram-box g.node {
+        cursor: pointer;
+      }
+      .diagram-box g.node:hover rect.basic,
+      .diagram-box g.node.entity-active rect.basic {
+        stroke: var(--accent) !important;
+        stroke-width: 2.5px !important;
+        filter: drop-shadow(0 3px 6px rgba(37, 99, 235, 0.35));
+      }
+      .diagram-box g.node rect.basic {
+        transition:
+          stroke 0.15s,
+          filter 0.15s;
+      }
+      .diagram-box g.node.entity-edge-active rect.basic {
+        filter: drop-shadow(0 3px 6px rgba(37, 99, 235, 0.35));
+      }
+      .diagram-box g.node.entity-sat-dim {
+        filter: saturate(0.1);
+      }
+      .diagram-box g.node.entity-sat-dim g.label {
+        opacity: 0.25;
+      }
+      .diagram-box g.node {
+        transition: filter 0.15s;
+      }
+      .diagram-box g.node g.label {
+        transition: opacity 0.15s;
+      }
+      .entity-panel {
+        position: absolute;
+        z-index: 20;
+        width: 300px;
+        background: var(--panel);
+        border: 1px solid var(--accent);
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+        display: flex;
+        flex-direction: column;
+      }
+      .entity-panel-head {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        background: var(--accent-soft);
+        border-radius: 10px 10px 0 0;
+      }
+      .entity-panel-head b {
+        font-family: ui-monospace, monospace;
+        font-size: 13px;
+      }
+      .entity-panel-head span {
+        font-size: 11px;
+        color: var(--muted);
+        flex: 1;
+      }
+      .entity-panel-close {
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 16px;
+        color: var(--muted);
+        padding: 0 2px;
+        line-height: 1;
+      }
+      .entity-panel-close:hover {
+        color: var(--text);
+      }
+      .entity-panel-body {
+        padding: 6px 0;
+      }
+      .entity-panel-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 4px 12px;
+        font-size: 12px;
+      }
+      .entity-panel-row:hover {
+        background: var(--accent-soft);
+      }
+      .entity-panel-row code {
+        font-family: ui-monospace, monospace;
+        font-size: 11.5px;
+      }
+      .entity-panel-row span {
+        color: var(--muted);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .entity-panel-row .pk {
+        color: var(--accent);
+        font-size: 10px;
+      }
+      .entity-panel-foot {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 4px 12px;
+        border-top: 1px solid var(--border);
+        min-height: 28px;
+      }
+      .entity-panel-page {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 6px;
+        cursor: pointer;
+        padding: 1px 9px;
+        font-size: 14px;
+        color: var(--accent);
+        line-height: 1.2;
+      }
+      .entity-panel-page:hover:not(:disabled) {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+      .entity-panel-page:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+      .entity-panel-pageinfo {
+        font-size: 11px;
+        color: var(--muted);
+        min-width: 40px;
+        text-align: center;
+      }
+      .entity-panel-detail {
+        border: none;
+        border-top: 1px solid var(--border);
+        background: var(--accent-soft);
+        color: var(--accent);
+        cursor: pointer;
+        padding: 8px 12px;
+        font-size: 12px;
+        text-align: left;
+        border-radius: 0 0 10px 10px;
+      }
+      .entity-panel-detail:hover {
+        background: var(--accent);
+        color: white;
+      }
+      .diagram-box path.relationshipLine.entity-loop {
+        stroke: var(--accent) !important;
+        stroke-width: 3px !important;
+      }
+      .diagram-box path.relationshipLine.entity-loop-dim {
+        opacity: 0.2;
+      }
+      .diagram-toolbar .hint {
+        font-size: 11px;
+        color: var(--muted);
+        margin-left: auto;
+      }
+      .collapsible-diagram {
+        margin-top: 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .collapsible-head {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        background: var(--accent-soft);
+        color: var(--accent);
+        cursor: pointer;
+        padding: 10px 14px;
+        font-size: 13.5px;
+        text-align: left;
+      }
+      .collapsible-head:hover {
+        background: var(--accent);
+        color: white;
+      }
+      .collapsible-head .chev {
+        font-size: 12px;
+        width: 12px;
+      }
+      .collapsible-body {
+        background: var(--panel);
+      }
+      .diagram-legend {
+        display: flex;
+        gap: 22px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        background: var(--panel);
+        font-size: 13px;
+        color: var(--text);
+      }
+      .legend-toggle {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 6px;
+        padding: 4px 10px;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .legend-toggle:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .diagram-legend.legend-collapsed {
+        display: none;
+      }
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .legend-item svg {
+        flex-shrink: 0;
+      }
+      .legend-info {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        color: var(--muted);
+        border-radius: 99px;
+        width: 17px;
+        height: 17px;
+        font-size: 10px;
+        line-height: 1;
+        cursor: help;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-family: ui-monospace, monospace;
+        font-style: italic;
+      }
+      .legend-info:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .legend-popup {
+        position: fixed;
+        z-index: 60;
+        width: 360px;
+        background: var(--panel);
+        border: 1px solid var(--accent);
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+        padding: 12px 14px;
+        font-size: 12px;
+        line-height: 1.55;
+        color: var(--text);
+      }
+      .legend-popup h4 {
+        margin: 0 0 6px;
+        font-size: 12.5px;
+        font-family: ui-monospace, monospace;
+      }
+      .legend-popup p {
+        margin: 0;
+      }
+      .legend-popup ul {
+        margin: 0;
+        padding-left: 16px;
+      }
+      .legend-popup li {
+        margin: 3px 0;
+      }
+      .legend-popup code {
+        font-family: ui-monospace, monospace;
+        font-size: 11px;
+      }
+      .legend-popup .badge {
+        margin-right: 0;
+      }
+      .diagram-box {
+        position: relative;
+        overflow: auto;
+        max-height: 75vh;
+        background: #ffffff;
+      }
+      .diagram-box svg {
+        max-width: none !important;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .diagram-canvas {
+        display: block;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .mermaid-error {
+        color: #dc2626;
+        font-size: 13px;
+        padding: 12px;
+      }
+      pre.diagram-src {
+        display: none;
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 12px;
+        margin: 0;
+        overflow: auto;
+        max-height: 45vh;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .cat-bar {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      .cat-bar button {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 99px;
+        padding: 6px 14px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .cat-bar button.active {
+        background: var(--text);
+        color: #ffffff;
+        border-color: var(--text);
+      }
+      .member-chips {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin: 8px 0 4px;
+      }
+      .member-chips button {
+        border: 1px dashed var(--border);
+        background: var(--panel);
+        border-radius: 6px;
+        padding: 3px 10px;
+        cursor: pointer;
+        font-size: 12px;
+        font-family: ui-monospace, monospace;
+      }
+      .member-chips button:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .back {
+        margin-bottom: 16px;
+      }
+      .back button {
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .sfref {
+        color: #0891b2;
+      }
+      h2.entity-title {
+        font-family: ui-monospace, monospace;
+        font-size: 20px;
+        margin: 0 0 4px;
+      }
+      .entity-detail {
+        margin-top: 20px;
+      }
+      .desc {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 4px 0 12px;
+      }
+      footer {
+        color: var(--muted);
+        font-size: 12px;
+        padding: 12px 24px 32px;
+      }
+      /* Decisions view: chapter cards */
+      .decisions-intro {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 0 0 20px;
+        max-width: 900px;
+        line-height: 1.55;
+      }
+      .decision-chapter {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 22px;
+        margin-bottom: 24px;
+        background: var(--panel);
+        border-top: 3px solid var(--chapter-color);
+      }
+      .decision-section-title {
+        font-size: 15.5px;
+        margin: 0 0 16px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border-left: 4px solid var(--chapter-color);
+        background: color-mix(in srgb, var(--chapter-color) 10%, transparent);
+        color: var(--chapter-color);
+      }
+      .decision-section-title:first-of-type {
+        margin-top: 0;
+      }
+      .chapter-leitentscheidungen {
+        --chapter-color: var(--accent);
+      }
+      .chapter-decision-record {
+        --chapter-color: #7c3aed;
+      }
+      .chapter-scope {
+        --chapter-color: #059669;
+      }
+      .decision-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 14px;
+      }
+      .decision-card {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 16px;
+        background: var(--panel);
+      }
+      .decision-card h4 {
+        margin: 0 0 8px;
+        font-size: 13.5px;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .decision-card .d-id {
+        font-family: ui-monospace, monospace;
+        font-size: 12px;
+        color: white;
+        background: var(--accent);
+        border-radius: 6px;
+        padding: 1px 8px;
+        flex-shrink: 0;
+      }
+      .decision-card p {
+        margin: 6px 0 0;
+        font-size: 12.5px;
+        line-height: 1.55;
+        color: var(--text);
+      }
+      .decision-card .d-why {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--muted);
+        border-left: 3px solid var(--border);
+        padding-left: 10px;
+      }
+      .decision-card .d-why b {
+        color: var(--text);
+      }
+      .decision-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+        margin-top: 4px;
+      }
+      .decision-table th,
+      .decision-table td {
+        text-align: left;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+        line-height: 1.5;
+      }
+      .decision-table th {
+        font-weight: 600;
+        font-size: 12px;
+      }
+      .decision-table td:first-child {
+        font-weight: 600;
+        width: 30%;
+      }
+      .decision-table td:last-child {
+        color: var(--muted);
+      }
+      .decision-table td:last-child b {
+        color: var(--text);
+      }
+      .decision-table.tbl-architektur th {
+        background: #ede9fe;
+        color: #5b21b6;
+      }
+      .decision-table.tbl-datenmodellierung th {
+        background: #ede9fe;
+        color: #5b21b6;
+      }
+      .decision-table.tbl-verhalten th {
+        background: #ede9fe;
+        color: #5b21b6;
+      }
+      .decision-table.tbl-outscope th {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      .decision-table.tbl-deferred th {
+        background: #cffafe;
+        color: #0e7490;
+      }
+      /* Non-CRUD view: rendered markdown catalog */
+      .md-source-note {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        flex-wrap: wrap;
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        border-radius: 8px;
+        background: var(--accent-soft);
+        padding: 10px 14px;
+        margin: 0 0 20px;
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .md-source-note code {
+        font-family: ui-monospace, monospace;
+        font-size: 11.5px;
+        color: var(--text);
+      }
+      .md-body {
+        max-width: 1100px;
+        font-size: 13.5px;
+        line-height: 1.65;
+      }
+      .md-body h1 {
+        font-size: 21px;
+        margin: 0 0 14px;
+      }
+      .md-body h2 {
+        font-size: 16.5px;
+        margin: 32px 0 10px;
+        padding-bottom: 4px;
+        border-bottom: 2px solid var(--accent);
+        color: var(--accent);
+      }
+      .md-body h3 {
+        font-size: 14px;
+        margin: 22px 0 8px;
+      }
+      .md-body p {
+        margin: 10px 0;
+      }
+      .md-body ul,
+      .md-body ol {
+        margin: 10px 0;
+        padding-left: 22px;
+      }
+      .md-body li {
+        margin: 4px 0;
+      }
+      .md-body hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 28px 0;
+      }
+      .md-body code {
+        font-family: ui-monospace, monospace;
+        font-size: 12px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1px 5px;
+      }
+      .md-body pre {
+        background: #0f172a;
+        color: #e2e8f0;
+        border-radius: 8px;
+        padding: 12px 14px;
+        overflow: auto;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .md-body pre code {
+        background: none;
+        border: none;
+        padding: 0;
+        color: inherit;
+      }
+      .md-body blockquote {
+        margin: 14px 0;
+        padding: 10px 16px;
+        border-left: 3px solid var(--accent);
+        background: var(--accent-soft);
+        border-radius: 0 8px 8px 0;
+        color: var(--text);
+      }
+      .md-body blockquote p {
+        margin: 4px 0;
+      }
+      .md-body table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+        margin: 14px 0;
+      }
+      .md-body th,
+      .md-body td {
+        text-align: left;
+        padding: 7px 11px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+        line-height: 1.5;
+      }
+      .md-body thead th {
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 600;
+        font-size: 12px;
+        border-bottom: 2px solid var(--accent);
+      }
+      .md-body tbody tr:hover {
+        background: var(--accent-soft);
+      }
+      .md-body a {
+        color: var(--accent);
+      }
+      /* Keep in-page anchors below the sticky header */
+      .md-body :is(h1, h2, h3, h4) {
+        scroll-margin-top: 80px;
+      }
+      /* Technical details on entity detail: collapsed by default */
+      .tech-details {
+        margin-top: 18px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .tech-details-head {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        background: var(--accent-soft);
+        color: var(--accent);
+        cursor: pointer;
+        padding: 10px 14px;
+        font-size: 13px;
+        text-align: left;
+      }
+      .tech-details-head:hover {
+        background: var(--accent);
+        color: white;
+      }
+      .tech-details-body {
+        display: none;
+        background: var(--panel);
+      }
+      .tech-details.open .tech-details-body {
+        display: block;
+      }
     </style>
   </head>
   <body>
@@ -217,15 +969,677 @@
       <code>pnpm generate</code> · Mermaid loads from CDN; everything else runs offline.
     </footer>
     <script>
-      const MODEL = {"generatedAt": "2026-10-10T10:31:57.144725Z", "sourceFile": "openspec/data-model/schema.sql", "tables": [{"name": "person", "category": "core", "label": "Person", "spec": "openspec/features/README.md", "description": "Someone who authors greetings or reacts to them", "columns": [{"name": "id", "sqlType": "uuid", "logicalType": "UUID", "nullable": true, "hasDefault": true, "defaultValue": "gen_random_uuid()", "references": null, "logicalReference": null, "isPrimaryKey": true, "comment": null}, {"name": "display_name", "sqlType": "text", "logicalType": "Text", "nullable": false, "hasDefault": false, "defaultValue": null, "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": "Public name shown next to greetings"}, {"name": "email", "sqlType": "text", "logicalType": "Text", "nullable": false, "hasDefault": false, "defaultValue": null, "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": "Unique contact address"}, {"name": "created_at", "sqlType": "timestamptz", "logicalType": "Timestamp (TZ)", "nullable": false, "hasDefault": true, "defaultValue": "now()", "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": null}], "primaryKey": ["id"], "uniqueConstraints": [{"name": "person_unique", "columns": ["email"]}], "checkConstraints": [], "indexes": [], "foreignKeys": []}, {"name": "channel", "category": "core", "label": "Channel", "spec": "openspec/features/README.md", "description": "Surface where greetings are published (web, cli, \u2026)", "columns": [{"name": "id", "sqlType": "uuid", "logicalType": "UUID", "nullable": true, "hasDefault": true, "defaultValue": "gen_random_uuid()", "references": null, "logicalReference": null, "isPrimaryKey": true, "comment": null}, {"name": "slug", "sqlType": "text", "logicalType": "Text", "nullable": false, "hasDefault": false, "defaultValue": null, "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": "Stable machine key for the channel"}, {"name": "name", "sqlType": "text", "logicalType": "Text", "nullable": false, "hasDefault": false, "defaultValue": null, "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": "Human-readable channel title"}, {"name": "created_at", "sqlType": "timestamptz", "logicalType": "Timestamp (TZ)", "nullable": false, "hasDefault": true, "defaultValue": "now()", "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": null}], "primaryKey": ["id"], "uniqueConstraints": [{"name": "channel_unique", "columns": ["slug"]}], "checkConstraints": [], "indexes": [], "foreignKeys": []}, {"name": "greeting", "category": "core", "label": "Greeting", "spec": "openspec/features/README.md", "description": "A hello message posted by a person on a channel", "columns": [{"name": "id", "sqlType": "uuid", "logicalType": "UUID", "nullable": true, "hasDefault": true, "defaultValue": "gen_random_uuid()", "references": null, "logicalReference": null, "isPrimaryKey": true, "comment": null}, {"name": "author_id", "sqlType": "uuid", "logicalType": "UUID", "nullable": false, "hasDefault": false, "defaultValue": null, "references": {"table": "person", "column": "id", "onDelete": "CASCADE"}, "logicalReference": null, "isPrimaryKey": false, "comment": "Person who wrote the greeting"}, {"name": "channel_id", "sqlType": "uuid", "logicalType": "UUID", "nullable": false, "hasDefault": false, "defaultValue": null, "references": {"table": "channel", "column": "id", "onDelete": "RESTRICT"}, "logicalReference": null, "isPrimaryKey": false, "comment": "Channel where the greeting appears"}, {"name": "message", "sqlType": "text", "logicalType": "Text", "nullable": false, "hasDefault": false, "defaultValue": null, "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": "Display text of the greeting"}, {"name": "created_at", "sqlType": "timestamptz", "logicalType": "Timestamp (TZ)", "nullable": false, "hasDefault": true, "defaultValue": "now()", "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": null}], "primaryKey": ["id"], "uniqueConstraints": [], "checkConstraints": [], "indexes": [], "foreignKeys": [{"column": "author_id", "references": "person.id", "onDelete": "CASCADE"}, {"column": "channel_id", "references": "channel.id", "onDelete": "RESTRICT"}]}, {"name": "greeting_reaction", "category": "social", "label": "Greeting reaction", "spec": "openspec/features/README.md", "description": "Emoji reaction from a person on a greeting", "columns": [{"name": "id", "sqlType": "uuid", "logicalType": "UUID", "nullable": true, "hasDefault": true, "defaultValue": "gen_random_uuid()", "references": null, "logicalReference": null, "isPrimaryKey": true, "comment": null}, {"name": "greeting_id", "sqlType": "uuid", "logicalType": "UUID", "nullable": false, "hasDefault": false, "defaultValue": null, "references": {"table": "greeting", "column": "id", "onDelete": "CASCADE"}, "logicalReference": null, "isPrimaryKey": false, "comment": "Greeting being reacted to"}, {"name": "person_id", "sqlType": "uuid", "logicalType": "UUID", "nullable": false, "hasDefault": false, "defaultValue": null, "references": {"table": "person", "column": "id", "onDelete": "CASCADE"}, "logicalReference": null, "isPrimaryKey": false, "comment": "Person who reacted"}, {"name": "emoji", "sqlType": "text", "logicalType": "Text", "nullable": false, "hasDefault": false, "defaultValue": null, "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": "Reaction emoji (e.g. thumbs-up)"}, {"name": "created_at", "sqlType": "timestamptz", "logicalType": "Timestamp (TZ)", "nullable": false, "hasDefault": true, "defaultValue": "now()", "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": null}], "primaryKey": ["id"], "uniqueConstraints": [{"name": "greeting_reaction_unique", "columns": ["greeting_id", "person_id", "emoji"]}], "checkConstraints": [], "indexes": [], "foreignKeys": [{"column": "greeting_id", "references": "greeting.id", "onDelete": "CASCADE"}, {"column": "person_id", "references": "person.id", "onDelete": "CASCADE"}]}, {"name": "conversation", "category": "chat", "label": "Conversation", "spec": "openspec/specs/chat-service/spec.md", "description": "Chat thread owned by a person; LLM traffic via apps/chat only", "columns": [{"name": "id", "sqlType": "uuid", "logicalType": "UUID", "nullable": true, "hasDefault": true, "defaultValue": "gen_random_uuid()", "references": null, "logicalReference": null, "isPrimaryKey": true, "comment": null}, {"name": "owner_person_id", "sqlType": "uuid", "logicalType": "UUID", "nullable": false, "hasDefault": false, "defaultValue": null, "references": {"table": "person", "column": "id", "onDelete": "CASCADE"}, "logicalReference": null, "isPrimaryKey": false, "comment": "Person who owns the conversation"}, {"name": "title", "sqlType": "text", "logicalType": "Text", "nullable": true, "hasDefault": false, "defaultValue": null, "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": "Optional display title"}, {"name": "created_at", "sqlType": "timestamptz", "logicalType": "Timestamp (TZ)", "nullable": false, "hasDefault": true, "defaultValue": "now()", "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": null}, {"name": "updated_at", "sqlType": "timestamptz", "logicalType": "Timestamp (TZ)", "nullable": false, "hasDefault": true, "defaultValue": "now()", "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": null}], "primaryKey": ["id"], "uniqueConstraints": [], "checkConstraints": [], "indexes": [], "foreignKeys": [{"column": "owner_person_id", "references": "person.id", "onDelete": "CASCADE"}]}, {"name": "message", "category": "chat", "label": "Message", "spec": "openspec/specs/chat-service/spec.md", "description": "Ordered chat message in a conversation", "columns": [{"name": "id", "sqlType": "uuid", "logicalType": "UUID", "nullable": true, "hasDefault": true, "defaultValue": "gen_random_uuid()", "references": null, "logicalReference": null, "isPrimaryKey": true, "comment": null}, {"name": "conversation_id", "sqlType": "uuid", "logicalType": "UUID", "nullable": false, "hasDefault": false, "defaultValue": null, "references": {"table": "conversation", "column": "id", "onDelete": "CASCADE"}, "logicalReference": null, "isPrimaryKey": false, "comment": "Parent conversation"}, {"name": "role", "sqlType": "text", "logicalType": "Text", "nullable": false, "hasDefault": false, "defaultValue": null, "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": "user | assistant | system | tool"}, {"name": "content", "sqlType": "text", "logicalType": "Text", "nullable": false, "hasDefault": false, "defaultValue": null, "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": "Message text (tool payloads may be serialized text in v1)"}, {"name": "created_at", "sqlType": "timestamptz", "logicalType": "Timestamp (TZ)", "nullable": false, "hasDefault": true, "defaultValue": "now()", "references": null, "logicalReference": null, "isPrimaryKey": false, "comment": null}], "primaryKey": ["id"], "uniqueConstraints": [], "checkConstraints": [{"name": "message_check", "definition": "CHECK (role IN ('user', 'assistant', 'system', 'tool'))"}], "indexes": [{"name": "message_conversation_created_idx", "columns": ["conversation_id", "created_at"], "unique": false, "partial": null}], "foreignKeys": [{"column": "conversation_id", "references": "conversation.id", "onDelete": "CASCADE"}]}], "edges": [{"fromTable": "greeting", "fromColumn": "author_id", "toTable": "person", "toColumn": "id", "kind": "fk", "onDelete": "CASCADE"}, {"fromTable": "greeting", "fromColumn": "channel_id", "toTable": "channel", "toColumn": "id", "kind": "fk", "onDelete": "RESTRICT"}, {"fromTable": "greeting_reaction", "fromColumn": "greeting_id", "toTable": "greeting", "toColumn": "id", "kind": "fk", "onDelete": "CASCADE"}, {"fromTable": "greeting_reaction", "fromColumn": "person_id", "toTable": "person", "toColumn": "id", "kind": "fk", "onDelete": "CASCADE"}, {"fromTable": "conversation", "fromColumn": "owner_person_id", "toTable": "person", "toColumn": "id", "kind": "fk", "onDelete": "CASCADE"}, {"fromTable": "message", "fromColumn": "conversation_id", "toTable": "conversation", "toColumn": "id", "kind": "fk", "onDelete": "CASCADE"}], "externalReferences": [], "categories": [{"key": "core", "label": "Core", "color": "#2563eb", "tables": ["person", "channel", "greeting"]}, {"key": "social", "label": "Social", "color": "#059669", "tables": ["greeting_reaction"]}, {"key": "chat", "label": "Chat", "color": "#d97706", "tables": ["conversation", "message"]}]};
-      const STATS = {"tableCount": 6, "columnCount": 28, "fkCount": 6, "sfRefCount": 0, "categoryCount": 3, "businessEdgeCount": 6, "auditEdgeCount": 0, "logicalEdgeCount": 0};
-      const DIAGRAMS = {"big": "%% Big Picture \u2014 all tables, business FK edges\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  direction LR\n  person[\"Person \u00b7 4 fields\"]\n  channel[\"Channel \u00b7 4 fields\"]\n  greeting[\"Greeting \u00b7 5 fields\"]\n  greeting_reaction[\"Greeting reaction \u00b7 5 fields\"]\n  conversation[\"Conversation \u00b7 5 fields\"]\n  message[\"Message \u00b7 5 fields\"]\n  person ||--o{ greeting : \"author_id\"\n  channel ||--o{ greeting : \"channel_id\"\n  greeting ||--o{ greeting_reaction : \"greeting_id\"\n  person ||--o{ greeting_reaction : \"person_id\"\n  person ||--o{ conversation : \"owner_person_id\"\n  conversation ||--o{ message : \"conversation_id\"\n", "categories": {"core": "%% Category: Core (3 tables)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  direction LR\n  person[\"Person \u00b7 4 fields\"]\n  channel[\"Channel \u00b7 4 fields\"]\n  greeting[\"Greeting \u00b7 5 fields\"]\n  person ||--o{ greeting : \"author_id\"\n  channel ||--o{ greeting : \"channel_id\"\n  greeting ||--o{ greeting_reaction : \"greeting_id (cross)\"\n  person ||--o{ greeting_reaction : \"person_id (cross)\"\n  person ||--o{ conversation : \"owner_person_id (cross)\"\n", "social": "%% Category: Social (1 tables)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  direction LR\n  greeting_reaction[\"Greeting reaction \u00b7 5 fields\"]\n  greeting ||--o{ greeting_reaction : \"greeting_id (cross)\"\n  person ||--o{ greeting_reaction : \"person_id (cross)\"\n", "chat": "%% Category: Chat (2 tables)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  direction LR\n  conversation[\"Conversation \u00b7 5 fields\"]\n  message[\"Message \u00b7 5 fields\"]\n  person ||--o{ conversation : \"owner_person_id (cross)\"\n  conversation ||--o{ message : \"conversation_id\"\n"}, "entities": {"person": "%% Entity: person (Person)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  person[\"Person\"] {\n    UUID id PK\n    TEXT display_name\n    TEXT email\n    TIMESTAMPTZ created_at\n  }\n  person ||--o{ greeting : \"author_id\"\n  person ||--o{ greeting_reaction : \"person_id\"\n  person ||--o{ conversation : \"owner_person_id\"\n", "channel": "%% Entity: channel (Channel)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  channel[\"Channel\"] {\n    UUID id PK\n    TEXT slug\n    TEXT name\n    TIMESTAMPTZ created_at\n  }\n  channel ||--o{ greeting : \"channel_id\"\n", "greeting": "%% Entity: greeting (Greeting)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  greeting[\"Greeting\"] {\n    UUID id PK\n    UUID author_id FK\n    UUID channel_id FK\n    TEXT message\n    TIMESTAMPTZ created_at\n  }\n  person ||--o{ greeting : \"author_id\"\n  channel ||--o{ greeting : \"channel_id\"\n  greeting ||--o{ greeting_reaction : \"greeting_id\"\n", "greeting_reaction": "%% Entity: greeting_reaction (Greeting reaction)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  greeting_reaction[\"Greeting reaction\"] {\n    UUID id PK\n    UUID greeting_id FK\n    UUID person_id FK\n    TEXT emoji\n    TIMESTAMPTZ created_at\n  }\n  greeting ||--o{ greeting_reaction : \"greeting_id\"\n  person ||--o{ greeting_reaction : \"person_id\"\n", "conversation": "%% Entity: conversation (Conversation)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  conversation[\"Conversation\"] {\n    UUID id PK\n    UUID owner_person_id FK\n    TEXT title\n    TIMESTAMPTZ created_at\n    TIMESTAMPTZ updated_at\n  }\n  person ||--o{ conversation : \"owner_person_id\"\n  conversation ||--o{ message : \"conversation_id\"\n", "message": "%% Entity: message (Message)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  message[\"Message\"] {\n    UUID id PK\n    UUID conversation_id FK\n    TEXT role\n    TEXT content\n    TIMESTAMPTZ created_at\n  }\n  conversation ||--o{ message : \"conversation_id\"\n"}};
+      const MODEL = {
+        generatedAt: "2026-10-10T22:55:28.804382Z",
+        sourceFile: "openspec/data-model/schema.sql",
+        tables: [
+          {
+            name: "person",
+            category: "core",
+            label: "Person",
+            spec: "openspec/features/README.md",
+            description: "Someone who authors greetings or reacts to them",
+            columns: [
+              {
+                name: "id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: true,
+                hasDefault: true,
+                defaultValue: "gen_random_uuid()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: true,
+                comment: null,
+              },
+              {
+                name: "display_name",
+                sqlType: "text",
+                logicalType: "Text",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Public name shown next to greetings",
+              },
+              {
+                name: "email",
+                sqlType: "text",
+                logicalType: "Text",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Unique contact address",
+              },
+              {
+                name: "created_at",
+                sqlType: "timestamptz",
+                logicalType: "Timestamp (TZ)",
+                nullable: false,
+                hasDefault: true,
+                defaultValue: "now()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: null,
+              },
+            ],
+            primaryKey: ["id"],
+            uniqueConstraints: [{ name: "person_unique", columns: ["email"] }],
+            checkConstraints: [],
+            indexes: [],
+            foreignKeys: [],
+          },
+          {
+            name: "channel",
+            category: "core",
+            label: "Channel",
+            spec: "openspec/features/README.md",
+            description: "Surface where greetings are published (web, cli, \u2026)",
+            columns: [
+              {
+                name: "id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: true,
+                hasDefault: true,
+                defaultValue: "gen_random_uuid()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: true,
+                comment: null,
+              },
+              {
+                name: "slug",
+                sqlType: "text",
+                logicalType: "Text",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Stable machine key for the channel",
+              },
+              {
+                name: "name",
+                sqlType: "text",
+                logicalType: "Text",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Human-readable channel title",
+              },
+              {
+                name: "created_at",
+                sqlType: "timestamptz",
+                logicalType: "Timestamp (TZ)",
+                nullable: false,
+                hasDefault: true,
+                defaultValue: "now()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: null,
+              },
+            ],
+            primaryKey: ["id"],
+            uniqueConstraints: [{ name: "channel_unique", columns: ["slug"] }],
+            checkConstraints: [],
+            indexes: [],
+            foreignKeys: [],
+          },
+          {
+            name: "greeting",
+            category: "core",
+            label: "Greeting",
+            spec: "openspec/features/README.md",
+            description: "A hello message posted by a person on a channel",
+            columns: [
+              {
+                name: "id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: true,
+                hasDefault: true,
+                defaultValue: "gen_random_uuid()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: true,
+                comment: null,
+              },
+              {
+                name: "author_id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: { table: "person", column: "id", onDelete: "CASCADE" },
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Person who wrote the greeting",
+              },
+              {
+                name: "channel_id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: { table: "channel", column: "id", onDelete: "RESTRICT" },
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Channel where the greeting appears",
+              },
+              {
+                name: "message",
+                sqlType: "text",
+                logicalType: "Text",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Display text of the greeting",
+              },
+              {
+                name: "created_at",
+                sqlType: "timestamptz",
+                logicalType: "Timestamp (TZ)",
+                nullable: false,
+                hasDefault: true,
+                defaultValue: "now()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: null,
+              },
+            ],
+            primaryKey: ["id"],
+            uniqueConstraints: [],
+            checkConstraints: [],
+            indexes: [],
+            foreignKeys: [
+              { column: "author_id", references: "person.id", onDelete: "CASCADE" },
+              { column: "channel_id", references: "channel.id", onDelete: "RESTRICT" },
+            ],
+          },
+          {
+            name: "greeting_reaction",
+            category: "social",
+            label: "Greeting reaction",
+            spec: "openspec/features/README.md",
+            description: "Emoji reaction from a person on a greeting",
+            columns: [
+              {
+                name: "id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: true,
+                hasDefault: true,
+                defaultValue: "gen_random_uuid()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: true,
+                comment: null,
+              },
+              {
+                name: "greeting_id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: { table: "greeting", column: "id", onDelete: "CASCADE" },
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Greeting being reacted to",
+              },
+              {
+                name: "person_id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: { table: "person", column: "id", onDelete: "CASCADE" },
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Person who reacted",
+              },
+              {
+                name: "emoji",
+                sqlType: "text",
+                logicalType: "Text",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Reaction emoji (e.g. thumbs-up)",
+              },
+              {
+                name: "created_at",
+                sqlType: "timestamptz",
+                logicalType: "Timestamp (TZ)",
+                nullable: false,
+                hasDefault: true,
+                defaultValue: "now()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: null,
+              },
+            ],
+            primaryKey: ["id"],
+            uniqueConstraints: [
+              { name: "greeting_reaction_unique", columns: ["greeting_id", "person_id", "emoji"] },
+            ],
+            checkConstraints: [],
+            indexes: [],
+            foreignKeys: [
+              { column: "greeting_id", references: "greeting.id", onDelete: "CASCADE" },
+              { column: "person_id", references: "person.id", onDelete: "CASCADE" },
+            ],
+          },
+          {
+            name: "conversation",
+            category: "chat",
+            label: "Conversation",
+            spec: "openspec/specs/chat-service/spec.md",
+            description: "Chat thread owned by a person; LLM traffic via apps/chat only",
+            columns: [
+              {
+                name: "id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: true,
+                hasDefault: true,
+                defaultValue: "gen_random_uuid()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: true,
+                comment: null,
+              },
+              {
+                name: "owner_person_id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: { table: "person", column: "id", onDelete: "CASCADE" },
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Person who owns the conversation",
+              },
+              {
+                name: "title",
+                sqlType: "text",
+                logicalType: "Text",
+                nullable: true,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Optional display title",
+              },
+              {
+                name: "created_at",
+                sqlType: "timestamptz",
+                logicalType: "Timestamp (TZ)",
+                nullable: false,
+                hasDefault: true,
+                defaultValue: "now()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: null,
+              },
+              {
+                name: "updated_at",
+                sqlType: "timestamptz",
+                logicalType: "Timestamp (TZ)",
+                nullable: false,
+                hasDefault: true,
+                defaultValue: "now()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: null,
+              },
+            ],
+            primaryKey: ["id"],
+            uniqueConstraints: [],
+            checkConstraints: [],
+            indexes: [],
+            foreignKeys: [
+              { column: "owner_person_id", references: "person.id", onDelete: "CASCADE" },
+            ],
+          },
+          {
+            name: "message",
+            category: "chat",
+            label: "Message",
+            spec: "openspec/specs/chat-service/spec.md",
+            description: "Ordered chat message in a conversation",
+            columns: [
+              {
+                name: "id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: true,
+                hasDefault: true,
+                defaultValue: "gen_random_uuid()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: true,
+                comment: null,
+              },
+              {
+                name: "conversation_id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: { table: "conversation", column: "id", onDelete: "CASCADE" },
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Parent conversation",
+              },
+              {
+                name: "role",
+                sqlType: "text",
+                logicalType: "Text",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "user | assistant | system | tool",
+              },
+              {
+                name: "content",
+                sqlType: "text",
+                logicalType: "Text",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Message text (tool payloads may be serialized text in v1)",
+              },
+              {
+                name: "created_at",
+                sqlType: "timestamptz",
+                logicalType: "Timestamp (TZ)",
+                nullable: false,
+                hasDefault: true,
+                defaultValue: "now()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: null,
+              },
+            ],
+            primaryKey: ["id"],
+            uniqueConstraints: [],
+            checkConstraints: [
+              {
+                name: "message_check",
+                definition: "CHECK (role IN ('user', 'assistant', 'system', 'tool'))",
+              },
+            ],
+            indexes: [
+              {
+                name: "message_conversation_created_idx",
+                columns: ["conversation_id", "created_at"],
+                unique: false,
+                partial: null,
+              },
+            ],
+            foreignKeys: [
+              { column: "conversation_id", references: "conversation.id", onDelete: "CASCADE" },
+            ],
+          },
+          {
+            name: "search_sync_outbox",
+            category: "infra",
+            label: "Search sync outbox",
+            spec: "openspec/specs/search-knowledge-graph/spec.md",
+            description: "Async AGE/Typesense projection work drained by apps/worker",
+            columns: [
+              {
+                name: "id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: true,
+                hasDefault: true,
+                defaultValue: "gen_random_uuid()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: true,
+                comment: null,
+              },
+              {
+                name: "aggregate_type",
+                sqlType: "text",
+                logicalType: "Text",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "person | channel | greeting | reaction",
+              },
+              {
+                name: "aggregate_id",
+                sqlType: "uuid",
+                logicalType: "UUID",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Domain entity UUID being projected",
+              },
+              {
+                name: "op",
+                sqlType: "text",
+                logicalType: "Text",
+                nullable: false,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "upsert | delete",
+              },
+              {
+                name: "payload",
+                sqlType: "jsonb",
+                logicalType: "JSON",
+                nullable: true,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Optional snapshot for upsert projection",
+              },
+              {
+                name: "created_at",
+                sqlType: "timestamptz",
+                logicalType: "Timestamp (TZ)",
+                nullable: false,
+                hasDefault: true,
+                defaultValue: "now()",
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: null,
+              },
+              {
+                name: "processed_at",
+                sqlType: "timestamptz",
+                logicalType: "Timestamp (TZ)",
+                nullable: true,
+                hasDefault: false,
+                defaultValue: null,
+                references: null,
+                logicalReference: null,
+                isPrimaryKey: false,
+                comment: "Set when worker finishes applying the row",
+              },
+            ],
+            primaryKey: ["id"],
+            uniqueConstraints: [],
+            checkConstraints: [
+              {
+                name: "search_sync_outbox_check",
+                definition:
+                  "CHECK (aggregate_type IN ('person', 'channel', 'greeting', 'reaction'))",
+              },
+              {
+                name: "search_sync_outbox_check",
+                definition: "CHECK (op IN ('upsert', 'delete'))",
+              },
+            ],
+            indexes: [
+              {
+                name: "search_sync_outbox_pending_idx",
+                columns: ["created_at"],
+                unique: false,
+                partial: "processed_at IS NULL",
+              },
+            ],
+            foreignKeys: [],
+          },
+        ],
+        edges: [
+          {
+            fromTable: "greeting",
+            fromColumn: "author_id",
+            toTable: "person",
+            toColumn: "id",
+            kind: "fk",
+            onDelete: "CASCADE",
+          },
+          {
+            fromTable: "greeting",
+            fromColumn: "channel_id",
+            toTable: "channel",
+            toColumn: "id",
+            kind: "fk",
+            onDelete: "RESTRICT",
+          },
+          {
+            fromTable: "greeting_reaction",
+            fromColumn: "greeting_id",
+            toTable: "greeting",
+            toColumn: "id",
+            kind: "fk",
+            onDelete: "CASCADE",
+          },
+          {
+            fromTable: "greeting_reaction",
+            fromColumn: "person_id",
+            toTable: "person",
+            toColumn: "id",
+            kind: "fk",
+            onDelete: "CASCADE",
+          },
+          {
+            fromTable: "conversation",
+            fromColumn: "owner_person_id",
+            toTable: "person",
+            toColumn: "id",
+            kind: "fk",
+            onDelete: "CASCADE",
+          },
+          {
+            fromTable: "message",
+            fromColumn: "conversation_id",
+            toTable: "conversation",
+            toColumn: "id",
+            kind: "fk",
+            onDelete: "CASCADE",
+          },
+        ],
+        externalReferences: [],
+        categories: [
+          {
+            key: "core",
+            label: "Core",
+            color: "#2563eb",
+            tables: ["person", "channel", "greeting"],
+          },
+          { key: "social", label: "Social", color: "#059669", tables: ["greeting_reaction"] },
+          { key: "chat", label: "Chat", color: "#d97706", tables: ["conversation", "message"] },
+          { key: "infra", label: "Infra", color: "#64748b", tables: ["search_sync_outbox"] },
+        ],
+      };
+      const STATS = {
+        tableCount: 7,
+        columnCount: 35,
+        fkCount: 6,
+        sfRefCount: 0,
+        categoryCount: 4,
+        businessEdgeCount: 6,
+        auditEdgeCount: 0,
+        logicalEdgeCount: 0,
+      };
+      const DIAGRAMS = {
+        big: '%% Big Picture \u2014 all tables, business FK edges\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  direction LR\n  person["Person \u00b7 4 fields"]\n  channel["Channel \u00b7 4 fields"]\n  greeting["Greeting \u00b7 5 fields"]\n  greeting_reaction["Greeting reaction \u00b7 5 fields"]\n  conversation["Conversation \u00b7 5 fields"]\n  message["Message \u00b7 5 fields"]\n  search_sync_outbox["Search sync outbox \u00b7 7 fields"]\n  person ||--o{ greeting : "author_id"\n  channel ||--o{ greeting : "channel_id"\n  greeting ||--o{ greeting_reaction : "greeting_id"\n  person ||--o{ greeting_reaction : "person_id"\n  person ||--o{ conversation : "owner_person_id"\n  conversation ||--o{ message : "conversation_id"\n',
+        categories: {
+          core: '%% Category: Core (3 tables)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  direction LR\n  person["Person \u00b7 4 fields"]\n  channel["Channel \u00b7 4 fields"]\n  greeting["Greeting \u00b7 5 fields"]\n  person ||--o{ greeting : "author_id"\n  channel ||--o{ greeting : "channel_id"\n  greeting ||--o{ greeting_reaction : "greeting_id (cross)"\n  person ||--o{ greeting_reaction : "person_id (cross)"\n  person ||--o{ conversation : "owner_person_id (cross)"\n',
+          social:
+            '%% Category: Social (1 tables)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  direction LR\n  greeting_reaction["Greeting reaction \u00b7 5 fields"]\n  greeting ||--o{ greeting_reaction : "greeting_id (cross)"\n  person ||--o{ greeting_reaction : "person_id (cross)"\n',
+          chat: '%% Category: Chat (2 tables)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  direction LR\n  conversation["Conversation \u00b7 5 fields"]\n  message["Message \u00b7 5 fields"]\n  person ||--o{ conversation : "owner_person_id (cross)"\n  conversation ||--o{ message : "conversation_id"\n',
+          infra:
+            '%% Category: Infra (1 tables)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  direction LR\n  search_sync_outbox["Search sync outbox \u00b7 7 fields"]\n',
+        },
+        entities: {
+          person:
+            '%% Entity: person (Person)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  person["Person"] {\n    UUID id PK\n    TEXT display_name\n    TEXT email\n    TIMESTAMPTZ created_at\n  }\n  person ||--o{ greeting : "author_id"\n  person ||--o{ greeting_reaction : "person_id"\n  person ||--o{ conversation : "owner_person_id"\n',
+          channel:
+            '%% Entity: channel (Channel)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  channel["Channel"] {\n    UUID id PK\n    TEXT slug\n    TEXT name\n    TIMESTAMPTZ created_at\n  }\n  channel ||--o{ greeting : "channel_id"\n',
+          greeting:
+            '%% Entity: greeting (Greeting)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  greeting["Greeting"] {\n    UUID id PK\n    UUID author_id FK\n    UUID channel_id FK\n    TEXT message\n    TIMESTAMPTZ created_at\n  }\n  person ||--o{ greeting : "author_id"\n  channel ||--o{ greeting : "channel_id"\n  greeting ||--o{ greeting_reaction : "greeting_id"\n',
+          greeting_reaction:
+            '%% Entity: greeting_reaction (Greeting reaction)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  greeting_reaction["Greeting reaction"] {\n    UUID id PK\n    UUID greeting_id FK\n    UUID person_id FK\n    TEXT emoji\n    TIMESTAMPTZ created_at\n  }\n  greeting ||--o{ greeting_reaction : "greeting_id"\n  person ||--o{ greeting_reaction : "person_id"\n',
+          conversation:
+            '%% Entity: conversation (Conversation)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  conversation["Conversation"] {\n    UUID id PK\n    UUID owner_person_id FK\n    TEXT title\n    TIMESTAMPTZ created_at\n    TIMESTAMPTZ updated_at\n  }\n  person ||--o{ conversation : "owner_person_id"\n  conversation ||--o{ message : "conversation_id"\n',
+          message:
+            '%% Entity: message (Message)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  message["Message"] {\n    UUID id PK\n    UUID conversation_id FK\n    TEXT role\n    TEXT content\n    TIMESTAMPTZ created_at\n  }\n  conversation ||--o{ message : "conversation_id"\n',
+          search_sync_outbox:
+            '%% Entity: search_sync_outbox (Search sync outbox)\n%% Generated by spark/generators \u2014 do not edit by hand.\n%% Source: openspec/data-model/schema.sql (DDL SoT); categories from spark/repo-profile.yaml\nerDiagram\n  search_sync_outbox["Search sync outbox"] {\n    UUID id PK\n    TEXT aggregate_type\n    UUID aggregate_id\n    TEXT op\n    JSONB payload\n    TIMESTAMPTZ created_at\n    TIMESTAMPTZ processed_at\n  }\n',
+        },
+      };
       const SFREFS = [];
       // Nicht-CRUD-Katalog: beim Build aus der Markdown-Quelle gerendert, siehe
       // spark/generators (nicht-crud markdown → HTML). NICHT_CRUD_SOURCE ist der repo-relative Pfad
       // der Quelldatei — er wird in der Ansicht angezeigt, damit jeder weiß, wo die
       // Inhalte gepflegt werden.
-      const NICHT_CRUD_HTML = "<h1>Nicht-CRUD Katalog\\n\\n(optional; referenced by ERD generator)\\n</h1>";
+      const NICHT_CRUD_HTML =
+        "<h1>Nicht-CRUD Katalog\\n\\n(optional; referenced by ERD generator)\\n</h1>";
       const NICHT_CRUD_SOURCE = "openspec/data-model/nicht-crud-katalog.md";
 
       (function fillHeaderStats() {
@@ -239,9 +1653,9 @@
         ];
         if (STATS.sfRefCount) parts.push(["sfref", STATS.sfRefCount + " external references"]);
         parts.push(["", STATS.categoryCount + " categories"]);
-        el.innerHTML = parts.map(([cls, t]) =>
-          '<span' + (cls ? ' class="' + cls + '"' : "") + ">" + t + "</span>"
-        ).join("");
+        el.innerHTML = parts
+          .map(([cls, t]) => "<span" + (cls ? ' class="' + cls + '"' : "") + ">" + t + "</span>")
+          .join("");
       })();
 
       // Zwei Themes: "neutral" (bisheriger Look) und "redux-color" — das Theme, das
@@ -304,7 +1718,8 @@
       // ELK wird erst beim ersten Umschalten nachgeladen (ESM, CDN); schlaegt das fehl,
       // faellt der Viewer sichtbar auf dagre zurueck statt leer zu bleiben.
       const LAYOUT_STORAGE_KEY = "erd-viewer-layout";
-      const ELK_URL = "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@1.0.0/dist/mermaid-layout-elk.esm.min.mjs";
+      const ELK_URL =
+        "https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@1.0.0/dist/mermaid-layout-elk.esm.min.mjs";
       let currentLayout = "elk";
       try {
         const saved = localStorage.getItem(LAYOUT_STORAGE_KEY);
@@ -355,7 +1770,9 @@
           const ok = await ensureElkLoaded();
           if (!ok) {
             currentLayout = "dagre";
-            alert("ELK-Layout konnte nicht geladen werden (CDN nicht erreichbar). Es bleibt bei Hierarchical.");
+            alert(
+              "ELK-Layout konnte nicht geladen werden (CDN nicht erreichbar). Es bleibt bei Hierarchical.",
+            );
           }
         }
         document.querySelectorAll(".layout-toggle button").forEach((b) => {
@@ -371,8 +1788,12 @@
       }
 
       const nav = document.getElementById("nav");
-      function q(sel) { return document.querySelector(sel); }
-      function categoryClass(cat) { return "cat-" + cat; }
+      function q(sel) {
+        return document.querySelector(sel);
+      }
+      function categoryClass(cat) {
+        return "cat-" + cat;
+      }
 
       let renderSeq = 0;
       async function renderMermaid(container, src) {
@@ -451,7 +1872,10 @@
           const id = m[1].slice(1);
           const total = p.getTotalLength();
           const samples = [];
-          let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+          let minX = Infinity,
+            minY = Infinity,
+            maxX = -Infinity,
+            maxY = -Infinity;
           for (let d = 0; d <= total; d += EDGE_SAMPLE_STEP) {
             const pt = p.getPointAtLength(d);
             samples.push(pt.x, pt.y);
@@ -534,8 +1958,13 @@
           let bestDist = Infinity;
           for (const e of edgeCache) {
             // Bounding-Box-Vorfilter: ausserhalb des erweiterten Rahmens sofort skip.
-            if (point.x < e.minX - hit || point.x > e.maxX + hit ||
-                point.y < e.minY - hit || point.y > e.maxY + hit) continue;
+            if (
+              point.x < e.minX - hit ||
+              point.x > e.maxX + hit ||
+              point.y < e.minY - hit ||
+              point.y > e.maxY + hit
+            )
+              continue;
             let dist = Infinity;
             const s = e.samples;
             for (let i = 0; i < s.length; i += 2) {
@@ -576,7 +2005,10 @@
           });
         });
         svgHost.addEventListener("mouseleave", () => {
-          if (moveRaf) { cancelAnimationFrame(moveRaf); moveRaf = 0; }
+          if (moveRaf) {
+            cancelAnimationFrame(moveRaf);
+            moveRaf = 0;
+          }
           clearHighlight();
         });
       }
@@ -598,11 +2030,19 @@
         let closeTimer = 0;
 
         function closePanel() {
-          if (closeTimer) { clearTimeout(closeTimer); closeTimer = 0; }
-          if (panel) { panel.remove(); panel = null; }
+          if (closeTimer) {
+            clearTimeout(closeTimer);
+            closeTimer = 0;
+          }
+          if (panel) {
+            panel.remove();
+            panel = null;
+          }
           if (activeNode) {
-            for (const m of svg.querySelectorAll("." + ENTITY_LOOP_CSS.on)) m.classList.remove(ENTITY_LOOP_CSS.on);
-            for (const m of svg.querySelectorAll("." + ENTITY_LOOP_CSS.dim)) m.classList.remove(ENTITY_LOOP_CSS.dim);
+            for (const m of svg.querySelectorAll("." + ENTITY_LOOP_CSS.on))
+              m.classList.remove(ENTITY_LOOP_CSS.on);
+            for (const m of svg.querySelectorAll("." + ENTITY_LOOP_CSS.dim))
+              m.classList.remove(ENTITY_LOOP_CSS.dim);
             activeNode.classList.remove("entity-active");
             activeNode = null;
           }
@@ -615,7 +2055,10 @@
         }
 
         function cancelClose() {
-          if (closeTimer) { clearTimeout(closeTimer); closeTimer = 0; }
+          if (closeTimer) {
+            clearTimeout(closeTimer);
+            closeTimer = 0;
+          }
         }
 
         function openPanel(node, name) {
@@ -648,19 +2091,44 @@
 
           function renderPage() {
             const start = page * PER_PAGE;
-            const rows = table.columns.slice(start, start + PER_PAGE).map((c) =>
-              '<div class="entity-panel-row"><code>' + c.name + '</code><span>' + c.sqlType + (c.isPrimaryKey ? ' <b class="pk">PK</b>' : "") + "</span></div>"
-            ).join("");
+            const rows = table.columns
+              .slice(start, start + PER_PAGE)
+              .map(
+                (c) =>
+                  '<div class="entity-panel-row"><code>' +
+                  c.name +
+                  "</code><span>" +
+                  c.sqlType +
+                  (c.isPrimaryKey ? ' <b class="pk">PK</b>' : "") +
+                  "</span></div>",
+              )
+              .join("");
             panel.innerHTML =
-              '<div class="entity-panel-head"><b>' + table.name + "</b><span>" + table.label + ' · ' + table.columns.length + ' fields</span><button class="entity-panel-close" title="Close">×</button></div>' +
-              '<div class="entity-panel-body">' + rows + "</div>" +
+              '<div class="entity-panel-head"><b>' +
+              table.name +
+              "</b><span>" +
+              table.label +
+              " · " +
+              table.columns.length +
+              ' fields</span><button class="entity-panel-close" title="Close">×</button></div>' +
+              '<div class="entity-panel-body">' +
+              rows +
+              "</div>" +
               '<div class="entity-panel-foot">' +
               (pageCount > 1
-                ? '<button class="entity-panel-page" data-dir="-1" ' + (page === 0 ? "disabled" : "") + ' title="Previous page">‹</button>' +
-                  '<span class="entity-panel-pageinfo">' + (page + 1) + ' / ' + pageCount + '</span>' +
-                  '<button class="entity-panel-page" data-dir="1" ' + (page === pageCount - 1 ? "disabled" : "") + ' title="Next page">›</button>'
+                ? '<button class="entity-panel-page" data-dir="-1" ' +
+                  (page === 0 ? "disabled" : "") +
+                  ' title="Previous page">‹</button>' +
+                  '<span class="entity-panel-pageinfo">' +
+                  (page + 1) +
+                  " / " +
+                  pageCount +
+                  "</span>" +
+                  '<button class="entity-panel-page" data-dir="1" ' +
+                  (page === pageCount - 1 ? "disabled" : "") +
+                  ' title="Next page">›</button>'
                 : '<span class="entity-panel-pageinfo"></span>') +
-              '</div>' +
+              "</div>" +
               '<button class="entity-panel-detail">→ Open full detail view</button>';
             panel.querySelector(".entity-panel-close").addEventListener("click", closePanel);
             panel.querySelectorAll(".entity-panel-page").forEach((b) => {
@@ -707,7 +2175,10 @@
           node.addEventListener("click", (evt) => {
             evt.stopPropagation();
             cancelClose();
-            if (activeNode === node) { closePanel(); return; }
+            if (activeNode === node) {
+              closePanel();
+              return;
+            }
             openPanel(node, name);
           });
         }
@@ -737,7 +2208,17 @@
       // gekappt, dass beide Seiten unter der Grenze bleiben.
       // Dateiname: <diagrammname>.png, z. B. "big-picture.png" oder "user.png".
       const PNG_CANVAS_MAX_PX = 16384;
-      const PNG_HOVER_CLASSES = ["edge-highlight", "edge-dim", "edge-highlight-label", "edge-dim-label", "entity-sat-dim", "entity-edge-active", "entity-active", "entity-loop", "entity-loop-dim"];
+      const PNG_HOVER_CLASSES = [
+        "edge-highlight",
+        "edge-dim",
+        "edge-highlight-label",
+        "edge-dim-label",
+        "entity-sat-dim",
+        "entity-edge-active",
+        "entity-active",
+        "entity-loop",
+        "entity-loop-dim",
+      ];
 
       function downloadBlob(blob, name) {
         const a = document.createElement("a");
@@ -752,32 +2233,49 @@
       function renderSvgToPng(clone, w, h, scale) {
         return new Promise((resolve, reject) => {
           const capped = Math.min(scale, PNG_CANVAS_MAX_PX / Math.max(w, h));
-          if (!(capped > 0)) { reject(new Error("Diagramm-Groesse ungueltig")); return; }
+          if (!(capped > 0)) {
+            reject(new Error("Diagramm-Groesse ungueltig"));
+            return;
+          }
           clone.setAttribute("width", String(w));
           clone.setAttribute("height", String(h));
           clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
           let svgString;
           try {
             svgString = new XMLSerializer().serializeToString(clone);
-          } catch (err) { reject(err); return; }
+          } catch (err) {
+            reject(err);
+            return;
+          }
           const canvas = document.createElement("canvas");
           canvas.width = Math.round(w * capped);
           canvas.height = Math.round(h * capped);
           const ctx = canvas.getContext("2d");
-          if (!ctx) { reject(new Error("Canvas-2D-Kontext nicht verfuegbar")); return; }
+          if (!ctx) {
+            reject(new Error("Canvas-2D-Kontext nicht verfuegbar"));
+            return;
+          }
           ctx.fillStyle = "#ffffff";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           const img = new Image();
           // Timeout-Guard: feuert weder onload noch onerror (haengendes Bild-Laden),
           // bleibt die Promise sonst ewig offen — der Button wuerde still nichts tun.
-          const timer = setTimeout(() => reject(new Error("Timeout beim Rendern des SVG-Bildes")), 10000);
-          const done = (fn, arg) => { clearTimeout(timer); fn(arg); };
+          const timer = setTimeout(
+            () => reject(new Error("Timeout beim Rendern des SVG-Bildes")),
+            10000,
+          );
+          const done = (fn, arg) => {
+            clearTimeout(timer);
+            fn(arg);
+          };
           img.onload = () => {
             done(() => {}, null);
             try {
               ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
               canvas.toBlob((blob) => resolve(blob), "image/png");
-            } catch (err) { reject(err); }
+            } catch (err) {
+              reject(err);
+            }
           };
           img.onerror = () => done(reject, new Error("SVG konnte nicht als Bild geladen werden"));
           img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString);
@@ -788,7 +2286,8 @@
         const svg = svgHost.querySelector("svg");
         if (!svg) return;
         const clone = svg.cloneNode(true);
-        clone.querySelectorAll(PNG_HOVER_CLASSES.map((c) => "." + c).join(", "))
+        clone
+          .querySelectorAll(PNG_HOVER_CLASSES.map((c) => "." + c).join(", "))
           .forEach((el) => el.classList.remove(...PNG_HOVER_CLASSES));
         const vb = (clone.getAttribute("viewBox") || "0 0 1000 1000").split(" ").map(Number);
         const w = vb[2];
@@ -802,17 +2301,33 @@
         };
         try {
           let blob = null;
-          try { blob = await renderSvgToPng(clone, w, h, 2); } catch (err) { console.warn("PNG 2x fehlgeschlagen:", err); }
-          if (!blob) {
-            try { blob = await renderSvgToPng(clone, w, h, 1); } catch (err) { console.warn("PNG 1x fehlgeschlagen:", err); }
+          try {
+            blob = await renderSvgToPng(clone, w, h, 2);
+          } catch (err) {
+            console.warn("PNG 2x fehlgeschlagen:", err);
           }
-          if (blob) { downloadBlob(blob, fileName + ".png"); return; }
+          if (!blob) {
+            try {
+              blob = await renderSvgToPng(clone, w, h, 1);
+            } catch (err) {
+              console.warn("PNG 1x fehlgeschlagen:", err);
+            }
+          }
+          if (blob) {
+            downloadBlob(blob, fileName + ".png");
+            return;
+          }
           throw new Error("Canvas export produced no image");
         } catch (err) {
           console.error("PNG export failed:", err);
           try {
-            downloadBlob(new Blob([svgString()], { type: "image/svg+xml;charset=utf-8" }), fileName + ".svg");
-            alert("PNG export failed — downloaded the vector version (.svg) instead. See the browser console (F12) for details.");
+            downloadBlob(
+              new Blob([svgString()], { type: "image/svg+xml;charset=utf-8" }),
+              fileName + ".svg",
+            );
+            alert(
+              "PNG export failed — downloaded the vector version (.svg) instead. See the browser console (F12) for details.",
+            );
           } catch (err2) {
             alert("PNG export failed: " + (err && err.message ? err.message : err));
           }
@@ -865,15 +2380,15 @@
         const LEGEND_EXPLANATIONS = {
           fk: {
             title: "FK relationship (real foreign key)",
-            html: "<p>The column points at another entity and the <b>database enforces</b> it: a value that does not exist there is rejected. When the target row is deleted, the defined action runs (e.g. <code>CASCADE</code> deletes dependents).</p><p style=\"margin-top:6px\">In the diagram: <b>solid line</b>. Short version — the link is guaranteed regardless of who writes.</p>",
+            html: '<p>The column points at another entity and the <b>database enforces</b> it: a value that does not exist there is rejected. When the target row is deleted, the defined action runs (e.g. <code>CASCADE</code> deletes dependents).</p><p style="margin-top:6px">In the diagram: <b>solid line</b>. Short version — the link is guaranteed regardless of who writes.</p>',
           },
           logical: {
             title: "Logical reference (no FK)",
-            html: "<p>The column holds the same value as another entity, but the database <b>does not check</b> it. A bad value will not fail at write time.</p><p style=\"margin-top:6px\">Often intentional: the value is a type key rather than a row id (documented in column comments). The application ensures only valid values are stored.</p><p style=\"margin-top:6px\">In the diagram: <b>dashed line</b>. Short version — a convention, not a DB contract.</p>",
+            html: '<p>The column holds the same value as another entity, but the database <b>does not check</b> it. A bad value will not fail at write time.</p><p style="margin-top:6px">Often intentional: the value is a type key rather than a row id (documented in column comments). The application ensures only valid values are stored.</p><p style="margin-top:6px">In the diagram: <b>dashed line</b>. Short version — a convention, not a DB contract.</p>',
           },
           keys: {
             title: "Field badges (PK / FK→… / EXT)",
-            html: "<ul><li><span class=\"badge\">PK</span> <b>Primary key</b> — the unique id of the row.</li><li><span class=\"badge\">FK→user</span> <b>Foreign key</b> — this column points at another entity’s id (here <code>user</code>). Often named <code>…_id</code>.</li><li><span class=\"badge sfref\">EXT</span> <b>External reference</b> — an id in an external system (no FK; the database cannot enforce it).</li></ul>",
+            html: '<ul><li><span class="badge">PK</span> <b>Primary key</b> — the unique id of the row.</li><li><span class="badge">FK→user</span> <b>Foreign key</b> — this column points at another entity’s id (here <code>user</code>). Often named <code>…_id</code>.</li><li><span class="badge sfref">EXT</span> <b>External reference</b> — an id in an external system (no FK; the database cannot enforce it).</li></ul>',
           },
         };
 
@@ -919,12 +2434,19 @@
           btn.addEventListener("click", (evt) => {
             evt.stopPropagation();
             const existing = document.getElementById("legend-popup");
-            if (existing && existing.dataset.key === btn.dataset.legend) { closeLegendPopup(); return; }
+            if (existing && existing.dataset.key === btn.dataset.legend) {
+              closeLegendPopup();
+              return;
+            }
             openLegendPopup(btn.dataset.legend, btn);
           });
         });
         document.addEventListener("click", (evt) => {
-          if (evt.target.closest && (evt.target.closest(".legend-popup") || evt.target.closest(".legend-info"))) return;
+          if (
+            evt.target.closest &&
+            (evt.target.closest(".legend-popup") || evt.target.closest(".legend-info"))
+          )
+            return;
           closeLegendPopup();
         });
         document.addEventListener("keydown", (evt) => {
@@ -960,9 +2482,7 @@
             // Mermaid setzt width="100%" als Attribut — das schlaegt CSS. Fuer
             // zoombares Verhalten wird die natuerliche Groesse einmalig aus dem
             // viewBox gelesen und als Attribut fixiert.
-            const vb = (svg.getAttribute("viewBox") || "0 0 1000 1000")
-              .split(" ")
-              .map(Number);
+            const vb = (svg.getAttribute("viewBox") || "0 0 1000 1000").split(" ").map(Number);
             naturalSize = { w: vb[2], h: vb[3] };
             svg.style.width = "";
             svg.style.maxWidth = "none";
@@ -981,15 +2501,20 @@
           // aber exakt am Bildrand (nicht vom Screen runter).
           const canvas = box.querySelector(".diagram-canvas");
           if (canvas) {
-            canvas.style.padding = Math.floor(box.clientHeight / 3) + "px " + Math.floor(box.clientWidth / 2) + "px";
+            canvas.style.padding =
+              Math.floor(box.clientHeight / 3) + "px " + Math.floor(box.clientWidth / 2) + "px";
           }
 
           // Anker vor dem Skalieren messen: Punkt in der Viewport-Mitte als
           // viewBox-Anteil (0..1), unabhaengig vom aktuellen Zoom.
           const svgBefore = svg.getBoundingClientRect();
           const boxBefore = box.getBoundingClientRect();
-          const anchorFx = svgBefore.width ? (boxBefore.left + boxBefore.width / 2 - svgBefore.left) / svgBefore.width : 0.5;
-          const anchorFy = svgBefore.height ? (boxBefore.top + boxBefore.height / 2 - svgBefore.top) / svgBefore.height : 0.5;
+          const anchorFx = svgBefore.width
+            ? (boxBefore.left + boxBefore.width / 2 - svgBefore.left) / svgBefore.width
+            : 0.5;
+          const anchorFy = svgBefore.height
+            ? (boxBefore.top + boxBefore.height / 2 - svgBefore.top) / svgBefore.height
+            : 0.5;
 
           svg.setAttribute("width", String(Math.round(naturalSize.w * newScale)));
           svg.setAttribute("height", String(Math.round(naturalSize.h * newScale)));
@@ -1004,8 +2529,10 @@
           // Nach dem Skalieren den Anker-Punkt wieder in die Viewport-Mitte scrollen.
           const svgAfter = svg.getBoundingClientRect();
           const boxAfter = box.getBoundingClientRect();
-          box.scrollLeft += svgAfter.left + anchorFx * svgAfter.width - (boxAfter.left + boxAfter.width / 2);
-          box.scrollTop += svgAfter.top + anchorFy * svgAfter.height - (boxAfter.top + boxAfter.height / 2);
+          box.scrollLeft +=
+            svgAfter.left + anchorFx * svgAfter.width - (boxAfter.left + boxAfter.width / 2);
+          box.scrollTop +=
+            svgAfter.top + anchorFy * svgAfter.height - (boxAfter.top + boxAfter.height / 2);
           label.textContent = Math.round(newScale * 100) + "%";
         }
 
@@ -1018,9 +2545,18 @@
           return zoom;
         }
 
-        toolbar.querySelector('[data-zoom="out"]').addEventListener("click", () => { zoom = Math.max(0.2, currentScale() - 0.2); applyZoom(); });
-        toolbar.querySelector('[data-zoom="in"]').addEventListener("click", () => { zoom = Math.min(3, currentScale() + 0.2); applyZoom(); });
-        toolbar.querySelector('[data-zoom="fit"]').addEventListener("click", () => { zoom = "fit"; applyZoom(); });
+        toolbar.querySelector('[data-zoom="out"]').addEventListener("click", () => {
+          zoom = Math.max(0.2, currentScale() - 0.2);
+          applyZoom();
+        });
+        toolbar.querySelector('[data-zoom="in"]').addEventListener("click", () => {
+          zoom = Math.min(3, currentScale() + 0.2);
+          applyZoom();
+        });
+        toolbar.querySelector('[data-zoom="fit"]').addEventListener("click", () => {
+          zoom = "fit";
+          applyZoom();
+        });
         toolbar.querySelector('[data-zoom="reset"]').addEventListener("click", () => {
           zoom = 1;
           applyZoom();
@@ -1031,8 +2567,8 @@
           if (svg) {
             const b = svg.getBoundingClientRect();
             const bb = box.getBoundingClientRect();
-            box.scrollLeft += (b.left + b.width / 2) - (bb.left + bb.width / 2);
-            box.scrollTop += (b.top + b.height / 2) - (bb.top + bb.height / 2);
+            box.scrollLeft += b.left + b.width / 2 - (bb.left + bb.width / 2);
+            box.scrollTop += b.top + b.height / 2 - (bb.top + bb.height / 2);
           }
         });
         toolbar.querySelector(".src-toggle").addEventListener("click", () => {
@@ -1042,13 +2578,19 @@
           const collapsed = legend.classList.toggle("legend-collapsed");
           toolbar.querySelector(".legend-toggle").textContent = collapsed ? "▸ Legend" : "▾ Legend";
         });
-        toolbar.querySelector("[data-png]").addEventListener("click", () => exportPngFor(box, pngName || "diagram"));
-        box.addEventListener("wheel", (e) => {
-          if (!e.ctrlKey) return;
-          e.preventDefault();
-          zoom = Math.min(3, Math.max(0.2, currentScale() + (e.deltaY < 0 ? 0.1 : -0.1)));
-          applyZoom();
-        }, { passive: false });
+        toolbar
+          .querySelector("[data-png]")
+          .addEventListener("click", () => exportPngFor(box, pngName || "diagram"));
+        box.addEventListener(
+          "wheel",
+          (e) => {
+            if (!e.ctrlKey) return;
+            e.preventDefault();
+            zoom = Math.min(3, Math.max(0.2, currentScale() + (e.deltaY < 0 ? 0.1 : -0.1)));
+            applyZoom();
+          },
+          { passive: false },
+        );
 
         // Verschieben mit der mittleren Maustaste: Drag aendert scrollLeft/scrollTop
         // direkt (1:1 zum Cursor), statt den Browser-Autoscroll (der eine
@@ -1099,7 +2641,10 @@
         });
         const rerender = () => {
           box.innerHTML = '<p class="desc" style="padding:12px">Layout wird neu berechnet …</p>';
-          renderMermaid(box, src).then(() => { applyZoom(); attachEntityPopup(box, box); });
+          renderMermaid(box, src).then(() => {
+            applyZoom();
+            attachEntityPopup(box, box);
+          });
         };
         // Views werden beim Umschalten neu aufgebaut — abgehängte Hosts nicht ewig halten.
         rerender.isLive = () => host.isConnected;
@@ -1107,7 +2652,10 @@
 
         // attachEntityPopup NACH dem (asynchronen) Render: vorher existiert das SVG
         // noch nicht und die Funktion returnt früh (genau dieser Bug).
-        renderMermaid(box, src).then(() => { applyZoom(); attachEntityPopup(box, box); });
+        renderMermaid(box, src).then(() => {
+          applyZoom();
+          attachEntityPopup(box, box);
+        });
         return host;
       }
 
@@ -1125,7 +2673,8 @@
         section.innerHTML = "";
         const intro = document.createElement("p");
         intro.className = "decisions-intro";
-        intro.textContent = "No architectural decisions are wired into the viewer yet. Add them in spark/generators/erd/templates/viewer.html (renderDecisions) or keep them in openspec/decisions.";
+        intro.textContent =
+          "No architectural decisions are wired into the viewer yet. Add them in spark/generators/erd/templates/viewer.html (renderDecisions) or keep them in openspec/decisions.";
         section.appendChild(intro);
       }
 
@@ -1135,17 +2684,30 @@
       // Origin null blockiert und der Tab leer bliebe.
       function renderNichtCrud(section) {
         section.innerHTML =
-          '<div class="md-source-note"><span>Mirrored from <code>' + NICHT_CRUD_SOURCE + '</code>.</span>' +
-          '<span>The markdown file is the source — after changing it, run <code>pnpm generate</code>.</span></div>' +
-          '<div class="md-body">' + NICHT_CRUD_HTML + "</div>";
+          '<div class="md-source-note"><span>Mirrored from <code>' +
+          NICHT_CRUD_SOURCE +
+          "</code>.</span>" +
+          "<span>The markdown file is the source — after changing it, run <code>pnpm generate</code>.</span></div>" +
+          '<div class="md-body">' +
+          NICHT_CRUD_HTML +
+          "</div>";
       }
 
       function cardFor(table) {
         const card = document.createElement("div");
         card.className = "card";
-        card.innerHTML = '<h3 class="' + categoryClass(table.category) + '">' + table.name + '</h3>' +
-          '<div class="meta">' + table.label + '</div>' +
-          '<p style="margin:6px 0 0; font-size:12px; line-height:1.5; color:var(--text);">' + (BUSINESS_DESCRIPTIONS_SHORT[table.name] || "") + '</p>';
+        card.innerHTML =
+          '<h3 class="' +
+          categoryClass(table.category) +
+          '">' +
+          table.name +
+          "</h3>" +
+          '<div class="meta">' +
+          table.label +
+          "</div>" +
+          '<p style="margin:6px 0 0; font-size:12px; line-height:1.5; color:var(--text);">' +
+          (BUSINESS_DESCRIPTIONS_SHORT[table.name] || "") +
+          "</p>";
         card.addEventListener("click", () => showEntity(table.name));
         return card;
       }
@@ -1209,9 +2771,7 @@
         }
         stage.appendChild(chips);
 
-        stage.appendChild(
-          diagramHost(DIAGRAMS.categories[cat.key], "category-" + cat.key),
-        );
+        stage.appendChild(diagramHost(DIAGRAMS.categories[cat.key], "category-" + cat.key));
       }
 
       function renderCategories(section) {
@@ -1254,15 +2814,14 @@
       };
 
       // Entity-specific field blurbs — fill as the domain grows. Key = "entity.field".
-      const ENTITY_FIELDS = {
-      };
+      const ENTITY_FIELDS = {};
 
       // Connections-Diagramm: die Entity in der Mitte + alle Beziehungen, ohne
       // Feld-Boxen — aus MODEL.edges generiert, nicht aus den fertigen Diagrammen.
       function buildConnectionsDiagram(name) {
         const labelOf = (t) => {
           const table = MODEL.tables.find((x) => x.name === t);
-          return table ? (table.label || t) : t;
+          return table ? table.label || t : t;
         };
         const catOf = (t) => {
           const table = MODEL.tables.find((x) => x.name === t);
@@ -1274,12 +2833,12 @@
           if (e.toTable === name) related.add(e.fromTable);
         }
         let src = "erDiagram\n  direction LR\n";
-        for (const t of related) src += "  " + t + "[\"" + labelOf(t) + "\"]\n";
+        for (const t of related) src += "  " + t + '["' + labelOf(t) + '"]\n';
         for (const e of MODEL.edges) {
           if (e.fromTable !== name && e.toTable !== name) continue;
           const logical = e.kind === "logical";
           const arrow = logical ? "||..o{" : "||--o{";
-          src += "  " + e.fromTable + " " + arrow + " " + e.toTable + " : \"" + e.fromColumn + "\"\n";
+          src += "  " + e.fromTable + " " + arrow + " " + e.toTable + ' : "' + e.fromColumn + '"\n';
         }
         void catOf;
         return src;
@@ -1324,24 +2883,50 @@
         const incoming = MODEL.edges.filter((e) => e.toTable === table.name);
         const outgoing = MODEL.edges.filter((e) => e.fromTable === table.name);
         let html = '<div class="back"><button id="back-btn">← Back to entity list</button></div>';
-        html += '<h2 class="entity-title ' + categoryClass(table.category) + '">' + table.name + "</h2>";
-        html += '<div class="desc">' + (BUSINESS_DESCRIPTIONS[table.name] || table.description || "") + '</div>';
+        html +=
+          '<h2 class="entity-title ' + categoryClass(table.category) + '">' + table.name + "</h2>";
+        html +=
+          '<div class="desc">' +
+          (BUSINESS_DESCRIPTIONS[table.name] || table.description || "") +
+          "</div>";
         section.innerHTML = html;
-        section.appendChild(collapsibleDiagramHost("Diagram — fields & relationships", DIAGRAMS.entities[name], name));
-        section.appendChild(collapsibleDiagramHost("Diagram — connections (relationships only)", buildConnectionsDiagram(name), name + "-connections"));
+        section.appendChild(
+          collapsibleDiagramHost("Diagram — fields & relationships", DIAGRAMS.entities[name], name),
+        );
+        section.appendChild(
+          collapsibleDiagramHost(
+            "Diagram — connections (relationships only)",
+            buildConnectionsDiagram(name),
+            name + "-connections",
+          ),
+        );
         const detail = document.createElement("div");
         detail.className = "entity-detail";
         section.appendChild(detail);
 
-        let dhtml = '<table class="fields"><thead><tr><th>Field</th><th>SQL type</th><th>Null</th><th>Default</th><th>Key</th><th>Description</th></tr></thead><tbody>';
+        let dhtml =
+          '<table class="fields"><thead><tr><th>Field</th><th>SQL type</th><th>Null</th><th>Default</th><th>Key</th><th>Description</th></tr></thead><tbody>';
         for (const c of table.columns) {
-          const fieldDesc = ENTITY_FIELDS[table.name + "." + c.name] || COMMON_FIELDS[c.name] || c.comment || "";
-          dhtml += "<tr><td class=\"mono\">" + c.name + "</td><td class=\"mono\">" + c.sqlType +
-            "</td><td>" + (c.nullable ? "✓" : "—") + "</td><td class=\"mono\">" +
-            (c.defaultValue ?? "—") + "</td><td>" + (c.isPrimaryKey ? '<span class="badge">PK</span>' : "") +
+          const fieldDesc =
+            ENTITY_FIELDS[table.name + "." + c.name] || COMMON_FIELDS[c.name] || c.comment || "";
+          dhtml +=
+            '<tr><td class="mono">' +
+            c.name +
+            '</td><td class="mono">' +
+            c.sqlType +
+            "</td><td>" +
+            (c.nullable ? "✓" : "—") +
+            '</td><td class="mono">' +
+            (c.defaultValue ?? "—") +
+            "</td><td>" +
+            (c.isPrimaryKey ? '<span class="badge">PK</span>' : "") +
             (c.references ? '<span class="badge">FK→' + c.references.table + "</span>" : "") +
-            (/_sf_id$|^salesforce_id$/.test(c.name) && c.sqlType === "char(18)" ? '<span class="badge sfref">EXT</span>' : "") +
-            "</td><td>" + fieldDesc + "</td></tr>";
+            (/_sf_id$|^salesforce_id$/.test(c.name) && c.sqlType === "char(18)"
+              ? '<span class="badge sfref">EXT</span>'
+              : "") +
+            "</td><td>" +
+            fieldDesc +
+            "</td></tr>";
         }
         dhtml += "</tbody></table>";
 
@@ -1351,30 +2936,55 @@
         thtml += "<h3>Relationships</h3><ul>";
         for (const e of outgoing) {
           const logical = e.kind === "logical";
-          thtml += "<li><code>" + table.name + "." + e.fromColumn + "</code> → <b>" + e.toTable + "</b>" +
+          thtml +=
+            "<li><code>" +
+            table.name +
+            "." +
+            e.fromColumn +
+            "</code> → <b>" +
+            e.toTable +
+            "</b>" +
             (e.onDelete ? " (ON DELETE " + e.onDelete + ")" : "") +
-            (logical ? ' <span class="badge">logical, no FK</span>' : "") + "</li>";
+            (logical ? ' <span class="badge">logical, no FK</span>' : "") +
+            "</li>";
         }
         for (const e of incoming) {
           const logical = e.kind === "logical";
-          thtml += "<li>← <b>" + e.fromTable + "." + e.fromColumn + "</b> " +
-            (logical ? "logically references" : "references") + " this entity" +
-            (logical ? ' <span class="badge">logical, no FK</span>' : "") + "</li>";
+          thtml +=
+            "<li>← <b>" +
+            e.fromTable +
+            "." +
+            e.fromColumn +
+            "</b> " +
+            (logical ? "logically references" : "references") +
+            " this entity" +
+            (logical ? ' <span class="badge">logical, no FK</span>' : "") +
+            "</li>";
         }
         thtml += "</ul>";
         if (table.uniqueConstraints.length) {
           thtml += "<h3>Unique constraints</h3><ul>";
-          for (const u of table.uniqueConstraints) thtml += "<li><code>" + u.columns.join(", ") + "</code> (" + u.name + ")</li>";
+          for (const u of table.uniqueConstraints)
+            thtml += "<li><code>" + u.columns.join(", ") + "</code> (" + u.name + ")</li>";
           thtml += "</ul>";
         }
         if (table.indexes.length) {
           thtml += "<h3>Indexes</h3><ul>";
-          for (const i of table.indexes) thtml += "<li><code>" + (i.unique ? "UNIQUE " : "") + "(" + i.columns.join(", ") + ")</code>" + (i.partial ? " WHERE " + i.partial : "") + "</li>";
+          for (const i of table.indexes)
+            thtml +=
+              "<li><code>" +
+              (i.unique ? "UNIQUE " : "") +
+              "(" +
+              i.columns.join(", ") +
+              ")</code>" +
+              (i.partial ? " WHERE " + i.partial : "") +
+              "</li>";
           thtml += "</ul>";
         }
         if (sfRefs.length) {
           thtml += '<h3 class="sfref">External references (no FKs)</h3><ul>';
-          for (const r of sfRefs) thtml += '<li class="sfref"><code>' + r.column + "</code> → SF " + r.sfObject + "</li>";
+          for (const r of sfRefs)
+            thtml += '<li class="sfref"><code>' + r.column + "</code> → SF " + r.sfObject + "</li>";
           thtml += "</ul>";
         }
 
@@ -1383,7 +2993,8 @@
         const fieldsHead = document.createElement("button");
         fieldsHead.type = "button";
         fieldsHead.className = "tech-details-head";
-        fieldsHead.innerHTML = '<span class="chev">▸</span> Field list (' + table.columns.length + ' fields)';
+        fieldsHead.innerHTML =
+          '<span class="chev">▸</span> Field list (' + table.columns.length + " fields)";
         const fieldsBody = document.createElement("div");
         fieldsBody.className = "tech-details-body";
         fieldsBody.innerHTML = dhtml;
@@ -1400,7 +3011,8 @@
         const techHead = document.createElement("button");
         techHead.type = "button";
         techHead.className = "tech-details-head";
-        techHead.innerHTML = '<span class="chev">▸</span> Technical details (relationships, constraints, indexes)';
+        techHead.innerHTML =
+          '<span class="chev">▸</span> Technical details (relationships, constraints, indexes)';
         const techBody = document.createElement("div");
         techBody.className = "tech-details-body";
         techBody.innerHTML = thtml;
@@ -1425,11 +3037,26 @@
         document.querySelectorAll("section.view").forEach((s) => s.classList.remove("active"));
         const section = document.getElementById("view-" + view);
         section.classList.add("active");
-        if (view === "list" && !section.dataset.rendered) { renderList(section); section.dataset.rendered = "1"; }
-        if (view === "bigpicture" && !section.dataset.rendered) { renderBigPicture(section); section.dataset.rendered = "1"; }
-        if (view === "decisions" && !section.dataset.rendered) { renderDecisions(section); section.dataset.rendered = "1"; }
-        if (view === "nichtcrud" && !section.dataset.rendered) { renderNichtCrud(section); section.dataset.rendered = "1"; }
-        if (view === "category" && !section.dataset.rendered) { renderCategories(section); section.dataset.rendered = "1"; }
+        if (view === "list" && !section.dataset.rendered) {
+          renderList(section);
+          section.dataset.rendered = "1";
+        }
+        if (view === "bigpicture" && !section.dataset.rendered) {
+          renderBigPicture(section);
+          section.dataset.rendered = "1";
+        }
+        if (view === "decisions" && !section.dataset.rendered) {
+          renderDecisions(section);
+          section.dataset.rendered = "1";
+        }
+        if (view === "nichtcrud" && !section.dataset.rendered) {
+          renderNichtCrud(section);
+          section.dataset.rendered = "1";
+        }
+        if (view === "category" && !section.dataset.rendered) {
+          renderCategories(section);
+          section.dataset.rendered = "1";
+        }
         if (view === "raw" && !section.dataset.rendered) {
           section.querySelector("pre").textContent = JSON.stringify(MODEL, null, 2);
           section.dataset.rendered = "1";

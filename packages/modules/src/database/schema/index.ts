@@ -9,3 +9,4 @@ export { greeting } from "./greeting.js";
 export { greeting_reaction } from "./greeting_reaction.js";
 export { conversation } from "./conversation.js";
 export { message } from "./message.js";
+export { search_sync_outbox } from "./search_sync_outbox.js";

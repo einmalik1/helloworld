@@ -16,22 +16,32 @@ API and MCP call platform **in-process** (same use-cases). They do not duplicate
 
 ## Boundary
 
-| In scope                                      | Out of scope                                      |
-| --------------------------------------------- | ------------------------------------------------- |
-| Domain use-cases                              | Orval / ky / OpenAPI HTTP SDK (`api-client`)      |
-| Adapters to Postgres, Garage/S3, search, graph | Nest HTTP controllers and routes                  |
-| Shared application services                   | CLI/TUI/web UI (`terminal`, bundlers)             |
+| In scope                                       | Out of scope                                 |
+| ---------------------------------------------- | -------------------------------------------- |
+| Domain use-cases                               | Orval / ky / OpenAPI HTTP SDK (`api-client`) |
+| Adapters to Postgres, Garage/S3, search, graph | Nest HTTP controllers and routes             |
+| Shared application services                    | CLI/TUI/web UI (`terminal`, bundlers)        |
 
 No dependency on `@helloworld/api-client` or `@nestjs/*` in this package — Nest may wrap platform later from `apps/api` / `packages/modules`.
 
-## Layout (intent)
+## Layout
 
 ```text
 src/
-├── index.ts           # public facade exports
-├── <use-cases>/       # later: createGreeting, search…, impex…
-└── adapters/          # later: db, s3, search, graph
+├── index.ts
+└── search-graph/      # AGE projection + Typesense + relational graph retrieve + outbox
 ```
+
+### Search / knowledge graph
+
+| Port               | Adapter                                               | Used by                    |
+| ------------------ | ----------------------------------------------------- | -------------------------- |
+| `GraphStore`       | `RelationalGraphStore` (SoT SQL → `{ nodes, edges }`) | `apps/api` retrieve        |
+| `SearchIndex`      | `TypesenseSearchIndex`                                | `apps/api` search + worker |
+| `ProjectionSync`   | `SearchGraphProjectionSync` (AGE Cypher + Typesense)  | `apps/worker`              |
+| `SearchSyncOutbox` | `PostgresSearchSyncOutbox`                            | api enqueue / worker drain |
+
+MCP and browsers MUST call `apps/api` HTTP routes — never Typesense/AGE URLs.
 
 ## Scripts
 
