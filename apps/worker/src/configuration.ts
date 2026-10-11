@@ -7,9 +7,15 @@ export const envSchema = z.object({
   WORKER_HOST: z.string().default("0.0.0.0"),
   WORKER_PORT: z.coerce.number().int().min(1).max(65_535).default(3001),
   WORKER_CONCURRENCY: z.coerce.number().int().min(1).max(100).default(1),
+  TYPESENSE_HOST: z.string().default("localhost"),
+  TYPESENSE_PORT: z.coerce.number().int().min(1).max(65_535).default(8108),
+  TYPESENSE_PROTOCOL: z.enum(["http", "https"]).default("http"),
+  TYPESENSE_API_KEY: z.string().min(1).default("change-me-typesense-local"),
   BETTER_AUTH_SECRET: z.string().min(1),
   BETTER_AUTH_URL: z.string().url(),
   WEB_ORIGIN: z.string().url(),
 });
 
 export type AppConfig = z.infer<typeof envSchema>;
+/** Alias used by projection providers from search ticket. */
+export type WorkerConfig = AppConfig;

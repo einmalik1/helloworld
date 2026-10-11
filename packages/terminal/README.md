@@ -11,9 +11,9 @@ Build: `tsc` → `dist/` — [`Build / emit contract`](../../openspec/tech-stack
 
 | Subpath                       | Role                                                                      |
 | ----------------------------- | ------------------------------------------------------------------------- |
-| `@helloworld/terminal/config` | User config — `env-paths` + Zod (scaffold)                                |
+| `@helloworld/terminal/config` | User config — `env-paths` + Zod (load/save/resolve)                       |
 | `@helloworld/terminal/log`    | **tslog** diagnostics on stderr + **ora** spinners; stdout result helpers |
-| `@helloworld/terminal/tty`    | TTY helpers (scaffold)                                                    |
+| `@helloworld/terminal/tty`    | TTY helpers (`isInteractiveTTY`, `requireInteractiveTTY`)                 |
 
 ## Config keys (normative)
 
@@ -23,25 +23,25 @@ Owned by `@helloworld/terminal/config`. Persisted under XDG (typical: `$XDG_CONF
 
 Per named environment (`local` / `dev` / `prod`, …), freeze these key names:
 
-| Key | Required | Role |
-|---|---|---|
-| `apiUrl` | yes (for API calls) | Base URL → api-client `configureClient({ apiUrl })` / ky `prefixUrl` |
-| `workerUrl` | yes (for worker probes) | Base URL for worker `GET /health` (and later job-control) |
-| `apiKey` | no (optional until authenticated calls) | Better Auth managed API key → api-client `configureClient({ apiKey })` → header **`x-api-key`** |
+| Key         | Required                                | Role                                                                                            |
+| ----------- | --------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `apiUrl`    | yes (for API calls)                     | Base URL → api-client `configureClient({ apiUrl })` / ky `prefixUrl`                            |
+| `workerUrl` | yes (for worker probes)                 | Base URL for worker `GET /health` (and later job-control)                                       |
+| `apiKey`    | no (optional until authenticated calls) | Better Auth managed API key → api-client `configureClient({ apiKey })` → header **`x-api-key`** |
 
-- **Do not** invent alternate spellings (`baseUrl`, `api_url`, static env `API_KEY`).  
-- Semantic alias “credential” in operator docs means the **`apiKey`** field — the Zod / JSON key is **`apiKey`**.  
+- **Do not** invent alternate spellings (`baseUrl`, `api_url`, static env `API_KEY`).
+- Semantic alias “credential” in operator docs means the **`apiKey`** field — the Zod / JSON key is **`apiKey`**.
 - Pass resolved values into `@helloworld/api-client` (`apiUrl` / `apiKey`); health probes use the **3s** timeout — [`packages/api-client` Timeouts](../api-client/README.md#timeouts-normative).
-- **Issue / revoke** keys via web settings UI (or an authenticated CLI subcommand) — Better Auth managed entities.  
+- **Issue / revoke** keys via web settings UI (or an authenticated CLI subcommand) — Better Auth managed entities.
 - **Forbidden:** root `.env` / static `API_KEY` as the long-term CLI/TUI key store; do not commit keys.
 
 ### Global fields (also in schema)
 
-| Key | Default / range | Role |
-|---|---|---|
-| `environment` | e.g. `local` | Active env name (TUI persists; CLI `--env` overrides for the process only) |
-| `pollInterval` | **30** (range 5–300) | TUI background refresh seconds |
-| `pageSize` | **15** (range 5–100) | TUI / list page size |
+| Key            | Default / range      | Role                                                                       |
+| -------------- | -------------------- | -------------------------------------------------------------------------- |
+| `environment`  | e.g. `local`         | Active env name (TUI persists; CLI `--env` overrides for the process only) |
+| `pollInterval` | **30** (range 5–300) | TUI background refresh seconds                                             |
+| `pageSize`     | **15** (range 5–100) | TUI / list page size                                                       |
 
 Missing file → safe local defaults. Corrupt / unreadable file → **hard error** (no silent fallback).
 

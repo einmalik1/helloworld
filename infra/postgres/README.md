@@ -6,13 +6,13 @@ Relational database persistence for `api` and `worker`, including the **Apache A
 
 ## AGE-enabled image
 
-| Concern | Contract |
-|---|---|
-| Image | Custom Postgres **18** image with Apache AGE baked in (build/publish path under this folder when wired) |
-| Local | Compose service `postgres` uses that image — aligned with root `.env` `DATABASE_URL` |
-| Coolify | Pin the **same** image (custom / `--image`); do not rely on unmodified one-click PG for graph features |
-| Bootstrap | `CREATE EXTENSION IF NOT EXISTS age;` (and AGE catalog setup) on first migrate / init — not runtime DDL in Nest |
-| Clients | `apps/api` / `apps/worker` only; no public AGE port to CLI/TUI/MCP/web |
+| Concern           | Contract                                                                                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Dockerfile        | [`Dockerfile`](./Dockerfile) — `FROM apache/age:release_PG18_1.8.0` (Postgres **18.6** + AGE **1.8.0**)                                                |
+| Local Compose tag | `helloworld-postgres-age:pg18` via `infra/docker-compose.yml` build                                                                                    |
+| Coolify           | Pin the **same** image family (`--image` after build/push, or rebuild from this Dockerfile); do not rely on unmodified one-click PG for graph features |
+| Bootstrap         | Upstream entrypoint creates the AGE extension; graph `helloworld` is created by worker rebuild — not Nest runtime DDL                                  |
+| Clients           | `apps/api` / `apps/worker` only; no public AGE port to CLI/TUI/MCP/web                                                                                 |
 
 AGE is a **secondary projection** next to relational tables. Domain DDL stays in `openspec/data-model/schema.sql`; Drizzle in `packages/modules`. Cypher stays inside api/worker — product clients use structured retrieve routes on `apps/api`.
 

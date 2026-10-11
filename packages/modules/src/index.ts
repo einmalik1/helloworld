@@ -13,6 +13,7 @@ export { DatabaseService } from "./database/database.service.js";
 export type { AppDatabase } from "./database/database.service.js";
 
 export { HealthModule } from "./health/health.module.js";
+export { TypesenseHealthIndicator } from "./health/typesense.health.js";
 
 export { AuthModule } from "./auth/auth.module.js";
 export { AuthGuard } from "./auth/auth.guard.js";

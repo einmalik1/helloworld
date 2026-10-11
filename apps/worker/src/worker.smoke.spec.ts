@@ -21,12 +21,21 @@ describe("Worker Nest smoke", () => {
     process.env.WORKER_PORT ??= "3001";
     process.env.WORKER_HOST ??= "127.0.0.1";
     process.env.WORKER_CONCURRENCY ??= "1";
+    process.env.TYPESENSE_API_KEY ??= "change-me-typesense-local";
 
     const { Test } = await import("@nestjs/testing");
-    const { AUTH_INSTANCE, DatabaseService } = await import("@helloworld/modules");
+    const {
+      AUTH_INSTANCE,
+      DatabaseService,
+      TypesenseHealthIndicator,
+    } = await import("@helloworld/modules");
     const { AppModule } = await import("./app.module.js");
     const { OutboxDrainJob } = await import("./jobs/outbox-drain.job.js");
     const { JobsRepository } = await import("./jobs/jobs.repository.js");
+    const { ProjectionService } = await import("./projection/projection.service.js");
+    const { PROJECTION_SYNC, SEARCH_INDEX, SEARCH_SYNC_OUTBOX } = await import(
+      "./projection/projection.tokens.js"
+    );
     const { requestIdMiddleware } = await import("./common/middleware/request-id.middleware.js");
     const { HttpExceptionFilter } = await import("./common/filters/http-exception.filter.js");
     const request = (await import("supertest")).default;
@@ -45,8 +54,13 @@ describe("Worker Nest smoke", () => {
       .overrideProvider(DatabaseService)
       .useValue({
         db: {},
+        sql: {},
         ping: async () => undefined,
         onModuleDestroy: async () => undefined,
+      })
+      .overrideProvider(TypesenseHealthIndicator)
+      .useValue({
+        isHealthy: async (key = "typesense") => ({ [key]: { status: "up" } }),
       })
       .overrideProvider(OutboxDrainJob)
       .useValue({ drain: async () => undefined })
@@ -61,6 +75,21 @@ describe("Worker Nest smoke", () => {
         },
         claimPendingOutbox: async () => [],
       })
+      .overrideProvider(SEARCH_INDEX)
+      .useValue({})
+      .overrideProvider(SEARCH_SYNC_OUTBOX)
+      .useValue({})
+      .overrideProvider(PROJECTION_SYNC)
+      .useValue({
+        drainPending: async () => 0,
+        rebuild: async () => ({ nodes: 0, documents: 0 }),
+      })
+      .overrideProvider(ProjectionService)
+      .useValue({
+        drainOutbox: async () => undefined,
+        rebuildIndexes: async () => undefined,
+        rebuildNow: async () => ({ nodes: 0, documents: 0 }),
+      })
       .compile();
 
     app = moduleRef.createNestApplication();
@@ -74,10 +103,13 @@ describe("Worker Nest smoke", () => {
     await app?.close();
   });
 
-  it("composes AppModule with ScheduleModule", () => {
+  it("composes AppModule with ScheduleModule and ProjectionService", async () => {
     expect(app).toBeTruthy();
     const scheduler = app.get(SchedulerRegistry);
     expect(scheduler).toBeTruthy();
+    const { ProjectionService } = await import("./projection/projection.service.js");
+    const projection = app.get(ProjectionService);
+    expect(typeof projection.rebuildNow).toBe("function");
   });
 
   it("exposes public GET /health", async () => {

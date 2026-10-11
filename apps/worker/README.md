@@ -4,47 +4,48 @@ Background jobs and scheduled automation. Nest standalone process alongside `app
 
 ## Stack
 
-| Piece | Choice |
-|---|---|
-| Runtime | NestJS **12** standalone (shares `packages/modules`: Config / Database / Health / Logging) |
-| Jobs | **`@nestjs/schedule` 12.0.2** — cron / interval in-process; **no** separate broker (pg-boss etc.) in v1 |
-| HTTP | Internal only — `GET /health` (+ optional admin later); **no** OpenAPI / Orval input in v1 |
-| Projection sync | Outbox drain → **Apache AGE** + **Typesense** after api writes (not sync-on-write) |
-| Logging | **Service** — Pino via `nestjs-pino` (same rules as `apps/api`) |
-| Build | `nest build` → `dist/`; Coolify runs built JS |
+| Piece           | Choice                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------- |
+| Runtime         | NestJS **12** standalone (shares `packages/modules`: Config / Database / Health / Logging)              |
+| Jobs            | **`@nestjs/schedule` 12.0.2** — cron / interval in-process; **no** separate broker (pg-boss etc.) in v1 |
+| HTTP            | Internal — `GET /health` + operator `/jobs`; **no** OpenAPI / Orval input in v1                         |
+| Projection sync | Outbox drain → **Apache AGE** + **Typesense** after api writes (not sync-on-write)                      |
+| Logging         | **Service** — Pino via `nestjs-pino` (same rules as `apps/api`)                                         |
+| Build           | `nest build` → `dist/`; Coolify runs built JS                                                           |
 
 Global inventory: [`openspec/tech-stack.md`](../../openspec/tech-stack.md#worker-appsworker). Graph/search sync: [`openspec/tech-stack.md` § Search / knowledge graph](../../openspec/tech-stack.md#search--knowledge-graph).
 
-## Projection / sync jobs (intent)
+## Projection / sync jobs
 
 Keep secondary indexes current after Postgres writes. Api remains SoT; this process owns AGE projection and Typesense upserts/deletes.
 
-| Job | Trigger | Role |
-|---|---|---|
-| Outbox drain | `@nestjs/schedule` interval | Read transactional outbox rows written by api; apply AGE + Typesense mutations |
-| Rebuild | Scheduled / manual admin later | Full re-project domain → AGE graph + Typesense collection `helloworld` |
+| Job          | Trigger                                                 | Role                                                                           |
+| ------------ | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Outbox drain | `@Interval(15_000)` via `ProjectionService`             | Drain `search_sync_outbox`; apply AGE + Typesense mutations                    |
+| Rebuild      | `@Cron("0 3 * * *")` + `ProjectionService.rebuildNow()` | Full re-project domain → AGE graph + Typesense collection `helloworld`         |
+| Generic outbox | `@Interval(5_000)` via `OutboxDrainJob`               | Drain platform `outbox` rows (impex/other); records durable `job` rows         |
 
-| Concern | Contract |
-|---|---|
-| Write path | Api → Postgres (+ outbox row) first; worker catches up asynchronously |
-| Engines | Same `DATABASE_URL` (AGE) + root `TYPESENSE_*` — network-internal |
-| Domain mapping | person / channel / greeting / reaction nodes + edges — ADR [`0004`](../../openspec/decisions/0006-search-knowledge-graph.md) |
-| Forbidden | Sync-on-write inside api request handlers; exposing engine ports publicly |
+| Concern        | Contract                                                                                                                     |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Write path     | Api → Postgres (+ outbox row) first; worker catches up asynchronously                                                        |
+| Engines        | Same `DATABASE_URL` (AGE) + root `TYPESENSE_*` — network-internal                                                            |
+| Domain mapping | person / channel / greeting / reaction nodes + edges — ADR [`0006`](../../openspec/decisions/0006-search-knowledge-graph.md) |
+| Forbidden      | Sync-on-write inside api request handlers; exposing engine ports publicly                                                    |
 
 ## Nest conventions (worker)
 
 Same Nest **12** / `nestjs-pino` / neverthrow line as the API. **Normative** HTTP/OpenAPI/DTO sketches live in [`apps/api/README.md` — NestJS conventions](../api/README.md#nestjs-conventions); this process adapts them as follows:
 
-| Concern | Worker |
-|---|---|
-| Runtime | Nest **standalone** (no public REST surface in v1) |
-| OpenAPI / Orval | **Out** — no `setupOpenApi` |
-| Validation pipe | Not required for cron-only handlers; if HTTP admin routes appear later, use **global** `ZodValidationPipe` only (same rule as api) |
-| Auth | Better Auth service key / internal guard when exposing admin HTTP — **not** static `ApiKeyModule` |
-| Logging | Same `LoggerModule.forRoot` defaults as api (`autoLogging: false`; pino-pretty `singleLine` when not production) — see [api LoggerModule](../api/README.md#loggermodule-defaults--normative) |
-| Jobs | Feature modules + `@nestjs/schedule` providers after shared infra imports |
+| Concern         | Worker                                                                                                                                                                                       |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime         | Nest Express app (health + operator job HTTP); schedule jobs in-process                                                                                                                      |
+| OpenAPI / Orval | **Out** — no `setupOpenApi`                                                                                                                                                                  |
+| Validation pipe | Global `ZodValidationPipe` for HTTP admin routes                                                                                                                                             |
+| Auth            | Better Auth session / `x-api-key` on `/jobs`; `/health` `@Public()`                                                                                                                          |
+| Logging         | Same `LoggerModule.forRoot` defaults as api (`autoLogging: false`; pino-pretty `singleLine` when not production) — see [api LoggerModule](../api/README.md#loggermodule-defaults--normative) |
+| Jobs            | `JobsModule` + `ProjectionModule` after shared infra + `ScheduleModule.forRoot()`                                                                                                            |
 
-**AppModule order (intent):** `createAppConfigModule` → auth (if needed) → `DatabaseModule` → `HealthModule` → `LoggerModule.forRoot` → `ScheduleModule.forRoot()` → job feature modules.
+**AppModule order:** `createAppConfigModule` → `AuthModule` → `DatabaseModule` → `HealthModule` → logger → `ScheduleModule.forRoot()` → `JobsModule` → `ProjectionModule`.
 
 Shared module contracts: [`packages/modules`](../../packages/modules/README.md).
 
@@ -54,7 +55,7 @@ QA/Prod: Coolify Application. Multi-stage `apps/worker/Dockerfile` (monorepo-roo
 
 ## Local
 
-**Prerequisites:** Postgres always; S3 when jobs touch object storage. Root [Local development](../../README.md#local-development). Config from the **root** `.env` only (section `# --- worker ---`); do not add `apps/worker/.env`.
+**Prerequisites:** Postgres always; Typesense for projection; S3 when jobs touch object storage. Root [Local development](../../README.md#local-development). Config from the **root** `.env` only (section `# --- worker ---`); do not add `apps/worker/.env`.
 
 ```bash
 pnpm run --filter worker dev
@@ -69,7 +70,7 @@ Listen: `WORKER_HOST` / `WORKER_PORT` (defaults `0.0.0.0` / `3001`). Concurrency
 | `pnpm --filter worker dev` | `tsx watch` Nest bootstrap |
 | `pnpm --filter worker build` | `tsc` → `dist/` |
 | `pnpm --filter worker typecheck` | `tsc --noEmit` |
-| `pnpm --filter worker smoke` | Nest boot + `/health` + schedule wiring (Vitest) |
+| `pnpm --filter worker smoke` | Nest boot + `/health` + schedule / projection wiring (Vitest) |
 
 ## Operator HTTP (v1)
 
@@ -80,4 +81,4 @@ Listen: `WORKER_HOST` / `WORKER_PORT` (defaults `0.0.0.0` / `3001`). Concurrency
 | `GET` | `/jobs/:id` | Session or `x-api-key` |
 | `POST` | `/jobs/:id/retry` | Session or `x-api-key` |
 
-No OpenAPI on the worker. Job/outbox DDL: `@helloworld/modules/database/job-schema` (ADR 0007).
+No OpenAPI on the worker. Job/outbox DDL: `@helloworld/modules/database/job-schema` (ADR 0007). Search outbox: `search_sync_outbox` (domain schema).

@@ -10,6 +10,7 @@ import {
 
 import { envSchema } from "./configuration.js";
 import { JobsModule } from "./jobs/jobs.module.js";
+import { ProjectionModule } from "./projection/projection.module.js";
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { JobsModule } from "./jobs/jobs.module.js";
     createLoggerModule(),
     ScheduleModule.forRoot(),
     JobsModule,
+    ProjectionModule,
   ],
 })
 export class AppModule {}
