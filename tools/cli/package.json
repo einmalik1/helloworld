@@ -1,0 +1,28 @@
+{
+  "name": "cli",
+  "version": "0.0.0",
+  "private": true,
+  "bin": {
+    "helloworld": "./bin/run.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "smoke": "vitest run test/cli.smoke.spec.ts"
+  },
+  "dependencies": {
+    "@helloworld/api-client": "workspace:*",
+    "@helloworld/terminal": "workspace:*",
+    "commander": "15.0.0"
+  },
+  "devDependencies": {
+    "@helloworld/config": "workspace:*",
+    "@types/node": "24.7.2",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
+  }
+}
