@@ -1,6 +1,6 @@
 import { Catch, HttpException, HttpStatus, Logger } from "@nestjs/common";
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
-import { DatabaseError, NotFound, ValidationError } from "@helloworld/types";
+import { DatabaseError, NotFound, StorageError, ValidationError } from "@helloworld/types";
 import type { Request, Response } from "express";
 import { ZodValidationException } from "nestjs-zod";
 
@@ -19,6 +19,7 @@ const PROBLEM = {
   notFound: "urn:helloworld:problem:not-found",
   validation: "urn:helloworld:problem:validation",
   database: "urn:helloworld:problem:database",
+  storage: "urn:helloworld:problem:storage",
   unauthorized: "urn:helloworld:problem:unauthorized",
   http: "urn:helloworld:problem:http",
   internal: "urn:helloworld:problem:internal",
@@ -92,6 +93,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
         title: "Internal Server Error",
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         detail: "A database error occurred",
+        requestId,
+      };
+    }
+
+    if (exception instanceof StorageError) {
+      return {
+        type: PROBLEM.storage,
+        title: "Internal Server Error",
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        detail: "A storage error occurred",
         requestId,
       };
     }
