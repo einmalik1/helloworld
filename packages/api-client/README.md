@@ -69,33 +69,34 @@ export default defineConfig({
 
 ky timeouts for the hand-written mutator in `src/http.ts`:
 
-| Call class | Timeout | Notes |
-|---|---|---|
-| General (default client) | **30s** (`30_000` ms) | All Orval-generated calls and normal SDK usage |
-| Health probes | **3s** (`3_000` ms) | `GET /health` (and CLI/TUI aggregation of api + worker). Per-request override — do not lower the default client timeout |
+| Call class               | Timeout               | Notes                                                                                                                   |
+| ------------------------ | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| General (default client) | **30s** (`30_000` ms) | All Orval-generated calls and normal SDK usage                                                                          |
+| Health probes            | **3s** (`3_000` ms)   | `GET /health` (and CLI/TUI aggregation of api + worker). Per-request override — do not lower the default client timeout |
 
 Stack: ky **2.1**. Consumers that need a different budget pass `timeout` on that request only.
 
 ## ky mutator (sketch)
 
 ```ts
-// packages/api-client/src/http.ts — see source; ky 2.1 uses baseUrl + beforeRequest({ request })
+// packages/api-client/src/http.ts — ky 2.1 uses `prefix` + beforeRequest({ request })
+// Also: credentials for browser cookies; fetchHealthFrom for one-off CLI/TUI probes.
 ```
 
-Hand-written mutator is wired in `src/http.ts` (`configureClient`, `customFetch`, `fetchHealth`). Orval output lands under `src/generated/` when `apps/api/openapi.json` exists.
+Hand-written mutator is wired in `src/http.ts` (`configureClient`, `customFetch`, `fetchHealth`, `fetchHealthFrom`). Orval output lands under `src/generated/` when `apps/api/openapi.json` exists.
 
 ## Auth header / `configureClient`
 
 Frozen mutator contract for machine clients (CLI/TUI/MCP-style callers). Nest verifies with Better Auth `verifyApiKey`. Spec: [`tech-stack.md` § Auth](../../spec/tech-stack.md#auth-better-auth).
 
-| Rule | Contract |
-|---|---|
-| Header name | **`x-api-key`** — frozen; do not invent `Authorization: Bearer` for API keys in v1 |
-| Options | `configureClient({ apiUrl, apiKey? })` — see sketch above |
-| When `apiKey` set | Mutator sets `req.headers.set("x-api-key", opts.apiKey)` on every request |
-| When omitted | No API-key header (unauthenticated or cookie-session path elsewhere) |
-| Key source (tools) | Resolved from `@helloworld/terminal/config` per environment — **not** root `.env` `API_KEY` |
-| Rejected | Static env-only global `API_KEY` as the product credential model ([ADR 0003](../../spec/decisions/0003-better-auth.md)) |
+| Rule               | Contract                                                                                                                |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Header name        | **`x-api-key`** — frozen; do not invent `Authorization: Bearer` for API keys in v1                                      |
+| Options            | `configureClient({ apiUrl, apiKey? })` — see sketch above                                                               |
+| When `apiKey` set  | Mutator sets `req.headers.set("x-api-key", opts.apiKey)` on every request                                               |
+| When omitted       | No API-key header (unauthenticated or cookie-session path elsewhere)                                                    |
+| Key source (tools) | Resolved from `@helloworld/terminal/config` per environment — **not** root `.env` `API_KEY`                             |
+| Rejected           | Static env-only global `API_KEY` as the product credential model ([ADR 0003](../../spec/decisions/0003-better-auth.md)) |
 
 OpenAPI / Swagger should document the same `x-api-key` scheme so Orval and humans stay aligned.
 

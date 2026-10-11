@@ -9,17 +9,17 @@ Separate from [`tools/tui`](../tui/README.md) (Ink UI). Stack inventory: [`opens
 Thin client: local config → HTTP → print result / exit code.  
 **Not** NestJS, no database, no Pino, no Playwright.
 
-| Concern          | Choice                                                                                     |
-| ---------------- | ------------------------------------------------------------------------------------------ |
-| Framework        | Commander **15.0.0**                                                                       |
-| HTTP             | ky **2.1.0** via `packages/api-client` (when wired)                                        |
-| Terminal toolkit | `packages/terminal` (`config` / `log` / `tty`)                                             |
-| User config      | `@helloworld/terminal/config`                                                              |
-| Logging          | `@helloworld/terminal/log` — **tslog** + **ora** (stderr); results on stdout               |
-| Shared types     | `packages/types` (when wired)                                                              |
-| Binary           | `helloworld` → `bin/run.js` → `dist/…`                                                     |
+| Concern          | Choice                                                                                         |
+| ---------------- | ---------------------------------------------------------------------------------------------- |
+| Framework        | Commander **15.0.0**                                                                           |
+| HTTP             | ky **2.1.0** via `packages/api-client`                                                         |
+| Terminal toolkit | `packages/terminal` (`config` / `log` / `tty`)                                                 |
+| User config      | `@helloworld/terminal/config`                                                                  |
+| Logging          | `@helloworld/terminal/log` — **tslog** + **ora** (stderr); results on stdout                   |
+| Shared types     | `packages/types` (when wired)                                                                  |
+| Binary           | `helloworld` → `bin/run.js` → `dist/…`                                                         |
 | Build            | `tsc` → `dist/` — [`Build / emit contract`](../../openspec/tech-stack.md#build--emit-contract) |
-| Tests            | Vitest under `tools/cli` (and `tests/cli` for service-backed runs)                         |
+| Tests            | Vitest under `tools/cli` (and `tests/cli` for service-backed runs)                             |
 
 ## Layout (intent)
 
