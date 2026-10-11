@@ -7,3 +7,5 @@ export {
   HEALTH_TIMEOUT_MS,
   type ClientOptions,
 } from "./http.js";
+
+export * from "./generated/index.js";

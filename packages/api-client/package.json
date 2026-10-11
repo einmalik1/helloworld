@@ -22,6 +22,7 @@
   "devDependencies": {
     "@helloworld/config": "workspace:*",
     "@types/node": "24.7.2",
+    "orval": "8.39.0",
     "typescript": "7.0.2",
     "vitest": "5.0.3"
   }
