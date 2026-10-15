@@ -10,6 +10,7 @@ COPY . .
 RUN turbo prune @helloworld/web --docker
 
 FROM base AS installer
+ENV NODE_ENV=development
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 RUN pnpm install --frozen-lockfile
@@ -27,7 +28,8 @@ RUN pnpm exec turbo run build --filter=@helloworld/web... \
   && pnpm add -w serve@14.2.5
 
 FROM base AS production
-RUN addgroup -g 1001 nodeapp && adduser -u 1001 -G nodeapp -s /bin/sh -D nodeapp
+RUN apk add --no-cache curl \
+  && addgroup -g 1001 nodeapp && adduser -u 1001 -G nodeapp -s /bin/sh -D nodeapp
 WORKDIR /app
 
 COPY --from=installer --chown=nodeapp:nodeapp /app .
