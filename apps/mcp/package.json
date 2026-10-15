@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@helloworld/config": "workspace:*",
+    "@types/express": "5.0.3",
     "@types/node": "24.7.2",
     "pino-pretty": "13.2.0",
     "tsx": "4.23.15",

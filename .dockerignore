@@ -1,0 +1,16 @@
+.git
+.github
+.cursor
+**/node_modules
+**/dist
+**/.turbo
+**/.next
+**/coverage
+openspec/data-model/generated
+spark/plans
+spark/releases
+**/*.log
+.env
+.env.*
+!.env.example
+.DS_Store

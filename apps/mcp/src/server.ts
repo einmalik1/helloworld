@@ -1,5 +1,6 @@
 import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import type { Request, Response } from "express";
 import type { Logger } from "pino";
 
 import type { ApiClient } from "./api-client.js";
@@ -56,7 +57,7 @@ export function createHttpApp(options: {
     });
   });
 
-  app.get("/health", (_req, res) => {
+  app.get("/health", (_req: Request, res: Response) => {
     res.status(200).json({ status: "ok" });
   });
 
