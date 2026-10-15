@@ -77,7 +77,8 @@ coolify:
         - api
         - worker
         - mcp
-        # later: web, docs, …
+        - web
+        # later: docs, chat, …
     - slug: qa
       name: qa
       purpose: staging
@@ -86,9 +87,77 @@ coolify:
       name: production
       purpose: production
       uuid: "gupklxhd6mmcbhahjbag5a0i"
-  apps: []
-  # App plane skipped until Dockerfiles exist under apps/*/Dockerfile — document blocker for api/worker/mcp.
-  # When api/worker Dockerfiles land: Coolify pre-deploy command = `pnpm db:migrate` (same as local).
+      data_plane:
+        - postgres
+        - object_storage
+        # later: search, knowledge_graph (Typesense + AGE image pin)
+      resources:
+        postgres_uuid: "tskrqcfbostuhcjcpcjihu4d"
+        # DATABASE_URL intent: postgresql://helloworld:helloworld@tskrqcfbostuhcjcpcjihu4d:5432/helloworld
+        garage_uuid: "kf8xfkq2dn5yl21s1ntnsg6g"
+        # Resolve S3_*: `coolify service env list <garage_uuid> --context home -s --format json`
+  apps:
+    # Dockerfile build pack; base_directory=/; dockerfile_location as below. Git branch may be automation branch until merge.
+    # Health: Coolify HTTP GET /health (api/worker/mcp); web GET /.
+    # Api migrate: image entrypoint runs `pnpm exec drizzle-kit migrate` (same as local `pnpm db:migrate`); set SKIP_DB_MIGRATE=1 to skip.
+    # Blockers: Postgres is stock postgres:18 (no AGE pin yet); Typesense not provisioned — leave TYPESENSE_* unset so /health skips search.
+    # Chat Application deferred (not in app_plane).
+    - id: api
+      environment: test
+      uuid: "1gyl2jk6yy6n6wv6ayq4tdf5"
+      dockerfile: apps/api/Dockerfile
+      ports_exposes: "3000"
+      health_path: /health
+      fqdn: "https://1gyl2jk6yy6n6wv6ayq4tdf5.80.145.189.48.sslip.io"
+    - id: worker
+      environment: test
+      uuid: "z7hxg0wgeqaa4pfgfwb4wwwj"
+      dockerfile: apps/worker/Dockerfile
+      ports_exposes: "3001"
+      health_path: /health
+      fqdn: "https://z7hxg0wgeqaa4pfgfwb4wwwj.80.145.189.48.sslip.io"
+    - id: mcp
+      environment: test
+      uuid: "s5hjawvuqi0yxc8bpayb3bod"
+      dockerfile: apps/mcp/Dockerfile
+      ports_exposes: "3100"
+      health_path: /health
+      fqdn: "https://s5hjawvuqi0yxc8bpayb3bod.80.145.189.48.sslip.io"
+    - id: web
+      environment: test
+      uuid: "nuzin6mut8c2banzrisgopta"
+      dockerfile: apps/web/Dockerfile
+      ports_exposes: "5173"
+      health_path: /
+      fqdn: "https://nuzin6mut8c2banzrisgopta.80.145.189.48.sslip.io"
+    - id: api
+      environment: production
+      uuid: "0pi9uaqrrylsfipudj9ugeoz"
+      dockerfile: apps/api/Dockerfile
+      ports_exposes: "3000"
+      health_path: /health
+      fqdn: "https://0pi9uaqrrylsfipudj9ugeoz.80.145.189.48.sslip.io"
+    - id: worker
+      environment: production
+      uuid: "geozjacsua4dpqkfqggccw5a"
+      dockerfile: apps/worker/Dockerfile
+      ports_exposes: "3001"
+      health_path: /health
+      fqdn: "https://geozjacsua4dpqkfqggccw5a.80.145.189.48.sslip.io"
+    - id: mcp
+      environment: production
+      uuid: "f9vajdggqildlegjkw93h7rm"
+      dockerfile: apps/mcp/Dockerfile
+      ports_exposes: "3100"
+      health_path: /health
+      fqdn: "https://f9vajdggqildlegjkw93h7rm.80.145.189.48.sslip.io"
+    - id: web
+      environment: production
+      uuid: "bbtfah680f7slela7ffcfrzo"
+      dockerfile: apps/web/Dockerfile
+      ports_exposes: "5173"
+      health_path: /
+      fqdn: "https://bbtfah680f7slela7ffcfrzo.80.145.189.48.sslip.io"
 
 release:
   name: helloworld
