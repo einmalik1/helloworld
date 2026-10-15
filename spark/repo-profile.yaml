@@ -100,7 +100,9 @@ coolify:
     # Dockerfile build pack; base_directory=/; dockerfile_location as below. Git branch may be automation branch until merge.
     # Health: Coolify HTTP GET /health (api/worker/mcp); web GET /.
     # Api migrate: image entrypoint runs `pnpm exec drizzle-kit migrate` (same as local `pnpm db:migrate`); set SKIP_DB_MIGRATE=1 to skip.
-    # Blockers: Postgres is stock postgres:18 (no AGE pin yet); Typesense not provisioned — leave TYPESENSE_* unset so /health skips search.
+    # Blockers: Postgres is stock postgres:18 (no AGE pin yet); Typesense not provisioned —
+    # api/worker default TYPESENSE_HOST/API_KEY to empty so /health skips search until provisioned.
+    # Local Compose still sets TYPESENSE_* via root `.env` / `.env.example`.
     # Chat Application deferred (not in app_plane).
     - id: api
       environment: test
