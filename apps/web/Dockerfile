@@ -1,7 +1,7 @@
 # Coolify / production image for apps/web (Vite static → serve).
 # Build context MUST be the monorepo root (Dockerfile build pack + dockerfile_location=/apps/web/Dockerfile).
 FROM node:26-alpine AS base
-RUN corepack enable && corepack prepare pnpm@12.8.1 --activate
+RUN npm install -g pnpm@12.8.1
 WORKDIR /app
 
 FROM base AS pruner
