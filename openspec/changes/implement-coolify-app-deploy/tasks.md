@@ -13,10 +13,10 @@
 - [x] 2.1 Create test Applications for api/worker/mcp/web (Git + dockerfile pack); set `dockerfile_location`, health `/health` (web `/`), ports
 - [x] 2.2 Create production Applications for the same four apps
 - [x] 2.3 Wire env from test Postgres/Garage (and prod data plane if created); do not commit secrets
-- [ ] 2.4 Deploy test apps; verify `/health` where reachable; note AGE/Typesense blockers
+- [x] 2.4 Deploy test apps; verify `/health` where reachable; note AGE/Typesense blockers
 
 ## 3. Profile + verify
 
 - [x] 3.1 Update `spark/repo-profile.yaml` `coolify.apps` with UUIDs, paths, FQDNs, health notes
-- [ ] 3.2 Run package smoke gate (api/worker/mcp/web smoke or documented root gate)
-- [ ] 3.3 Mark OpenSpec tasks complete; commit and push branch
+- [x] 3.2 Run package smoke gate (api/worker/mcp/web smoke or documented root gate)
+- [x] 3.3 Mark OpenSpec tasks complete; commit and push branch
