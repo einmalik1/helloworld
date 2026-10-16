@@ -523,7 +523,9 @@ Each row’s Deploy intent follows the [stage contract](#docker--coolify-stage-c
 
 App processes for local dev start from the repo root (`pnpm`); Dockerfiles are primarily for Coolify (and optional local image smoke tests).
 
-UUIDs, instance URL, and CLI context stay in `spark/repo-profile.yaml` (and local CLI config) — never commit API tokens.
+UUIDs, instance URL, FQDNs, and CLI context stay in `spark/repo-profile.yaml` (and local CLI config) — never commit API tokens.
+
+**Public hostnames / TLS:** one DNS label before the zone so wildcard certs scale across projects — `hw-<role>.home.mlk` (prod, cert `*.home.mlk`) and `hw-<role>.test.home.mlk` (test, cert `*.test.home.mlk`). Nested hosts like `api.hw.home.mlk` are avoided (public CAs wildcard only one label). Full table: `spark/repo-profile.yaml` → `coolify.apps`.
 
 **Local env:** one repo-root `.env` only — see [Root environment](#root-environment).
 
