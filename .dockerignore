@@ -3,6 +3,7 @@
 .cursor
 **/node_modules
 **/dist
+**/storybook-static
 **/.turbo
 **/.next
 **/coverage
