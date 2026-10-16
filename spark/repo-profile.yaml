@@ -50,6 +50,12 @@ coolify:
   #   qa          — human/staging (not created yet in Coolify — create when needed)
   #   production  — Coolify default env on project
   # Do NOT start infra/docker-compose on the Coolify host from agents (port clashes). Laptops may use docker:local:*.
+  #
+  # Public URL schema (one DNS label before the zone — fits wildcard TLS):
+  #   production: https://hw-<role>.home.mlk     covered by cert *.home.mlk
+  #   test:       https://hw-<role>.test.home.mlk covered by cert *.test.home.mlk
+  # Roles: web | api | worker | mcp (later: docs, chat, …). Same pattern for other projects (e.g. voc-api.home.mlk).
+  # Do NOT use nested hosts like api.hw.home.mlk — public CAs only wildcard one label level.
   environments:
     - slug: test
       name: test
@@ -110,57 +116,56 @@ coolify:
       dockerfile: apps/api/Dockerfile
       ports_exposes: "3000"
       health_path: /health
-      # URL schema: {role}.hw.test.home.mlk | {role}.hw.home.mlk (prod)
-      fqdn: "https://api.hw.test.home.mlk"
+      fqdn: "https://hw-api.test.home.mlk"
     - id: worker
       environment: test
       uuid: "z7hxg0wgeqaa4pfgfwb4wwwj"
       dockerfile: apps/worker/Dockerfile
       ports_exposes: "3001"
       health_path: /health
-      fqdn: "https://worker.hw.test.home.mlk"
+      fqdn: "https://hw-worker.test.home.mlk"
     - id: mcp
       environment: test
       uuid: "s5hjawvuqi0yxc8bpayb3bod"
       dockerfile: apps/mcp/Dockerfile
       ports_exposes: "3100"
       health_path: /health
-      fqdn: "https://mcp.hw.test.home.mlk"
+      fqdn: "https://hw-mcp.test.home.mlk"
     - id: web
       environment: test
       uuid: "nuzin6mut8c2banzrisgopta"
       dockerfile: apps/web/Dockerfile
       ports_exposes: "5173"
       health_path: /
-      fqdn: "https://web.hw.test.home.mlk"
+      fqdn: "https://hw-web.test.home.mlk"
     - id: api
       environment: production
       uuid: "0pi9uaqrrylsfipudj9ugeoz"
       dockerfile: apps/api/Dockerfile
       ports_exposes: "3000"
       health_path: /health
-      fqdn: "https://api.hw.home.mlk"
+      fqdn: "https://hw-api.home.mlk"
     - id: worker
       environment: production
       uuid: "geozjacsua4dpqkfqggccw5a"
       dockerfile: apps/worker/Dockerfile
       ports_exposes: "3001"
       health_path: /health
-      fqdn: "https://worker.hw.home.mlk"
+      fqdn: "https://hw-worker.home.mlk"
     - id: mcp
       environment: production
       uuid: "f9vajdggqildlegjkw93h7rm"
       dockerfile: apps/mcp/Dockerfile
       ports_exposes: "3100"
       health_path: /health
-      fqdn: "https://mcp.hw.home.mlk"
+      fqdn: "https://hw-mcp.home.mlk"
     - id: web
       environment: production
       uuid: "bbtfah680f7slela7ffcfrzo"
       dockerfile: apps/web/Dockerfile
       ports_exposes: "5173"
       health_path: /
-      fqdn: "https://web.hw.home.mlk"
+      fqdn: "https://hw-web.home.mlk"
 
 release:
   name: helloworld
