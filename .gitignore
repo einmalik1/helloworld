@@ -10,6 +10,7 @@ node_modules/
 # Build / tooling
 dist/
 build/
+storybook-static/
 .turbo/
 coverage/
 *.tsbuildinfo
