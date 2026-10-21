@@ -54,7 +54,8 @@ coolify:
   # Public URL schema (one DNS label before the zone — fits wildcard TLS):
   #   production: https://hw-<role>.home.mlk     covered by cert *.home.mlk
   #   test:       https://hw-<role>.test.home.mlk covered by cert *.test.home.mlk
-  # Roles: web | api | worker | mcp (later: docs, chat, …). Same pattern for other projects (e.g. voc-api.home.mlk).
+  # Roles: web | api | worker | mcp | docs | chat | …. Same pattern for other projects (e.g. voc-api.home.mlk).
+  # Exception: docs production FQDN is https://docs-hw.home.mlk (operator-chosen; not hw-docs.home.mlk).
   # Do NOT use nested hosts like api.hw.home.mlk — public CAs only wildcard one label level.
   environments:
     - slug: test
@@ -84,7 +85,7 @@ coolify:
         - worker
         - mcp
         - web
-        # later: docs, chat, …
+        # later: docs (prod only for now), chat, …
     - slug: qa
       name: qa
       purpose: staging
@@ -102,9 +103,16 @@ coolify:
         # DATABASE_URL intent: postgresql://helloworld:helloworld@tskrqcfbostuhcjcpcjihu4d:5432/helloworld
         garage_uuid: "kf8xfkq2dn5yl21s1ntnsg6g"
         # Resolve S3_*: `coolify service env list <garage_uuid> --context home -s --format json`
+      app_plane:
+        - api
+        - worker
+        - mcp
+        - web
+        - docs
+        # later: chat, …
   apps:
     # Dockerfile build pack; base_directory=/; dockerfile_location as below. Git branch may be automation branch until merge.
-    # Health: Coolify HTTP GET /health (api/worker/mcp); web GET /.
+    # Health: Coolify HTTP GET /health (api/worker/mcp); web/docs GET /.
     # Api migrate: image entrypoint runs `pnpm exec drizzle-kit migrate` (same as local `pnpm db:migrate`); set SKIP_DB_MIGRATE=1 to skip.
     # Blockers: Postgres is stock postgres:18 (no AGE pin yet); Typesense not provisioned —
     # api/worker default TYPESENSE_HOST/API_KEY to empty so /health skips search until provisioned.
@@ -166,6 +174,14 @@ coolify:
       ports_exposes: "5173"
       health_path: /
       fqdn: "https://hw-web.home.mlk"
+    # Hostname exception vs hw-<role>.home.mlk — operator-chosen docs-hw.home.mlk
+    - id: docs
+      environment: production
+      uuid: "itnxaioyujl9vtakhd9rnryo"
+      dockerfile: apps/docs/Dockerfile
+      ports_exposes: "4000"
+      health_path: /
+      fqdn: "https://docs-hw.home.mlk"
 
 release:
   name: helloworld
