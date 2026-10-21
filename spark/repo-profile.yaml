@@ -54,7 +54,8 @@ coolify:
   # Public URL schema (one DNS label before the zone — fits wildcard TLS):
   #   production: https://hw-<role>.home.mlk     covered by cert *.home.mlk
   #   test:       https://hw-<role>.test.home.mlk covered by cert *.test.home.mlk
-  # Roles: web | api | worker | mcp | story (later: docs, chat, …). Same pattern for other projects (e.g. voc-api.home.mlk).
+  # Roles: web | api | worker | mcp | story | docs | chat | …. Same pattern for other projects (e.g. voc-api.home.mlk).
+  # Exception: docs production FQDN is https://docs-hw.home.mlk (operator-chosen; not hw-docs.home.mlk).
   # Do NOT use nested hosts like api.hw.home.mlk — public CAs only wildcard one label level.
   # Storybook is production-only: https://hw-story.home.mlk (no *.test.home.mlk).
   environments:
@@ -85,7 +86,7 @@ coolify:
         - worker
         - mcp
         - web
-        # later: docs, chat, … (storybook is production-only)
+        # later: docs (prod only for now), chat, … (storybook is production-only)
     - slug: qa
       name: qa
       purpose: staging
@@ -108,11 +109,12 @@ coolify:
         - worker
         - mcp
         - web
+        - docs
         - storybook
-        # later: docs, chat, …
+        # later: chat, …
   apps:
     # Dockerfile build pack; base_directory=/; dockerfile_location as below. Git branch may be automation branch until merge.
-    # Health: Coolify HTTP GET /health (api/worker/mcp); web/storybook GET /.
+    # Health: Coolify HTTP GET /health (api/worker/mcp); web/docs/storybook GET /.
     # Api migrate: image entrypoint runs `pnpm exec drizzle-kit migrate` (same as local `pnpm db:migrate`); set SKIP_DB_MIGRATE=1 to skip.
     # Blockers: Postgres is stock postgres:18 (no AGE pin yet); Typesense not provisioned —
     # api/worker default TYPESENSE_HOST/API_KEY to empty so /health skips search until provisioned.
@@ -174,6 +176,14 @@ coolify:
       ports_exposes: "5173"
       health_path: /
       fqdn: "https://hw-web.home.mlk"
+    # Hostname exception vs hw-<role>.home.mlk — operator-chosen docs-hw.home.mlk
+    - id: docs
+      environment: production
+      uuid: "itnxaioyujl9vtakhd9rnryo"
+      dockerfile: apps/docs/Dockerfile
+      ports_exposes: "4000"
+      health_path: /
+      fqdn: "https://docs-hw.home.mlk"
     - id: storybook
       environment: production
       uuid: "vzcbdrcl1oxe8jtoqurqyzqv"

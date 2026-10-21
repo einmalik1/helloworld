@@ -26,4 +26,6 @@ No Postgres/S3 required for authoring or a docs preview. Optional keys in root `
 pnpm run --filter docs dev
 ```
 
-Scaffolding (Fumadocs + Next wiring) comes when the package is implemented.
+`dev` / `build` / `typecheck` run `scripts/sync-openspec.mjs` first — it mirrors durable `openspec/**/*.md` into `content/docs` with frontmatter (excludes `changes/`, `schemas/`, `generated/`). Do not edit generated `content/docs`.
+
+Coolify: multi-stage `apps/docs/Dockerfile`, production host `https://docs-hw.home.mlk` (hostname exception vs `hw-<role>.home.mlk`).
