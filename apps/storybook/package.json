@@ -10,12 +10,10 @@
     "smoke": "pnpm run typecheck && pnpm run build"
   },
   "dependencies": {
-    "class-variance-authority": "0.7.1",
-    "clsx": "2.1.1",
+    "@helloworld/ui": "workspace:*",
     "lucide-react": "0.544.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "tailwind-merge": "3.3.1"
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
     "@helloworld/config": "workspace:*",

@@ -262,7 +262,7 @@ importers:
         version: 7.0.2
       unplugin-swc:
         specifier: 2.0.0
-        version: 2.0.0(@swc/core@1.15.3)(esbuild@0.28.2)(rolldown@1.2.13)(vite@8.3.4(@types/node@24.7.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+        version: 2.0.0(@swc/core@1.15.3(@swc/helpers@0.5.23))(esbuild@0.28.2)(rolldown@1.2.13)(vite@8.3.4(@types/node@24.7.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.7.2)(vite@8.3.4(@types/node@24.7.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -392,12 +392,9 @@ importers:
 
   apps/storybook:
     dependencies:
-      class-variance-authority:
-        specifier: 0.7.1
-        version: 0.7.1
-      clsx:
-        specifier: 2.1.1
-        version: 2.1.1
+      '@helloworld/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       lucide-react:
         specifier: 0.544.0
         version: 0.544.0(react@19.3.0)
@@ -407,9 +404,6 @@ importers:
       react-dom:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
-      tailwind-merge:
-        specifier: 3.3.1
-        version: 3.3.1
     devDependencies:
       '@helloworld/config':
         specifier: workspace:*
@@ -450,15 +444,12 @@ importers:
       '@helloworld/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@helloworld/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       better-auth:
         specifier: 1.7.7
         version: 1.7.7(drizzle-kit@0.31.11)(drizzle-orm@0.45.3(kysely@0.29.6)(postgres@3.4.9))(next@16.3.8(@types/node@24.19.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@5.0.3(@types/node@24.19.1)(vite@8.3.4(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
-      class-variance-authority:
-        specifier: 0.7.1
-        version: 0.7.1
-      clsx:
-        specifier: 2.1.1
-        version: 2.1.1
       driver.js:
         specifier: 1.9.0
         version: 1.9.0
@@ -471,9 +462,6 @@ importers:
       react-dom:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
-      tailwind-merge:
-        specifier: 3.3.1
-        version: 3.3.1
     devDependencies:
       '@helloworld/config':
         specifier: workspace:*
@@ -577,7 +565,7 @@ importers:
         version: 7.0.2
       unplugin-swc:
         specifier: 2.0.0
-        version: 2.0.0(@swc/core@1.15.3)(esbuild@0.28.2)(rolldown@1.2.13)(vite@8.3.4(@types/node@24.7.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+        version: 2.0.0(@swc/core@1.15.3(@swc/helpers@0.5.23))(esbuild@0.28.2)(rolldown@1.2.13)(vite@8.3.4(@types/node@24.7.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.7.2)(vite@8.3.4(@types/node@24.7.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -686,7 +674,7 @@ importers:
         version: 7.0.2
       unplugin-swc:
         specifier: 2.0.0
-        version: 2.0.0(@swc/core@1.15.3)(esbuild@0.28.2)(rolldown@1.2.13)(vite@8.3.4(@types/node@24.7.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+        version: 2.0.0(@swc/core@1.15.3(@swc/helpers@0.5.23))(esbuild@0.28.2)(rolldown@1.2.13)(vite@8.3.4(@types/node@24.7.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.7.2)(vite@8.3.4(@types/node@24.7.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -750,6 +738,37 @@ importers:
       '@helloworld/config':
         specifier: workspace:*
         version: link:../config
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
+  packages/ui:
+    dependencies:
+      class-variance-authority:
+        specifier: 0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: 2.1.1
+        version: 2.1.1
+      tailwind-merge:
+        specifier: 3.3.1
+        version: 3.3.1
+    devDependencies:
+      '@helloworld/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/react':
+        specifier: 19.1.13
+        version: 19.1.13
+      '@types/react-dom':
+        specifier: 19.1.9
+        version: 19.1.9(@types/react@19.1.13)
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+      react-dom:
+        specifier: 19.3.0
+        version: 19.3.0(react@19.3.0)
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -12047,7 +12066,7 @@ snapshots:
 
   unpipe@1.0.0: {}
 
-  unplugin-swc@2.0.0(@swc/core@1.15.3)(esbuild@0.28.2)(rolldown@1.2.13)(vite@8.3.4(@types/node@24.7.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)):
+  unplugin-swc@2.0.0(@swc/core@1.15.3(@swc/helpers@0.5.23))(esbuild@0.28.2)(rolldown@1.2.13)(vite@8.3.4(@types/node@24.7.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)):
     dependencies:
       '@rollup/pluginutils': 5.4.0
       '@swc/core': 1.15.3(@swc/helpers@0.5.23)
