@@ -19,6 +19,7 @@ COPY --from=pruner /app/out/full/ .
 COPY .env.example ./
 
 RUN pnpm exec turbo run build --filter=@helloworld/storybook... \
+  && cp apps/storybook/serve.json apps/storybook/storybook-static/serve.json \
   && pnpm add -w serve@14.2.5
 
 FROM base AS production
@@ -31,4 +32,6 @@ COPY --from=installer --chown=nodeapp:nodeapp /app .
 ENV NODE_ENV=production
 USER nodeapp
 EXPOSE 6006
-CMD ["pnpm", "exec", "serve", "-s", "apps/storybook/storybook-static", "-l", "6006"]
+# No `-s`: SPA fallback serves index.html for missing paths → MIME "text/html" on JS modules.
+# serve.json sets cleanUrls:false so /iframe.html?id=… is not 301'd to /iframe (query dropped).
+CMD ["pnpm", "exec", "serve", "apps/storybook/storybook-static", "-l", "6006"]
