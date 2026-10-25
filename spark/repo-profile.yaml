@@ -361,6 +361,7 @@ review:
       - packages/modules
       - packages/terminal
       - packages/api-client
+      - packages/ui
       - packages/config
   security:
     tags:

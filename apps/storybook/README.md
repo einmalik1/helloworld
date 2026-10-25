@@ -2,6 +2,8 @@
 
 Deployed UI component gallery (centrally reachable).
 
+Components live in **`@helloworld/ui`** (`packages/ui`). This app hosts Storybook config, stories, and theme CSS only — do not duplicate component implementations here.
+
 ## Deploy
 
 Production only: Coolify Application at **`https://hw-story.home.mlk`**. Multi-stage `apps/storybook/Dockerfile`; Coolify builds from Git — see [`openspec/tech-stack.md`](../../openspec/tech-stack.md#coolify-build-deploy-data-services). UUID/FQDN: `spark/repo-profile.yaml` → `coolify.apps` (`id: storybook`, `environment: production`).

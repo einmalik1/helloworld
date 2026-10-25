@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@helloworld/ui";
 import { fetchHealth, publicApiUrl, publicChatUrl } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 

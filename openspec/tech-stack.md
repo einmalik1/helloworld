@@ -25,7 +25,7 @@ Versions below are the latest published on npm as of 2026-10-08 (pin in lockfile
 | API (`apps/api`) | NestJS | 12.x | Express adapter + modules below |
 | Worker (`apps/worker`) | NestJS standalone | 12.x | Same Nest line as API; jobs via `@nestjs/schedule` — see [Worker](#worker-appsworker) |
 | Docs site (`apps/docs`) | Fumadocs on Next.js | fumadocs core/ui 16.15.17, mdx 15.4.5; **next 16.3.8** | [Fumadocs](https://github.com/fuma-nama/fumadocs) UI/MDX; host **Next.js** (App Router) — publishes `openspec/` |
-| Storybook (`apps/storybook`) | Storybook + `react-vite` | 10.6.1 | UI gallery; framework adapter **`@storybook/react-vite`** (matches Vite web) |
+| Storybook (`apps/storybook`) | Storybook + `react-vite` | 10.6.1 | UI gallery over `@helloworld/ui`; framework **`@storybook/react-vite`** (matches Vite web) |
 | MCP (`apps/mcp`) | `@modelcontextprotocol/sdk` | 1.32.1 | Remote **HTTP** MCP server; Pino logging — see [MCP](#mcp-appsmcp) |
 | Chat (`apps/chat`) | NestJS | 12.x | LLM + streaming; provider secrets **only** here — [ADR 0008](decisions/0008-chat-service-app.md); web is client |
 | CLI (`tools/cli`) | Commander | 15.0.0 | Non-interactive terminal client; HTTP via `ky` — see Terminal clients below |
@@ -46,7 +46,7 @@ Versions below are the latest published on npm as of 2026-10-08 (pin in lockfile
 | E2E | Playwright | 1.63.0 | `@playwright/test` — `tests/e2e` |
 | Visual regression | Visual Regression Tracker | remote | Self-hosted **outside** this repo; this app only connects — see below |
 | Deploy | Coolify + Docker | CLI 1.8.0 | QA/Prod on Coolify; **one multi-stage Dockerfile per app** — Coolify builds from Git; see Coolify below |
-| Shared libs (`packages/`) | types / modules / config / api-client / terminal | scaffolded | Intent + dirs; emit to `dist/` (except config) — see Shared packages + [Build / emit](#build--emit-contract) |
+| Shared libs (`packages/`) | types / modules / config / api-client / terminal / ui | scaffolded | Intent + dirs; emit to `dist/` (except config) — see Shared packages + [Build / emit](#build--emit-contract) |
 | API HTTP tests | Vitest + `@nestjs/testing` + **supertest** | — | Unit next to code; suite under `tests/api` — see Testing below |
 
 ## Monorepo tasks (Turbo)
@@ -114,8 +114,9 @@ packages/types           # zod only
        │
        ├── packages/terminal   # config + log + tty  →  tools/cli, tools/tui, (future terminal tools)
        │         ↑
-       └── packages/api-client # types + ky (+ URLs/keys from terminal/config at call sites)
-                 →  tools/cli, tools/tui, (optional apps/web — HTTP only, not packages/terminal)
+       ├── packages/api-client # types + ky (+ URLs/keys from terminal/config at call sites)
+       │         →  tools/cli, tools/tui, (optional apps/web — HTTP only, not packages/terminal)
+       └── packages/ui         # presentational React  →  apps/web, apps/storybook
 ```
 
 | Package | Role | Runtime deps (intent) |
@@ -124,6 +125,7 @@ packages/types           # zod only
 | `packages/modules` | Reusable NestJS infrastructure modules for `apps/api` (and other Nest apps) | NestJS, Drizzle, postgres.js, Zod, neverthrow, `packages/types` |
 | `packages/terminal` | Shared terminal toolkit: user config, **tslog** + **ora**, TTY helpers — for `tools/*` only | `tslog` **5.2.0**, `ora` **9.4.1**, `zod`, `env-paths` **4.0.0**, optionally `packages/types` |
 | `packages/api-client` | Typed REST client SDK for `apps/api` + `apps/worker` — ky under the hood | `ky`, Zod, `packages/types` |
+| `packages/ui` | Presentational React components (SoT for web + Storybook gallery) | React peer, CVA / clsx / tailwind-merge |
 | `packages/config` | Shared tooling config only (tsconfig, vitest, oxlint) — no application code | none on other packages |
 
 ### `packages/types`
@@ -300,7 +302,8 @@ React SPA (or SPA-style app) with **Vite**. Storybook uses the matching **`react
 | Tours | driver.js **1.9.0** | Already in inventory |
 | Data / API | Optional Orval `api-client` + cookie session | Better Auth session cookies to `apps/api`; web does **not** use `packages/terminal` |
 | Graph explorer | **Cytoscape.js** | Consumes `GET /graph/*` JSON from api only — [Search / knowledge graph](#search--knowledge-graph) |
-| Storybook | `@storybook/react-vite` **10.6.1** | Same Vite toolchain as `apps/web` |
+| Shared UI | `@helloworld/ui` (`packages/ui`) | Presentational components SoT; web + Storybook import this package |
+| Storybook | `@storybook/react-vite` **10.6.1** | Same Vite toolchain as `apps/web`; stories only (no component SoT) |
 | Logging | Web client rules | `console` / UI; no Pino in the browser — see [Logging](#logging) |
 
 Emit: Vite build out (not Nest `dist/main.js`) — [Build / emit contract](#build--emit-contract). Deploy: [Coolify](#coolify-build-deploy-data-services). App intent: [`apps/web/README.md`](../apps/web/README.md), [`apps/storybook/README.md`](../apps/storybook/README.md).
@@ -401,6 +404,7 @@ Classic Nest monorepo: every publishable TypeScript workspace **emits JavaScript
 | `packages/modules` | `tsc` | `dist/**` | `./dist/…` + subpath exports | Nest infra |
 | `packages/terminal` | `tsc` | `dist/**` | `./dist/…` (`config` / `log` / `tty`) | tools only |
 | `packages/api-client` | `tsc` (after Orval) | `dist/**` | `./dist/…` | generate → then emit |
+| `packages/ui` | `tsc` | `dist/**` | `./dist/…` | React presentational; peer react |
 | `packages/config` | — | — | JSON/TS config files as today | tooling only, no app emit |
 | `apps/api` | `nest build` | `dist/**` | — | Dev: `nest start --watch` (`@nestjs/cli`) |
 | `apps/worker` | `nest build` (standalone) | `dist/**` | — | Same Nest emit as API; runnable `dist` |

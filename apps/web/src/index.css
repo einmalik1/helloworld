@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../../../packages/ui/src";
 @import "driver.js/dist/driver.css";
 
 @theme {

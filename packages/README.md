@@ -11,6 +11,7 @@ Shared libraries for apps and tools. Directories scaffolded; implementation TBD 
 | `@helloworld/modules`    | `modules/`    | NestJS infrastructure (config, DB, health, auth, OpenAPI)                                   |
 | `@helloworld/terminal`   | `terminal/`   | Terminal toolkit — config, stdio log, TTY (CLI/TUI/…); not web                              |
 | `@helloworld/api-client` | `api-client/` | Orval SDK from OpenAPI + ky mutator — web / CLI / TUI                                       |
+| `@helloworld/ui`         | `ui/`         | Presentational React components — SoT for `apps/web` + `apps/storybook`                     |
 | `@helloworld/config`     | `config/`     | Shared tooling only (tsconfig, vitest, oxlint)                                              |
 
 ```text
@@ -21,8 +22,10 @@ packages/types
        ├── packages/platform    → apps/api, apps/mcp (in-process; adapters behind facade)
        ├── packages/modules     → Nest apps (apps/api, …); may wrap platform later
        ├── packages/terminal    → tools/cli, tools/tui, (future terminal tools)
-       └── packages/api-client  → tools/cli, tools/tui, (optional apps/web HTTP)
+       ├── packages/api-client  → tools/cli, tools/tui, (optional apps/web HTTP)
+       └── packages/ui          → apps/web, apps/storybook (presentational UI)
 ```
 
 `packages/config` = **dev tooling**. `packages/terminal` = **runtime helpers for terminal tools** (user config + stdio + TTY). Do not mix.  
-`packages/platform` = **application facade** for API/MCP. External clients use `api-client` only — not platform. Web does not use `packages/terminal`.
+`packages/platform` = **application facade** for API/MCP. External clients use `api-client` only — not platform. Web does not use `packages/terminal`.  
+`packages/ui` = **UI SoT**; Storybook stories live in `apps/storybook`, not in this package.
