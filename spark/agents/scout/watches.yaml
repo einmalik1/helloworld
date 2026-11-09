@@ -1,0 +1,13 @@
+# Template — copy to target repo as spark/agents/scout/watches.yaml
+schema: paperclip-scout-watches/v1
+
+dependency_watches: []
+
+trend:
+  max_findings: 5
+  keywords:
+    - helloworld
+    - golden path
+    - orca
+    - paperclip
+    - worktree
