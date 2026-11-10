@@ -1,0 +1,8 @@
+{
+  "extends": "@helloworld/config/tsconfig",
+  "compilerOptions": {
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": ["./**/*.ts"]
+}

@@ -437,10 +437,6 @@ Normative base for shared `packages/config` (`tsconfig.base.json`, Vitest). Lang
 
 Multi-stage images run **built** output only (e.g. Nest: `CMD ["node", "dist/main.js"]`). Build context = monorepo root so Turbo/`^build` compiles `packages/*` before the app runtime stage copies artefacts. Detail: [Coolify](#coolify-build-deploy-data-services).
 
-### Scaffold status
-
-Workspace `exports` today may still point at `./src/*.ts`. That is temporary — wiring must add per-package `build` scripts and flip `exports` to `dist/` to match this contract. Remove this note once the flip is done.
-
 ## Docs site (`apps/docs`)
 
 | Piece | Choice | Role |

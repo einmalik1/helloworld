@@ -1,0 +1,17 @@
+{
+  "name": "@helloworld/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:smoke": "playwright test smoke.spec.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@helloworld/config": "workspace:*",
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.7.2",
+    "typescript": "7.0.2"
+  }
+}

@@ -11,6 +11,7 @@
     "smoke": "pnpm run typecheck && pnpm run build"
   },
   "dependencies": {
+    "@better-auth/api-key": "1.7.7",
     "@helloworld/api-client": "workspace:*",
     "@helloworld/ui": "workspace:*",
     "better-auth": "1.7.7",
