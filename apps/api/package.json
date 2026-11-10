@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "dev": "tsx watch src/main.ts",
+    "build": "nest build",
+    "dev": "nest start --watch",
     "start": "node dist/main.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@helloworld/config": "workspace:*",
+    "@nestjs/cli": "12.0.12",
     "@nestjs/testing": "12.1.2",
     "@swc/core": "1.15.3",
     "@types/express": "5.0.3",
@@ -38,7 +39,7 @@
     "@types/supertest": "7.2.1",
     "supertest": "7.3.1",
     "tsx": "4.23.15",
-    "typescript": "7.0.2",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
     "unplugin-swc": "2.0.0",
     "vitest": "5.0.3"
   }

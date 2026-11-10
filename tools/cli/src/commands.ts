@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { setVerbose } from "@helloworld/terminal/log";
 
+import { registerAuthCommand } from "./commands/auth.js";
 import { registerConfigCommand } from "./commands/config.js";
 import { registerHealthCommand } from "./commands/health.js";
 
@@ -22,6 +23,7 @@ export function createProgram(): Command {
 
   registerHealthCommand(program);
   registerConfigCommand(program);
+  registerAuthCommand(program);
 
   return program;
 }

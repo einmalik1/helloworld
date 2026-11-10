@@ -35,6 +35,9 @@ export function createAuth(options: CreateAuthOptions): AuthInstance {
     secret: options.secret,
     baseURL: options.baseURL,
     trustedOrigins: [options.webOrigin],
+    emailAndPassword: {
+      enabled: true,
+    },
     plugins: [
       apiKey({
         apiKeyHeaders: "x-api-key",

@@ -105,3 +105,35 @@ export function setActiveEnvironment(name: string): UserConfig {
   saveConfig(next);
   return next;
 }
+
+/**
+ * Persist or clear the Better Auth managed `apiKey` for one environment.
+ * Used by CLI issue/revoke — never store keys in root `.env`.
+ */
+export function setEnvironmentApiKey(
+  environmentName: string,
+  apiKey: string | undefined,
+): UserConfig {
+  const config = loadConfig();
+  const env = config.environments[environmentName];
+  if (!env) {
+    throw new Error(
+      `Unknown environment "${environmentName}". Known: ${Object.keys(config.environments).join(", ") || "(none)"}`,
+    );
+  }
+  const nextEnv: EnvironmentConfig = { ...env };
+  if (apiKey === undefined || apiKey === "") {
+    delete nextEnv.apiKey;
+  } else {
+    nextEnv.apiKey = apiKey;
+  }
+  const next: UserConfig = {
+    ...config,
+    environments: {
+      ...config.environments,
+      [environmentName]: nextEnv,
+    },
+  };
+  saveConfig(next);
+  return next;
+}
