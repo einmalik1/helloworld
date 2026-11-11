@@ -34,6 +34,7 @@ tools/cli/
 │   │   ├── shared.ts          # Shared flag types / printers
 │   │   ├── config.ts          # Local config CRUD / env
 │   │   ├── health.ts          # api + worker /health
+│   │   ├── auth.ts            # Better Auth API-key issue / revoke
 │   │   └── …                  # Domain commands as features land
 │   ├── api.ts                 # thin wiring → packages/api-client
 │   └── config.ts              # thin wiring → @helloworld/terminal/config
@@ -87,11 +88,12 @@ Missing file → safe defaults for local. Corrupt/unreadable file → hard error
 
 Scaffold when features exist. Baseline ops:
 
-| Command                                         | Role                                    |
-| ----------------------------------------------- | --------------------------------------- |
-| `helloworld health`                             | Parallel `api` + `worker` `/health`     |
-| `helloworld config list \| set \| unset \| env` | Local config / environment              |
-| `helloworld …`                                  | Domain subcommands against the REST API |
+| Command                                         | Role                                                                 |
+| ----------------------------------------------- | -------------------------------------------------------------------- |
+| `helloworld health`                             | Parallel `api` + `worker` `/health`                                  |
+| `helloworld config list \| set \| unset \| env` | Local config / environment                                           |
+| `helloworld auth key issue \| revoke`           | Session-auth create/delete API key; writes XDG `terminal/config`     |
+| `helloworld …`                                  | Domain subcommands against the REST API                              |
 
 Exit codes: `0` success, `1` HTTP / config / usage error.
 
