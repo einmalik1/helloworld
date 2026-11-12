@@ -3,10 +3,13 @@ import { ConfigService } from "@nestjs/config";
 import { Interval } from "@nestjs/schedule";
 
 import type { AppConfig } from "../configuration.js";
-import { JOB_TYPE } from "./job.constants.js";
 import { JobsRepository } from "./jobs.repository.js";
 
-/** Interval drain of transactional outbox rows (AGE/Typesense handlers land later). */
+/**
+ * Observes generic `outbox` rows without claiming them.
+ * Projection uses `search_sync_outbox` (ProjectionService); marking generic rows
+ * processed without AGE/Typesense handlers was a silent drop (MLK-602).
+ */
 @Injectable()
 export class OutboxDrainJob {
   private readonly logger = new Logger(OutboxDrainJob.name);
@@ -30,22 +33,9 @@ export class OutboxDrainJob {
         return;
       }
 
-      const run = await this.jobs.createJob({
-        type: JOB_TYPE.outboxDrain,
-        payload: { count: pending.length },
-      });
-      await this.jobs.markRunning(run.id);
-
-      try {
-        // Projection engines (AGE / Typesense) are wired in a later change.
-        await this.jobs.markOutboxProcessed(pending.map((row) => row.id));
-        await this.jobs.markSucceeded(run.id);
-        this.logger.log(`Drained ${pending.length} outbox row(s)`);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "outbox drain failed";
-        await this.jobs.markFailed(run.id, message);
-        throw err;
-      }
+      this.logger.warn(
+        `Leaving ${pending.length} generic outbox row(s) unprocessed — no handlers registered; domain sync uses search_sync_outbox`,
+      );
     } finally {
       this.running = false;
     }
