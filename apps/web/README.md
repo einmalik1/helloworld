@@ -8,9 +8,10 @@ React web frontend as its own HTTP service (Vite).
 | -------------- | --------------------------------------------------------------------------------------------------------------- |
 | UI library     | React **19.3**                                                                                                  |
 | Bundler        | **Vite 8.3.4** (+ `@vitejs/plugin-react`) — dev port **`5173`** (`WEB_PORT` / `WEB_ORIGIN`)                     |
-| UI kit         | **shadcn/ui** on **Tailwind CSS 4.3.3**                                                                         |
+| UI kit         | **shadcn/ui** on **Tailwind CSS 4.3.3**; shared presentational pieces from `@helloworld/ui`                      |
 | Tours          | driver.js **1.9.0**                                                                                             |
 | API usage      | Cookie session to Better Auth on `apps/api`; optional Orval `packages/api-client` — **not** `packages/terminal` |
+| API keys       | Signed-in settings UI (`ApiKeySettings`) issues/revokes Better Auth keys for CLI/TUI                           |
 | Graph explorer | **Cytoscape.js** — [`graph.html`](./graph.html) viz over `GET /graph/related` / `GET /graph/subgraph` JSON only |
 | Storybook      | Sibling app uses `@storybook/react-vite` (same Vite line)                                                       |
 | Logging        | Web client rules (`console` / UI) — no Pino in the browser                                                      |

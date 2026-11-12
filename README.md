@@ -49,7 +49,7 @@ System-wide tests (unit tests live next to code under `apps/` / `packages/` / `t
 
 | Suite | Path | Focus |
 |---|---|---|
-| **e2e** | `tests/e2e` | Web UI including screenshots and HTML baselines |
+| **e2e** | `tests/e2e` | Playwright web UI smoke (`@playwright/test`); VRT/screenshots deferred |
 | **api** | `tests/api` | REST interface |
 | **mcp** | `tests/mcp` | MCP protocol and tools |
 | **worker** | `tests/worker` | Jobs and side effects |
