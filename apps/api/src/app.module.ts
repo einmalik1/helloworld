@@ -10,7 +10,9 @@ import {
 
 import { envSchema } from "./configuration.js";
 import { GraphModule } from "./graph/graph.module.js";
+import { GreetingModule } from "./greeting/greeting.module.js";
 import { ImpexModule } from "./impex/impex.module.js";
+import { PersonModule } from "./person/person.module.js";
 import { SearchModule } from "./search/search.module.js";
 
 @Module({
@@ -23,7 +25,10 @@ import { SearchModule } from "./search/search.module.js";
     createLoggerModule(),
     GraphModule,
     SearchModule,
+    PersonModule,
+    GreetingModule,
     ImpexModule,
   ],
 })
 export class AppModule {}
+

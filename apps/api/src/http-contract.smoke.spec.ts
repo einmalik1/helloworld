@@ -68,13 +68,27 @@ describe("API HTTP contract smoke", () => {
     await app?.close();
   });
 
-  it("composes AppModule (config/auth/db/health/logger/graph/search/impex)", () => {
+  it("composes AppModule (config/auth/db/health/logger/graph/search/person/greeting/impex)", () => {
     expect(app).toBeTruthy();
   });
 
   it("registers graph and search routes (auth required)", async () => {
     await agent.get("/graph/related").expect(401);
     await agent.get("/search").query({ q: "hi" }).expect(401);
+  });
+
+  it("requires auth for person and greeting routes", async () => {
+    await agent.get("/person").expect(401);
+    await agent.post("/person").send({ display_name: "Ada", email: "ada@example.com" }).expect(401);
+    await agent.get("/greeting").expect(401);
+    await agent
+      .post("/greeting")
+      .send({
+        author_id: "00000000-0000-4000-8000-000000000001",
+        channel_id: "00000000-0000-4000-8000-000000000002",
+        message: "hello",
+      })
+      .expect(401);
   });
 
   it("requires auth for impex routes", async () => {
