@@ -23,7 +23,7 @@ Keep secondary indexes current after Postgres writes. Api remains SoT; this proc
 | ------------ | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | Outbox drain | `@Interval(15_000)` via `ProjectionService`             | Drain `search_sync_outbox`; apply AGE + Typesense mutations                    |
 | Rebuild      | `@Cron("0 3 * * *")` + `ProjectionService.rebuildNow()` | Full re-project domain → AGE graph + Typesense collection `helloworld`         |
-| Generic outbox | `@Interval(5_000)` via `OutboxDrainJob`               | Drain platform `outbox` rows; records durable `job` rows                       |
+| Generic outbox | `@Interval(5_000)` via `OutboxDrainJob`               | Observe platform `outbox` only — **no** claim/process handlers in v1; domain sync uses `search_sync_outbox` (silent drain removed, MLK-602) |
 | Impex          | `@Interval(5_000)` via `ImpexJob`                       | Claim `impex.import` / `impex.export` jobs; person JSON ↔ S3 + `impex_run`     |
 
 | Concern        | Contract                                                                                                                     |
@@ -68,8 +68,8 @@ Listen: `WORKER_HOST` / `WORKER_PORT` (defaults `0.0.0.0` / `3001`). Concurrency
 
 | Script | Role |
 |---|---|
-| `pnpm --filter worker dev` | `tsx watch` Nest bootstrap |
-| `pnpm --filter worker build` | `tsc` → `dist/` |
+| `pnpm --filter worker dev` | `nest start --watch` |
+| `pnpm --filter worker build` | `nest build` → `dist/` |
 | `pnpm --filter worker typecheck` | `tsc --noEmit` |
 | `pnpm --filter worker smoke` | Nest boot + `/health` + schedule / projection wiring (Vitest) |
 

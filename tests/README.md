@@ -4,7 +4,7 @@ System-wide tests against running services and tools. Unit tests live next to co
 
 | Suite  | Path           | Focus                                               |
 | ------ | -------------- | --------------------------------------------------- |
-| e2e    | `tests/e2e`    | Web UI, screenshots and HTML baselines (checked in) |
+| e2e    | `tests/e2e`    | Playwright web UI smoke; VRT/screenshots deferred   |
 | api    | `tests/api`    | REST interface                                      |
 | mcp    | `tests/mcp`    | MCP protocol and tools                              |
 | worker | `tests/worker` | Jobs and side effects                               |

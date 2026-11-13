@@ -25,6 +25,7 @@ spark/       # repo profile, agent roles, Coolify QA/Prod
 | **web** | `apps/web` | React web frontend |
 | **api** | `apps/api` | REST backend for persistence and domain API |
 | **worker** | `apps/worker` | Background jobs and automation |
+| **chat** | `apps/chat` | LLM + streaming; web is client only — [ADR 0008](openspec/decisions/0008-chat-service-app.md) |
 | **docs** | `apps/docs` | Docs site: Fumadocs on Next.js; publishes `openspec/` |
 | **storybook** | `apps/storybook` | Deployed UI component gallery |
 | **mcp** | `apps/mcp` | MCP server for agent integration |
@@ -49,7 +50,7 @@ System-wide tests (unit tests live next to code under `apps/` / `packages/` / `t
 
 | Suite | Path | Focus |
 |---|---|---|
-| **e2e** | `tests/e2e` | Web UI including screenshots and HTML baselines |
+| **e2e** | `tests/e2e` | Playwright web UI smoke (`@playwright/test`); VRT/screenshots deferred |
 | **api** | `tests/api` | REST interface |
 | **mcp** | `tests/mcp` | MCP protocol and tools |
 | **worker** | `tests/worker` | Jobs and side effects |
@@ -82,7 +83,16 @@ Key Spark paths: `spark/repo-profile.yaml`, `spark/agents/` (roles + `common/`),
 
 ### Shared (`packages/`)
 
-Shared libraries for apps and tools. Subpackages are added as needed.
+Shared libraries for apps and tools.
+
+| Package | Path | Role |
+|---|---|---|
+| **types** | `packages/types` | Domain Zod schemas + shared errors |
+| **modules** | `packages/modules` | Nest infra (config, DB, auth, health, …) |
+| **api-client** | `packages/api-client` | Orval + ky typed REST client |
+| **terminal** | `packages/terminal` | CLI/TUI toolkit (config / log / tty) |
+| **ui** | `packages/ui` | Presentational React SoT for web + Storybook |
+| **config** | `packages/config` | Shared tsconfig / vitest / oxlint |
 
 ## Local development
 
@@ -167,4 +177,4 @@ pnpm run --filter web dev
 | Web | `apps/web` | Frontend; needs a running `api` for full flows |
 | E2E | `tests/e2e` | Needs `web` + `api` (+ infra) up — see `tests/README.md` |
 
-Other surfaces (`worker`, `mcp`, `docs`, `storybook`, `cli`, `tui`) are optional for the basic UI loop — see each component README.
+Other surfaces (`worker`, `chat`, `mcp`, `docs`, `storybook`, `cli`, `tui`) are optional for the basic UI loop — see each component README.
