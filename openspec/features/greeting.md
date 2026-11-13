@@ -14,4 +14,5 @@ A hello message posted by a person on a channel.
 ## Acceptance
 
 1. Create greeting only with existing author and channel.
-2. CRUD + channel-filtered list once API is implemented.
+2. CRUD via `apps/api` (`GreetingModule` — `GET|POST /greeting`, `GET|PATCH|DELETE /greeting/:id`); list filterable by `channel_id`.
+3. Writes enqueue `search_sync_outbox` for worker AGE/Typesense projection.

@@ -13,5 +13,6 @@ Someone who authors greetings or reacts to them.
 
 ## Acceptance
 
-1. Create/list/get/patch/delete person through the API once implemented.
+1. Create/list/get/patch/delete person through `apps/api` (`PersonModule` — `GET|POST /person`, `GET|PATCH|DELETE /person/:id`).
 2. Duplicate email is rejected.
+3. Writes enqueue `search_sync_outbox` for worker AGE/Typesense projection.

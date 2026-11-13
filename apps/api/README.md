@@ -4,7 +4,7 @@ REST backend for persistence and domain API. Data via Postgres; files via S3. Au
 
 Stack inventory and Nest package versions: [`openspec/tech-stack.md`](../../openspec/tech-stack.md). Shared Nest infra: [`packages/modules`](../../packages/modules/README.md).
 
-**Build:** `tsc` → `dist/` (`pnpm --filter api build`); Dev: `tsx watch src/main.ts` (`pnpm --filter api dev`). Nest CLI is not used — TypeScript **7.0** does not expose the programmatic compiler API Nest CLI requires (expected back in 7.1). Workspace libs build first (`tsc` → `dist/`). Contract: [`openspec/tech-stack.md` — Build / emit](../../openspec/tech-stack.md#build--emit-contract).
+**Build:** `nest build` → `dist/` (`pnpm --filter api build`); Dev: `nest start --watch` (`pnpm --filter api dev`). Workspace libs build first (`tsc` → `dist/`). Contract: [`openspec/tech-stack.md` — Build / emit](../../openspec/tech-stack.md#build--emit-contract).
 
 ## Deploy
 
@@ -169,6 +169,15 @@ const listQuerySchema = z.object({
 | Update  | `PATCH /resource/:id` = partial (`Update = Create.partial()` via generator)         |
 | Delete  | `DELETE /resource/:id` → **204**                                                    |
 | IDs     | **UUID** (`gen_random_uuid` in Postgres) unless a product feature requires shortIds |
+
+### Domain modules (wired)
+
+| Module | Paths | Spec | Notes |
+| --- | --- | --- | --- |
+| `PersonModule` | `/person`, `/person/:id` | [`openspec/features/person.md`](../../openspec/features/person.md) | Full CRUD; writes enqueue `search_sync_outbox` |
+| `GreetingModule` | `/greeting`, `/greeting/:id` | [`openspec/features/greeting.md`](../../openspec/features/greeting.md) | Full CRUD; list filter `channel_id`; writes enqueue `search_sync_outbox` |
+| `ImpexModule` | impex run routes | [`openspec/features/impex.md`](../../openspec/features/impex.md) | Import/export runs |
+| `GraphModule` / `SearchModule` | `/graph/*`, `/search` | [Retrieve / search facade](#retrieve--search-facade) | Secondary indexes only |
 
 ### Fixed infrastructure routes
 
